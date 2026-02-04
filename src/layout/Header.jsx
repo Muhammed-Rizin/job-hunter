@@ -14,34 +14,21 @@ const Header = () => {
   let title = "Dashboard";
   let subtitle = "Overview";
 
-  switch (location.pathname) {
-    case "/":
-      title = profile?.name ? `Good Morning, ${profile.name.split(" ")[0]}` : "Dashboard";
-      subtitle = "Your Activity Overview";
-      break;
-
-    case "/tracker":
-      title = "Applications";
-      subtitle = "Pipeline Status";
-      break;
-
-    case "/mail":
-      title = "Mail Wizard";
-      subtitle = "Compose & Send";
-      break;
-
-    case "/notes":
-      title = "Notes";
-      subtitle = "Ideas & Prep";
-      break;
-
-    case "/profile":
-      title = "Profile";
-      subtitle = "Settings & Goal";
-      break;
-
-    default:
-      break;
+  if (location.pathname === "/") {
+    title = profile?.name ? `Good Morning, ${profile.name.split(" ")[0]}` : "Dashboard";
+    subtitle = "Your Activity Overview";
+  } else if (location.pathname.startsWith("/tracker")) {
+    title = "Applications";
+    subtitle = "Pipeline Status";
+  } else if (location.pathname.startsWith("/mail")) {
+    title = "Mail Wizard";
+    subtitle = "Compose & Send";
+  } else if (location.pathname.startsWith("/notes")) {
+    title = "Notes";
+    subtitle = "Ideas & Prep";
+  } else if (location.pathname.startsWith("/profile")) {
+    title = "Profile";
+    subtitle = "Settings & Goal";
   }
 
   const currentDate = new Date().toLocaleDateString("en-US", {

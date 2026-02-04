@@ -2,24 +2,27 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import MainLayout from "./layout/MainLayout";
 import { Toaster } from "react-hot-toast";
-import { useTheme } from "./context";
 
 import AuthScreen from "./pages/auth";
 import Dashboard from "./pages/Dashboard";
-// import DashboardView from "./pages/dashboard/DashboardView";
-// import TrackerView from "./pages/tracker/TrackerView";
-// import MailWizard from "./pages/mail/MailWizard";
-// import NotesView from "./pages/notes/NotesView";
-// import ProfileView from "./pages/profile/ProfileView";
+import Tracker from "./pages/tracker";
+import MailWizard from "./pages/mail";
+import MailMenu from "./pages/mail/Menu";
+import MailManual from "./pages/mail/Manual";
+import MailTemplateList from "./pages/mail/TemplateList";
+import MailTemplateCreate from "./pages/mail/TemplateCreate";
+import MailTemplateFill from "./pages/mail/TemplateFill";
+import MailTemplatePreview from "./pages/mail/TemplatePreview";
+import Notes from "./pages/notes";
+import Profile from "./pages/profile";
 
 const App = () => {
-  const { isDark } = useTheme();
   return (
     <>
       <Toaster
         position="top-center"
         toastOptions={{
-          style: { background: isDark ? "#333" : "#fff", color: isDark ? "#fff" : "#000" },
+          className: "bg-white text-black dark:bg-zinc-900 dark:text-white",
         }}
       />
       <Routes>
@@ -27,10 +30,17 @@ const App = () => {
 
         <Route element={<MainLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path="tracker" element={<Test />} />
-          <Route path="mail" element={<Test />} />
-          <Route path="notes" element={<Test />} />
-          <Route path="profile" element={<Test />} />
+          <Route path="tracker" element={<Tracker />} />
+          <Route path="mail" element={<MailWizard />}>
+            <Route index element={<MailMenu />} />
+            <Route path="manual" element={<MailManual />} />
+            <Route path="templates" element={<MailTemplateList />} />
+            <Route path="templates/new" element={<MailTemplateCreate />} />
+            <Route path="templates/:templateId" element={<MailTemplateFill />} />
+            <Route path="templates/:templateId/preview" element={<MailTemplatePreview />} />
+          </Route>
+          <Route path="notes" element={<Notes />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -40,7 +50,3 @@ const App = () => {
 };
 
 export default App;
-
-const Test = () => {
-  return <hi>Auth</hi>;
-};

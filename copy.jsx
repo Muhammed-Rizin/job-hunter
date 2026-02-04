@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Toaster, toast } from "react-hot-toast";
 import {
   LayoutGrid,
   Briefcase,
@@ -13,6 +14,7 @@ import {
   Sun,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Calendar,
   Clock,
   Trash2,
@@ -44,6 +46,12 @@ import {
   Bell,
   Activity,
   Send,
+  Wallet,
+  Loader2,
+  Menu,
+  Zap,
+  Clock3,
+  FileEdit,
 } from "lucide-react";
 
 // --- 1. UTILITY & CONSTANTS ---
@@ -155,6 +163,22 @@ const DUMMY_APPS = [
     source: "mail",
     appliedDate: "2025-10-28",
   },
+  {
+    id: 9,
+    company: "Stripe",
+    role: "Full Stack",
+    status: "applied",
+    source: "linkedin",
+    appliedDate: "2025-10-29",
+  },
+  {
+    id: 10,
+    company: "Uber",
+    role: "Mobile Dev",
+    status: "hr_contact",
+    source: "indeed",
+    appliedDate: "2025-10-30",
+  },
 ];
 
 // --- 2. STYLES & ANIMATIONS ---
@@ -235,14 +259,24 @@ const NavButton = ({ id, icon: Icon, label, active, setActive, colors }) => (
   </button>
 );
 
-const MobileNavBtn = ({ id, icon: Icon, active, setActive, colors }) => (
-  <button
-    onClick={() => setActive(id)}
-    className={`p-3 rounded-full transition-all active:scale-90 ${active === id ? (colors.bg === "bg-black text-white" ? "bg-zinc-800 text-white" : "bg-gray-100 text-black") : "text-gray-400"}`}
-  >
-    <Icon size={20} />
-  </button>
-);
+const MobileNavBtn = ({ id, icon: Icon, active, setActive, colors, isDark }) => {
+  const isActive = active === id;
+  return (
+    <button
+      onClick={() => setActive(id)}
+      className={`relative p-3 rounded-full transition-all ${isActive ? "text-current" : "text-gray-400"}`}
+    >
+      {isActive && (
+        <motion.div
+          layoutId="active-nav-bg"
+          className={`absolute inset-0 rounded-full ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        />
+      )}
+      <Icon size={20} className="relative z-10" />
+    </button>
+  );
+};
 
 const StatWidget = ({ title, value, icon: Icon, colors, isDark, accent }) => (
   <motion.div
@@ -277,6 +311,107 @@ const StatusSelect = ({ status, onChange }) => (
   </select>
 );
 
+// Custom Select Component
+const Select = ({
+  value,
+  onChange,
+  options = [],
+  placeholder = "Select...",
+  variant = "boxed",
+  className = "",
+  optionClassName = "",
+  isDark = false,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const selected = options.find((o) => o.id === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (opt) => {
+    onChange(opt.id);
+    setIsOpen(false);
+  };
+
+  const variants = {
+    boxed: `bg-white dark:bg-black border ${isDark ? "border-zinc-800" : "border-slate-200"} rounded-xl`,
+    underline: "bg-transparent border-b border-slate-300 dark:border-neutral-700 rounded-none",
+  };
+
+  return (
+    <div ref={containerRef} className={`relative ${className}`}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center justify-between gap-2 p-3 h-full cursor-pointer transition-colors ${variants[variant]}`}
+      >
+        <div className="flex items-center gap-2 overflow-hidden">
+          {selected?.icon &&
+            React.createElement(selected.icon, { size: 16, className: "opacity-60 shrink-0" })}
+          <span
+            className={`text-sm font-bold tracking-wide truncate ${!selected ? "text-gray-400" : isDark ? "text-white" : "text-gray-900"}`}
+          >
+            {selected?.label || placeholder}
+          </span>
+        </div>
+        <ChevronDown
+          size={16}
+          className={`opacity-40 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: 0.15 }}
+            className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl border z-50 overflow-hidden ${isDark ? "bg-black border-zinc-800" : "bg-white border-slate-200"}`}
+          >
+            <div className="max-h-60 overflow-y-auto no-scrollbar p-1">
+              {options.map((opt) => {
+                const isSelected = opt.id === value;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => handleSelect(opt)}
+                    className={`px-3 py-2.5 rounded-lg text-sm cursor-pointer flex items-center gap-3 transition-colors ${
+                      isSelected
+                        ? isDark
+                          ? "bg-zinc-800 text-white"
+                          : "bg-slate-100 text-slate-900"
+                        : isDark
+                          ? "text-gray-400 hover:bg-zinc-900 hover:text-white"
+                          : "text-gray-600 hover:bg-slate-50 hover:text-slate-900"
+                    } ${optionClassName}`}
+                  >
+                    {opt.icon &&
+                      React.createElement(opt.icon, {
+                        size: 16,
+                        className: isSelected ? "opacity-100" : "opacity-60",
+                      })}
+                    <span className="font-bold tracking-wide">{opt.label}</span>
+                    {isSelected && <Check size={14} className="ml-auto opacity-60" />}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const TrackerCard = ({ app, colors, isDark, setApplications }) => (
   <motion.div
     variants={itemVariants}
@@ -285,7 +420,7 @@ const TrackerCard = ({ app, colors, isDark, setApplications }) => (
     <div className="flex justify-between items-center mb-3">
       <div className="flex items-center gap-3 overflow-hidden">
         <div
-          className={`p-2.5 rounded-full flex items-center justify-center shrink-0 border ${isDark ? "bg-zinc-800 border-zinc-700" : "bg-blue-50 border-blue-100 shadow-sm text-blue-600"}`}
+          className={`p-2.5 rounded-full flex items-center justify-center shrink-0 border ${isDark ? "bg-zinc-800 border-zinc-700 text-white" : "bg-blue-50 border-blue-100 shadow-sm text-blue-600"}`}
         >
           <span className="font-bold text-sm">{app.company.charAt(0)}</span>
         </div>
@@ -299,7 +434,12 @@ const TrackerCard = ({ app, colors, isDark, setApplications }) => (
         </div>
       </div>
       <button
-        onClick={() => setApplications((prev) => prev.filter((p) => p.id !== app.id))}
+        onClick={() => {
+          if (confirm("Delete this application?")) {
+            setApplications((prev) => prev.filter((p) => p.id !== app.id));
+            toast.success("Application removed");
+          }
+        }}
         className="text-gray-400 hover:text-red-500 transition-colors p-1"
       >
         <Trash2 size={16} />
@@ -309,9 +449,12 @@ const TrackerCard = ({ app, colors, isDark, setApplications }) => (
       <div className="flex-1 mr-4">
         <StatusSelect
           status={app.status}
-          onChange={(v) =>
-            setApplications((prev) => prev.map((p) => (p.id === app.id ? { ...p, status: v } : p)))
-          }
+          onChange={(v) => {
+            setApplications((prev) => prev.map((p) => (p.id === app.id ? { ...p, status: v } : p)));
+            toast.success(
+              `Status updated to ${APPLICATION_STATUSES.find((s) => s.id === v).label}`,
+            );
+          }}
         />
       </div>
       <div className="flex items-center gap-1 opacity-50 text-[10px] font-mono font-bold">
@@ -322,10 +465,9 @@ const TrackerCard = ({ app, colors, isDark, setApplications }) => (
   </motion.div>
 );
 
-// --- REVISED GMAIL PREVIEW WITH BETTER PADDING & SEND BUTTON ---
 const GmailPreview = ({ content, isDark, profile, handleSend }) => (
   <div
-    className={`rounded-2xl overflow-hidden shadow-2xl border flex flex-col h-full max-h-[85vh] md:max-h-full ${isDark ? "border-zinc-800" : "border-gray-200"}`}
+    className={`rounded-2xl overflow-hidden shadow-2xl border flex flex-col h-full max-h-[85vh] md:max-h-full ${isDark ? "border-zinc-700" : "border-gray-200"}`}
   >
     <div
       className={`px-4 py-3 flex items-center justify-between shrink-0 ${isDark ? "bg-[#202124] text-gray-200" : "bg-[#f2f2f2] text-gray-700"}`}
@@ -340,14 +482,14 @@ const GmailPreview = ({ content, isDark, profile, handleSend }) => (
     >
       <div className="flex flex-col gap-2 mb-6">
         <div className="flex items-center border-b border-gray-500/20 pb-2">
-          <span className="text-xs font-bold opacity-50 w-16 uppercase tracking-wider">To</span>
-          <span className="text-sm">recruiter@company.com</span>
+          <span className="text-[10px] uppercase font-bold opacity-50 w-16 tracking-wider">To</span>
+          <span className="text-sm font-medium">recruiter@company.com</span>
         </div>
         <div className="flex items-center border-b border-gray-500/20 pb-2">
-          <span className="text-xs font-bold opacity-50 w-16 uppercase tracking-wider">
+          <span className="text-[10px] uppercase font-bold opacity-50 w-16 tracking-wider">
             Subject
           </span>
-          <span className="text-sm font-medium truncate">{content.sub || "(No Subject)"}</span>
+          <span className="text-sm font-bold truncate">{content.sub || "(No Subject)"}</span>
         </div>
       </div>
 
@@ -355,7 +497,6 @@ const GmailPreview = ({ content, isDark, profile, handleSend }) => (
         {content.body}
       </div>
 
-      {/* Resume Attachment Card */}
       {profile.resumeName && (
         <div
           className={`mt-auto mb-4 flex items-center gap-3 p-3 rounded-xl border w-full max-w-sm ${isDark ? "bg-zinc-800/50 border-zinc-700" : "bg-gray-50 border-gray-200"}`}
@@ -393,10 +534,95 @@ const GmailPreview = ({ content, isDark, profile, handleSend }) => (
   </div>
 );
 
-// --- 4. VIEW COMPONENTS ---
+// --- 4. DESKTOP HEADER & VIEWS ---
+
+const DesktopHeader = ({ activeTab, profile, theme, setTheme, isDark, colors, setActive }) => {
+  let title = "Dashboard";
+  let subtitle = "Overview";
+
+  if (activeTab === "dashboard") {
+    title = `Good Morning, ${profile.name.split(" ")[0]}`;
+    subtitle = "Your Activity Overview";
+  } else if (activeTab === "tracker") {
+    title = "Applications";
+    subtitle = "Pipeline Status";
+  } else if (activeTab === "mail") {
+    title = "Mail Wizard";
+    subtitle = "Compose & Send";
+  } else if (activeTab === "notes") {
+    title = "Notes";
+    subtitle = "Ideas & Prep";
+  } else if (activeTab === "profile") {
+    title = "Profile";
+    subtitle = "Settings & Goal";
+  }
+
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="hidden md:flex justify-between items-end mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800"
+    >
+      <div>
+        <h2
+          className={`text-3xl font-extrabold tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}
+        >
+          {title}
+        </h2>
+        <p
+          className={`text-xs font-bold uppercase tracking-widest opacity-50 mt-1 flex items-center gap-2`}
+        >
+          {subtitle} <span className="w-1 h-1 rounded-full bg-current" /> {currentDate}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setTheme(isDark ? "clean" : "nothing")}
+          className={`p-2.5 rounded-xl border transition-colors ${colors.card} hover:bg-gray-100 dark:hover:bg-zinc-800`}
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        <div className={`p-2.5 rounded-xl border ${colors.card}`}>
+          <Bell size={20} />
+        </div>
+        <div
+          onClick={() => setActive("profile")}
+          className={`flex items-center gap-3 px-3 py-1.5 rounded-xl border cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ${colors.card}`}
+        >
+          <div
+            className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
+          >
+            {profile.name.charAt(0)}
+          </div>
+          <div className="text-left hidden lg:block">
+            <p className="text-xs font-bold">{profile.name}</p>
+            <p className="text-[10px] opacity-50">{profile.title}</p>
+          </div>
+          <ChevronDown size={14} className="opacity-40" />
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const CreateTemplateView = ({ onSave, onCancel, colors, isDark }) => {
   const [t, setT] = useState({ name: "", subject: "", body: "" });
+
+  const handleSave = () => {
+    if (!t.name || !t.body) {
+      toast.error("Please fill required fields");
+      return;
+    }
+    onSave(t);
+    toast.success("Template saved!");
+  };
+
   return (
     <motion.div variants={itemVariants} className="max-w-xl mx-auto px-4 md:px-0">
       <div className="flex items-center mb-4">
@@ -429,9 +655,7 @@ const CreateTemplateView = ({ onSave, onCancel, colors, isDark }) => {
           />
         </div>
         <button
-          onClick={() => {
-            if (t.name) onSave(t);
-          }}
+          onClick={handleSave}
           className={`w-full py-3 rounded-xl font-bold text-sm ${colors.primary}`}
         >
           Save Template
@@ -451,39 +675,34 @@ const DashboardView = ({ applications, goal, colors, isDark, setActive, profile 
     (a) => a.appliedDate === new Date().toISOString().split("T")[0],
   ).length;
 
-  // Simulated stats
   const upcomingInterviews = applications
     .filter((a) => ["interview", "technical"].includes(a.status))
     .slice(0, 2);
 
   return (
     <div className="space-y-4 px-4 md:px-0 pb-10">
-      <motion.div
-        variants={itemVariants}
-        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2"
-      >
+      {/* Mobile-Only Header Area */}
+      <div className="md:hidden flex flex-col justify-between items-start gap-4 mb-2">
         <div>
-          <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight`}>
+          <h2 className="text-xl font-extrabold tracking-tight">
             Good Morning, {profile.name.split(" ")[0]}
           </h2>
-          <p className={`text-xs md:text-sm font-bold uppercase tracking-widest opacity-50`}>
-            Here's your job search overview
+          <p className="text-[10px] uppercase tracking-widest opacity-50 font-bold">
+            Your Activity Overview
           </p>
         </div>
         <button
           onClick={() => setActive("mail")}
-          className={`w-full md:w-auto px-6 py-3 rounded-xl font-bold flex items-center justify-center shadow-lg transition-transform active:scale-95 text-sm ${colors.primary}`}
+          className={`w-full px-5 py-2.5 rounded-xl font-bold flex items-center justify-center shadow-lg active:scale-95 text-sm ${colors.primary}`}
         >
           <Plus className="mr-2" size={18} /> Apply Now
         </button>
-      </motion.div>
+      </div>
 
-      {/* Main Stats Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Goal Card */}
         <motion.div
           variants={itemVariants}
-          className={`p-6 rounded-3xl border shadow-sm relative overflow-hidden flex flex-col justify-between h-auto min-h-[220px] ${colors.card}`}
+          className={`p-5 rounded-3xl border shadow-sm relative overflow-hidden flex flex-col justify-between h-auto min-h-[200px] ${colors.card}`}
         >
           <div className="flex justify-between items-start z-10 relative">
             <div>
@@ -499,7 +718,7 @@ const DashboardView = ({ applications, goal, colors, isDark, setActive, profile 
             </div>
           </div>
           <div className="flex items-end mt-4 relative z-10">
-            <div className="relative w-24 h-24 mr-6 shrink-0">
+            <div className="relative w-20 h-20 mr-4 shrink-0">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
                 <circle
                   cx="64"
@@ -524,19 +743,17 @@ const DashboardView = ({ applications, goal, colors, isDark, setActive, profile 
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="text-xl font-mono font-bold">{Math.round(progress)}%</span>
+                <span className="text-lg font-mono font-bold">{Math.round(progress)}%</span>
               </div>
             </div>
             <div>
-              <p className="text-3xl font-mono font-bold tracking-tighter">{applications.length}</p>
+              <p className="text-2xl font-mono font-bold">{applications.length}</p>
               <p className={`text-[10px] uppercase tracking-widest opacity-50`}>
                 Total Applications
               </p>
             </div>
           </div>
         </motion.div>
-
-        {/* Quick Stats */}
         <div className="lg:col-span-2 grid grid-cols-2 gap-3 md:gap-4">
           <StatWidget
             title="Applied Today"
@@ -572,7 +789,6 @@ const DashboardView = ({ applications, goal, colors, isDark, setActive, profile 
 
       {/* Expanded Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-        {/* Upcoming Interviews Card */}
         <motion.div
           variants={itemVariants}
           className={`p-5 rounded-2xl border shadow-sm ${colors.card}`}
@@ -613,7 +829,6 @@ const DashboardView = ({ applications, goal, colors, isDark, setActive, profile 
           </div>
         </motion.div>
 
-        {/* Recent Activity List */}
         <motion.div
           variants={itemVariants}
           className={`p-5 rounded-2xl border shadow-sm ${colors.card}`}
@@ -675,7 +890,8 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
   return (
     <div className="px-4 md:px-0 h-full flex flex-col">
       <motion.div variants={itemVariants} className="mb-4 flex flex-col gap-3">
-        <div className="flex justify-between items-center">
+        {/* Desktop Header handles main title */}
+        <div className="md:hidden flex justify-between items-center">
           <h2 className="text-xl md:text-3xl font-extrabold tracking-tight">Applications</h2>
         </div>
 
@@ -690,32 +906,28 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
               onChange={(e) => setFilter(e.target.value)}
             />
           </div>
-          <div className="flex gap-2">
-            <select
-              className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} flex-1`}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              {APPLICATION_STATUSES.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-            <select
-              className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} flex-1`}
-              value={sourceFilter}
-              onChange={(e) => setSourceFilter(e.target.value)}
-            >
-              {PLATFORMS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+          <div className="flex gap-2 w-full md:w-auto">
+            <div className="flex-1 md:w-40">
+              <Select
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={APPLICATION_STATUSES}
+                isDark={isDark}
+                placeholder="Status"
+              />
+            </div>
+            <div className="flex-1 md:w-40">
+              <Select
+                value={sourceFilter}
+                onChange={setSourceFilter}
+                options={PLATFORMS}
+                isDark={isDark}
+                placeholder="Source"
+              />
+            </div>
             <button
               onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
-              className={`p-2.5 rounded-xl border flex items-center justify-center ${colors.card}`}
+              className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${colors.card}`}
             >
               <SortDesc
                 size={18}
@@ -857,6 +1069,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
       notes: `Emailed: ${c.sub}`,
       mailBody: c.body,
     });
+    toast.success("Application Sent!");
+    setView("MENU");
   };
 
   if (isCreating)
@@ -872,46 +1086,96 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
       />
     );
 
+  // 1. MENU - Redesigned for Visual Appeal
   if (view === "MENU") {
     return (
-      <motion.div variants={itemVariants} className="max-w-2xl mx-auto px-4 md:px-0">
-        <h2 className="text-xl md:text-3xl font-extrabold mb-6">How are you applying?</h2>
-        <div className="grid grid-cols-1 gap-3">
+      <motion.div variants={itemVariants} className="max-w-4xl mx-auto px-4 md:px-0 pt-4">
+        {/* Mobile Header Title Only */}
+        <div className="md:hidden mb-6">
+          <h2 className="text-xl font-bold">Mail Wizard</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* Primary Action: Compose via Template */}
           <div
             onClick={() => setView("LIST")}
-            className={`p-5 rounded-2xl cursor-pointer border hover:border-current transition-all ${colors.card}`}
+            className={`relative p-6 rounded-3xl cursor-pointer border overflow-hidden group transition-all hover:shadow-lg ${colors.card} h-48 flex flex-col justify-between`}
           >
-            <div className="flex items-center gap-4">
-              <div
-                className={`p-3 rounded-xl flex items-center justify-center ${isDark ? "bg-black" : "bg-blue-50 text-blue-600"}`}
-              >
-                <LayoutTemplate size={20} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold tracking-wide">Use Template</h3>
-                <p className="text-[10px] uppercase tracking-widest opacity-50">
-                  Generate email from templates
-                </p>
-              </div>
+            <div
+              className={`absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 rotate-12 ${isDark ? "bg-white" : "bg-black"}`}
+            >
+              <LayoutTemplate size={100} />
+            </div>
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDark ? "bg-blue-500/20 text-blue-400" : "bg-blue-50 text-blue-600"}`}
+            >
+              <LayoutTemplate size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold tracking-tight">Use Template</h3>
+              <p className="text-xs opacity-60 mt-1">
+                Select from your saved cover letters and auto-fill details.
+              </p>
             </div>
           </div>
+
+          {/* Primary Action: Log External */}
           <div
             onClick={() => setView("MANUAL")}
-            className={`p-5 rounded-2xl cursor-pointer border hover:border-current transition-all ${colors.card}`}
+            className={`relative p-6 rounded-3xl cursor-pointer border overflow-hidden group transition-all hover:shadow-lg ${colors.card} h-48 flex flex-col justify-between`}
           >
-            <div className="flex items-center gap-4">
-              <div
-                className={`p-3 rounded-xl flex items-center justify-center ${isDark ? "bg-black" : "bg-green-50 text-green-600"}`}
-              >
-                <Globe size={20} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold tracking-wide">Log External App</h3>
-                <p className="text-[10px] uppercase tracking-widest opacity-50">
-                  LinkedIn, Indeed, Website, etc.
-                </p>
-              </div>
+            <div
+              className={`absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 rotate-12 ${isDark ? "bg-white" : "bg-black"}`}
+            >
+              <Globe size={100} />
             </div>
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDark ? "bg-green-500/20 text-green-400" : "bg-green-50 text-green-600"}`}
+            >
+              <Globe size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold tracking-tight">Log Application</h3>
+              <p className="text-xs opacity-60 mt-1">
+                Record an application submitted via LinkedIn, Indeed, etc.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Grid */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">
+              Quick Actions
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button
+              onClick={() => setIsCreating(true)}
+              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors ${colors.card}`}
+            >
+              <Plus size={20} className="mb-2 opacity-50" />
+              <span className="text-xs font-bold block">New Template</span>
+            </button>
+            <button
+              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors opacity-50 cursor-not-allowed ${colors.card}`}
+            >
+              <Clock3 size={20} className="mb-2 opacity-50" />
+              <span className="text-xs font-bold block">Scheduled</span>
+            </button>
+            <button
+              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors opacity-50 cursor-not-allowed ${colors.card}`}
+            >
+              <Send size={20} className="mb-2 opacity-50" />
+              <span className="text-xs font-bold block">Sent Mails</span>
+            </button>
+            <button
+              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors opacity-50 cursor-not-allowed ${colors.card}`}
+            >
+              <FileEdit size={20} className="mb-2 opacity-50" />
+              <span className="text-xs font-bold block">Drafts</span>
+            </button>
           </div>
         </div>
       </motion.div>
@@ -920,8 +1184,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
 
   if (view === "MANUAL") {
     return (
-      <motion.div variants={itemVariants} className="max-w-xl mx-auto p-4 md:p-0">
-        <div className="flex items-center mb-4">
+      <motion.div variants={itemVariants} className="max-w-xl mx-auto p-4 md:p-0 pt-4">
+        <div className="flex items-center mb-6">
           <button
             onClick={() => setView("MENU")}
             className="mr-3 p-2 rounded-full hover:bg-gray-500/10"
@@ -947,21 +1211,23 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
             <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold block">
               Source
             </label>
-            <select
-              className={`w-full p-3 rounded-lg text-sm font-medium ${colors.input} custom-select`}
+            <Select
               value={manualData.source}
-              onChange={(e) => setManualData({ ...manualData, source: e.target.value })}
-            >
-              {PLATFORMS.filter((p) => p.id !== "all").map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setManualData({ ...manualData, source: val })}
+              options={PLATFORMS.filter((p) => p.id !== "all")}
+              isDark={isDark}
+              placeholder="Select Source"
+            />
           </div>
           <button
-            onClick={() => onSend({ ...manualData, id: Date.now() })}
-            className={`w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider mt-2 ${colors.primary}`}
+            onClick={() => {
+              if (!manualData.company || !manualData.role)
+                return toast.error("Company and Role required");
+              onSend({ ...manualData, id: Date.now() });
+              toast.success("Logged Successfully!");
+              setView("MENU");
+            }}
+            className={`w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider mt-4 ${colors.primary}`}
           >
             Save Record
           </button>
@@ -972,8 +1238,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
 
   if (view === "LIST") {
     return (
-      <motion.div variants={itemVariants} className="max-w-2xl mx-auto px-4 md:px-0">
-        <div className="flex items-center justify-between mb-4">
+      <motion.div variants={itemVariants} className="max-w-2xl mx-auto px-4 md:px-0 pt-4">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <button
               onClick={() => setView("MENU")}
@@ -1009,8 +1275,11 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
   if (view === "FILL") {
     const content = getCompiledContent();
     return (
-      <motion.div variants={itemVariants} className="max-w-6xl mx-auto px-4 md:px-0 h-full pb-20">
-        <div className="flex items-center mb-4">
+      <motion.div
+        variants={itemVariants}
+        className="max-w-6xl mx-auto px-4 md:px-0 h-full pb-20 pt-4"
+      >
+        <div className="flex items-center mb-6">
           <button
             onClick={() => setView("LIST")}
             className="mr-3 p-2 rounded-full hover:bg-gray-500/10"
@@ -1020,10 +1289,10 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
           <h2 className="text-xl font-bold">Details</h2>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-6 h-full">
-          <div className="w-full md:w-1/2 flex flex-col space-y-4">
-            <div className={`p-5 rounded-2xl border ${colors.card}`}>
-              <div className="space-y-3">
+        <div className="flex flex-col md:flex-row gap-8 h-full">
+          <div className="w-full md:w-1/2 flex flex-col space-y-6">
+            <div className={`p-6 rounded-3xl border ${colors.card}`}>
+              <div className="space-y-4">
                 {Object.keys(templateVars).length === 0 && (
                   <p className="opacity-50 text-xs italic">No variables in this template.</p>
                 )}
@@ -1040,7 +1309,7 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
             </div>
             <button
               onClick={() => setView("PREVIEW")}
-              className={`md:hidden w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg ${colors.primary}`}
+              className={`md:hidden w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg ${colors.primary}`}
             >
               Preview
             </button>
@@ -1061,8 +1330,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
   if (view === "PREVIEW") {
     const content = getCompiledContent();
     return (
-      <motion.div variants={itemVariants} className="max-w-3xl mx-auto px-4 md:px-0 pb-32">
-        <div className="flex items-center mb-4">
+      <motion.div variants={itemVariants} className="max-w-3xl mx-auto px-4 md:px-0 pb-32 pt-4">
+        <div className="flex items-center mb-6">
           <button
             onClick={() => setView("FILL")}
             className="mr-3 p-2 rounded-full hover:bg-gray-500/10"
@@ -1071,7 +1340,7 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
           </button>
           <h2 className="text-xl font-bold">Preview</h2>
         </div>
-        <div className="flex flex-col min-h-[50vh]">
+        <div className="flex flex-col min-h-[60vh]">
           <GmailPreview
             content={content}
             isDark={isDark}
@@ -1100,27 +1369,27 @@ const NotesView = ({ notes, setNotes, colors, isDark }) => {
     setNoteForm({ title: "", text: "" });
   };
   return (
-    <div className="grid md:grid-cols-2 gap-8 px-4 md:px-0">
+    <div className="grid md:grid-cols-2 gap-8 px-4 md:px-0 pt-4">
       <motion.div variants={itemVariants}>
-        <h2 className="text-2xl md:text-3xl font-bold mb-4">Quick Notes</h2>
-        <div className={`p-5 rounded-3xl ${colors.card}`}>
+        <h2 className="text-2xl md:text-3xl font-bold mb-6">Quick Notes</h2>
+        <div className={`p-6 rounded-3xl ${colors.card}`}>
           <input
             placeholder="Title"
-            className={`w-full p-2 mb-2 rounded-lg bg-transparent font-bold text-lg outline-none border-b border-gray-500/20 ${isDark ? "text-white" : "text-gray-900"}`}
+            className={`w-full p-2 mb-3 rounded-lg bg-transparent font-bold text-xl outline-none border-b border-gray-500/20 ${isDark ? "text-white" : "text-gray-900"}`}
             value={noteForm.title}
             onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
           />
           <textarea
-            className={`w-full h-40 bg-transparent resize-none outline-none text-base ${isDark ? "text-zinc-300" : "text-gray-600"}`}
+            className={`w-full h-48 bg-transparent resize-none outline-none text-base leading-relaxed ${isDark ? "text-zinc-300" : "text-gray-600"}`}
             placeholder="Type here..."
             value={noteForm.text}
             onChange={(e) => setNoteForm({ ...noteForm, text: e.target.value })}
           ></textarea>
           <button
             onClick={add}
-            className={`w-full py-3 mt-2 rounded-xl font-bold ${colors.primary}`}
+            className={`w-full py-3 mt-4 rounded-xl font-bold text-sm uppercase tracking-wider ${colors.primary}`}
           >
-            Save
+            Save Note
           </button>
         </div>
       </motion.div>
@@ -1129,15 +1398,15 @@ const NotesView = ({ notes, setNotes, colors, isDark }) => {
           <motion.div
             variants={itemVariants}
             key={n.id}
-            className={`p-5 rounded-2xl relative ${colors.card}`}
+            className={`p-6 rounded-3xl relative ${colors.card}`}
           >
-            <h4 className="font-bold mb-2">{n.title}</h4>
-            <p className="whitespace-pre-wrap text-sm opacity-80">{n.text}</p>
+            <h4 className="font-bold text-lg mb-2">{n.title}</h4>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed opacity-80">{n.text}</p>
             <button
               onClick={() => setNotes((ns) => ns.filter((x) => x.id !== n.id))}
-              className="absolute top-4 right-4 text-red-500 opacity-50 hover:opacity-100"
+              className="absolute top-6 right-6 text-red-500 opacity-50 hover:opacity-100"
             >
-              <Trash2 size={16} />
+              <Trash2 size={20} />
             </button>
           </motion.div>
         ))}
@@ -1168,11 +1437,15 @@ const ProfileView = ({ profile, setProfile, goal, setGoal, colors, isDark, onLog
     setProfile(tempProfile);
     setGoal(tempGoal);
     setIsEditing(false);
+    toast.success("Profile Updated");
   };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (file) setTempProfile({ ...tempProfile, resumeName: file.name, resumeLink: "" });
+    if (file) {
+      setTempProfile({ ...tempProfile, resumeName: file.name, resumeLink: "" });
+      toast.success(`Uploaded: ${file.name}`);
+    }
   };
 
   return (
@@ -1415,6 +1688,8 @@ const ProfileView = ({ profile, setProfile, goal, setGoal, colors, isDark, onLog
   );
 };
 
+// --- 5. SCREENS (Defined before App) ---
+
 const LoadingScreen = ({ theme, isDark }) => (
   <div
     className={`fixed inset-0 z-50 flex items-center justify-center ${isDark ? "bg-black text-white" : "bg-white text-black"}`}
@@ -1505,7 +1780,7 @@ const AuthScreen = ({ onLogin, theme, setTheme, isDark, colors }) => {
             {isSignUp ? "Create Account" : "Welcome Back"}
           </h1>
           <p className={`text-xs ${isDark ? "text-zinc-500" : "text-gray-500"}`}>
-            {isSignUp ? "Join JobHunter Pro" : "Login with Mobile"}
+            {isSignUp ? "Join JobHunter Pro" : "Login to continue"}
           </p>
         </div>
 
@@ -1568,81 +1843,6 @@ const AuthScreen = ({ onLogin, theme, setTheme, isDark, colors }) => {
 };
 
 // --- 6. MAIN APP COMPONENT ---
-
-const DesktopHeader = ({ activeTab, profile, theme, setTheme, isDark, colors, setActive }) => {
-  let title = "Dashboard";
-  let subtitle = "Overview";
-
-  if (activeTab === "dashboard") {
-    title = `Good Morning, ${profile.name.split(" ")[0]}`;
-    subtitle = "Your Activity Overview";
-  } else if (activeTab === "tracker") {
-    title = "Applications";
-    subtitle = "Pipeline Status";
-  } else if (activeTab === "mail") {
-    title = "Mail Wizard";
-    subtitle = "Compose & Send";
-  } else if (activeTab === "notes") {
-    title = "Notes";
-    subtitle = "Ideas & Prep";
-  } else if (activeTab === "profile") {
-    title = "Profile";
-    subtitle = "Settings & Goal";
-  }
-
-  const currentDate = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="hidden md:flex justify-between items-end mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800"
-    >
-      <div>
-        <h2
-          className={`text-3xl font-extrabold tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}
-        >
-          {title}
-        </h2>
-        <p
-          className={`text-xs font-bold uppercase tracking-widest opacity-50 mt-1 flex items-center gap-2`}
-        >
-          {subtitle} <span className="w-1 h-1 rounded-full bg-current" /> {currentDate}
-        </p>
-      </div>
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setTheme(isDark ? "clean" : "nothing")}
-          className={`p-2.5 rounded-xl border transition-colors ${colors.card} hover:bg-gray-100 dark:hover:bg-zinc-800`}
-        >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-        <div className={`p-2.5 rounded-xl border ${colors.card}`}>
-          <Bell size={20} />
-        </div>
-        <div
-          onClick={() => setActive("profile")}
-          className={`flex items-center gap-3 px-3 py-1.5 rounded-xl border cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ${colors.card}`}
-        >
-          <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
-          >
-            {profile.name.charAt(0)}
-          </div>
-          <div className="text-left hidden lg:block">
-            <p className="text-xs font-bold">{profile.name}</p>
-            <p className="text-[10px] opacity-50">{profile.title}</p>
-          </div>
-          <ChevronDown size={14} className="opacity-40" />
-        </div>
-      </div>
-    </motion.div>
-  );
-};
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useLocalStorage("jh_auth_v9", false);
@@ -1727,9 +1927,15 @@ export default function App() {
 
   return (
     <div
-      className={`h-dvh ${colors.bg} flex flex-col md:flex-row transition-colors duration-500 overflow-hidden`}
+      className={`h-[100dvh] ${colors.bg} flex flex-col md:flex-row transition-colors duration-500 overflow-hidden`}
     >
       <GlobalStyles theme={theme} />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: { background: isDark ? "#333" : "#fff", color: isDark ? "#fff" : "#000" },
+        }}
+      />
 
       {/* SIDEBAR */}
       <aside
@@ -1844,6 +2050,7 @@ export default function App() {
             colors={colors}
             setActive={setActiveTab}
           />
+
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

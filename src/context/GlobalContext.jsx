@@ -74,6 +74,17 @@ export const GlobalProvider = ({ children }) => {
   const [profile, setProfile] = useLocalStorage("jh_profile_v6", {
     name: "Rizin",
     title: "Full Stack Developer",
+    email: "rizin@example.com",
+    phone: "+1 555 000 1234",
+    noticePeriod: "Immediate",
+    currentCtc: "$80k",
+    expectedCtc: "$120k",
+    resumeName: "Rizin_Resume_2026.pdf",
+    resumeLink: "",
+    location: "Austin, TX",
+    skills: "React, TypeScript, Node.js, Tailwind CSS",
+    summary:
+      "Full stack developer focused on clean UI and scalable systems. Loves shipping fast and iterating with users.",
   });
   const [goal, setGoal] = useLocalStorage("jh_goal_v2", {
     targetDate: new Date(new Date().setMonth(new Date().getMonth() + 2))
@@ -83,7 +94,15 @@ export const GlobalProvider = ({ children }) => {
     targetCount: 50,
   });
   const [applications, setApplications] = useLocalStorage("jh_apps_v3", DUMMY_APPS);
-  const [templates, setTemplates] = useLocalStorage("jh_templates_v2", []);
+  const [templates, setTemplates] = useLocalStorage("jh_templates_v2", [
+    {
+      id: 1,
+      name: "Cold Email (Standard)",
+      subject: "Application for {{Role}} - {{Name}}",
+      body:
+        "Hi {{HiringManager}},\n\nI'm writing to apply for the {{Role}} position at {{Company}}.\n\nI have experience in frontend technologies and I'm passionate about building great products.\n\nNotice Period: {{NoticePeriod}}\nExpected CTC: {{ExpectedCTC}}\n\nResume attached.\n\nBest,\n{{Name}}",
+    },
+  ]);
   const [notes, setNotes] = useLocalStorage("jh_notes_v2", []);
 
   return (
