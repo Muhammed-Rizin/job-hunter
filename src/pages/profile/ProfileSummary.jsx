@@ -1,7 +1,7 @@
 import { ArrowUpRight, Download, FileText } from "lucide-react";
 import { formatDateDisplay } from "../../utils/date";
 
-const ProfileSummary = ({ profile, goal, progress, strokeDashoffset }) => {
+const ProfileSummary = ({ profile, goal, currentCount, progress, strokeDashoffset }) => {
   return (
     <div className="grid md:grid-cols-3 gap-6 border-t border-gray-500/10 pt-6 mt-4">
       <div className="space-y-4">
@@ -53,34 +53,39 @@ const ProfileSummary = ({ profile, goal, progress, strokeDashoffset }) => {
             <p className="text-[10px] uppercase tracking-widest opacity-50 mb-3">
               Deadline: {goal.targetDate ? formatDateDisplay(goal.targetDate) : "Not set"}
             </p>
-            <div className="text-xl font-mono font-bold">{goal.targetCount}</div>
+            <div className="text-3xl font-mono font-bold tracking-tighter">
+              {currentCount}
+            </div>
+            <p className="text-[10px] uppercase tracking-widest opacity-50">
+              Total Applications
+            </p>
           </div>
-          <div className="relative w-16 h-16 sm:mr-2 self-end sm:self-auto">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+          <div className="relative w-24 h-24 sm:mr-2 self-end sm:self-auto">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
               <circle
-                cx="50"
-                cy="50"
-                r="40"
+                cx="64"
+                cy="64"
+                r="56"
                 stroke="currentColor"
-                strokeWidth="8"
+                strokeWidth="12"
                 fill="none"
                 className="text-gray-200 dark:text-zinc-800"
               />
               <circle
-                cx="50"
-                cy="50"
-                r="40"
+                cx="64"
+                cy="64"
+                r="56"
                 stroke="currentColor"
-                strokeWidth="8"
+                strokeWidth="12"
                 fill="none"
                 className="text-black dark:text-red-600"
-                strokeDasharray={251}
+                strokeDasharray={351}
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
               />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center font-bold text-xs">
-              {Math.round(progress)}%
+            <div className="absolute inset-0 flex items-center justify-center flex-col">
+              <span className="text-xl font-mono font-bold">{Math.round(progress)}%</span>
             </div>
           </div>
         </div>

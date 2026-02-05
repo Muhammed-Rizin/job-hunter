@@ -1,14 +1,25 @@
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Edit3, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { containerVariants } from "../../utils/animations";
 
 import { colors } from "../../utils/theme";
 import { useMailWizard } from "./MailWizardContext";
 import MailBackButton from "./BackButton";
 import MailPage from "./MailPage";
+import Card from "../../components/common/Card";
 
 const MailTemplateList = () => {
   const navigate = useNavigate();
-  const { templates, templatesLoading, setActiveTemplateId, setTemplateVars, buildTemplateVars } =
-    useMailWizard();
+  const {
+    templates,
+    templatesLoading,
+    setActiveTemplateId,
+    setTemplateVars,
+    buildTemplateVars,
+    deleteTemplate,
+  } = useMailWizard();
 
   const handleSelect = (template) => {
     setActiveTemplateId(template.id);
@@ -27,16 +38,17 @@ const MailTemplateList = () => {
           + New
         </button>
       </div>
-      <div className="space-y-3">
+      <motion.div variants={containerVariants} className="space-y-3">
         {templatesLoading ? (
           <div className="text-xs opacity-60">Loading templates...</div>
         ) : templates.length === 0 ? (
           <div className="text-xs opacity-60">No templates yet.</div>
         ) : (
           templates.map((template) => (
-            <div
+            <Card
               key={template.id}
-              className={`p-4 rounded-xl border hover:border-current transition-all ${colors.card}`}
+              onClick={() => handleSelect(template)}
+              className={`p-4 rounded-xl border hover:border-current transition-all cursor-pointer ${colors.card}`}
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
@@ -45,17 +57,39 @@ const MailTemplateList = () => {
                   </h4>
                   <p className="text-[10px] opacity-50 truncate">{template.subject}</p>
                 </div>
-                <button
-                  onClick={() => handleSelect(template)}
-                  className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${colors.secondary}`}
-                >
-                  Use Template
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate(`/mail/templates/${template.id}/edit`);
+                    }}
+                    className="p-2 rounded-lg border text-gray-500 hover:text-black hover:bg-gray-100 dark:hover:bg-zinc-800 dark:text-zinc-300"
+                    aria-label="Edit template"
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                  <button
+                    onClick={async (event) => {
+                      event.stopPropagation();
+                      if (!confirm("Delete this template?")) return;
+                      try {
+                        await deleteTemplate(template.id);
+                        toast.success("Template deleted");
+                      } catch (error) {
+                        toast.error(error?.message || "Unable to delete template");
+                      }
+                    }}
+                    className="p-2 rounded-lg border text-red-500 hover:bg-red-500/10 border-red-200"
+                    aria-label="Delete template"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
+            </Card>
           ))
         )}
-      </div>
+      </motion.div>
     </MailPage>
   );
 };

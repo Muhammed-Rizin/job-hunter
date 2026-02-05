@@ -12,15 +12,17 @@ import { put } from "../../services/api";
 
 const Profile = () => {
   const { logout, updateUser } = useAuth();
-  const { profile, setProfile, goal, setGoal } = useGlobal();
+  const { profile, setProfile, goal, setGoal, applications } = useGlobal();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [tempProfile, setTempProfile] = useState(profile);
   const [tempGoal, setTempGoal] = useState(goal);
 
-  const progress = goal.targetCount > 0 ? Math.min(100, (50 / goal.targetCount) * 100) : 0;
-  const circumference = 251;
+  const currentCount = applications.length;
+  const progress =
+    goal.targetCount > 0 ? Math.min(100, (currentCount / goal.targetCount) * 100) : 0;
+  const circumference = 351;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   useEffect(() => {
@@ -133,6 +135,7 @@ const Profile = () => {
             <ProfileSummary
               profile={profile}
               goal={goal}
+              currentCount={currentCount}
               progress={progress}
               strokeDashoffset={strokeDashoffset}
             />

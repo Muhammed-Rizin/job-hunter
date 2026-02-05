@@ -1,41 +1,43 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Globe, Search, SortDesc, Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Edit3, Globe, Search, SortDesc, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { useLocation } from "react-router-dom";
 
 import { useGlobal } from "../../context";
 import { APPLICATION_STATUSES, PLATFORMS } from "../../config/job.constants";
 import { containerVariants, itemVariants } from "../../utils/animations";
 import { colors } from "../../utils/theme";
-import TrackerCard from "../../components/tracker/TrackerCard";
-import LabeledInput from "../../components/common/LabeledInput";
 import { formatDateDisplay } from "../../utils/date";
+import TrackerCard from "../../components/tracker/TrackerCard";
+import StatusSelect from "../../components/tracker/StatusSelect";
+import LabeledInput from "../../components/common/LabeledInput";
+import Select from "../../components/common/Select";
+import Button from "../../components/common/Button";
 
 const Tracker = () => {
-  const location = useLocation();
   const {
     applications,
-    applicationsLoading,
+    setApplications,
     createApplication,
     updateApplicationStatus,
     deleteApplication,
   } = useGlobal();
+
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
-  const [creating, setCreating] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsApp, setDetailsApp] = useState(null);
   const [detailsStatus, setDetailsStatus] = useState("");
-  const [detailsForm, setDetailsForm] = useState({
-    round: "",
-    mode: "online",
-    date: "",
-    time: "",
-  });
-  const [form, setForm] = useState({
+  const [detailsForm, setDetailsForm] = useState({ round: "", mode: "online", date: "", time: "" });
+
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({
     company: "",
     role: "",
     source: "website",
@@ -48,12 +50,8 @@ const Tracker = () => {
     return applications
       .filter((app) => {
         const matchesText =
-          String(app.company || "")
-            .toLowerCase()
-            .includes(filter.toLowerCase()) ||
-          String(app.role || "")
-            .toLowerCase()
-            .includes(filter.toLowerCase());
+          app.company.toLowerCase().includes(filter.toLowerCase()) ||
+          app.role.toLowerCase().includes(filter.toLowerCase());
         const matchesStatus = statusFilter === "all" || app.status === statusFilter;
         const matchesSource = sourceFilter === "all" || app.source === sourceFilter;
         return matchesText && matchesStatus && matchesSource;
@@ -65,55 +63,86 @@ const Tracker = () => {
       });
   }, [applications, filter, sortOrder, sourceFilter, statusFilter]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedApps = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
   useEffect(() => {
-    if (location.state?.openCreate) {
-      setCreating(true);
-    }
-  }, [location.state]);
+    setCurrentPage(1);
+  }, [filter, statusFilter, sourceFilter, sortOrder]);
 
   const openDetails = (app, statusOverride) => {
-    const nextStatus = statusOverride || app.status;
-    const existing = app.statusDetails || {};
     setDetailsApp(app);
-    setDetailsStatus(nextStatus);
-    setDetailsForm({
-      round: existing.round || "",
-      mode: existing.mode || "online",
-      date: existing.date || app.appliedDate || "",
-      time: existing.time || "",
-    });
+    setDetailsStatus(statusOverride || app.status);
+    setDetailsForm(app.statusDetails || { round: "", mode: "online", date: "", time: "" });
     setDetailsOpen(true);
-  };
-
-  const handleStatusChange = (app, status) => {
-    if (status === "interview") {
-      openDetails(app, status);
-      return;
-    }
-    updateApplicationStatus(app.id, status);
   };
 
   const saveDetails = async () => {
     if (!detailsApp) return;
-    await updateApplicationStatus(detailsApp.id, detailsStatus, detailsForm);
+    if (updateApplicationStatus) {
+      await updateApplicationStatus(detailsApp.id, detailsStatus, detailsForm);
+    } else {
+      setApplications((prev) =>
+        prev.map((p) =>
+          p.id === detailsApp.id ? { ...p, status: detailsStatus, statusDetails: detailsForm } : p,
+        ),
+      );
+    }
     setDetailsOpen(false);
+    toast.success("Details Updated");
   };
 
+  const handleCreate = async () => {
+    if (!createForm.company || !createForm.role) {
+      toast.error("Company & Role required");
+      return;
+    }
+    const payload = { ...createForm, id: Date.now() };
+    if (createApplication) {
+      await createApplication(payload);
+    } else {
+      setApplications((prev) => [payload, ...prev]);
+    }
+    setCreating(false);
+    setCreateForm({
+      company: "",
+      role: "",
+      source: "website",
+      status: "applied",
+      appliedDate: new Date().toISOString().split("T")[0],
+      notes: "",
+    });
+    toast.success("Application Logged");
+  };
+
+  const handleDelete = async (app) => {
+    if (!confirm("Delete?")) return;
+    if (deleteApplication) {
+      await deleteApplication(app.id);
+    } else {
+      setApplications((prev) => prev.filter((p) => p.id !== app.id));
+    }
+  };
+
+  const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(
+    detailsStatus,
+  );
+
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={containerVariants}
-      className="h-full"
-    >
+    <motion.div initial="hidden" animate="visible" variants={containerVariants} className="h-full">
       <div className="space-y-4 p-4 md:px-0 h-full flex flex-col no-scrollbar">
-        <motion.div variants={itemVariants} className={`p-4 rounded-2xl border ${colors.card}`}>
+        <motion.div
+          variants={itemVariants}
+          className={`p-4 rounded-2xl border mb-4 ${colors.card}`}
+        >
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-sm tracking-wide">Log Application</h3>
               <p className="text-[10px] uppercase tracking-widest opacity-50">
-                Add a new application manually
+                Add new application manually
               </p>
             </div>
             <button
@@ -123,96 +152,49 @@ const Tracker = () => {
               {creating ? "Close" : "New"}
             </button>
           </div>
-
-          {creating ? (
-            <div className="grid md:grid-cols-2 gap-3">
+          {creating && (
+            <div className="grid md:grid-cols-2 gap-3 animate-slide-up">
               <LabeledInput
                 label="Company"
-                value={form.company}
-                onChange={(e) => setForm({ ...form, company: e.target.value })}
+                value={createForm.company}
+                onChange={(e) => setCreateForm({ ...createForm, company: e.target.value })}
                 inputClassName={colors.input}
               />
               <LabeledInput
                 label="Role"
-                value={form.role}
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
+                value={createForm.role}
+                onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
                 inputClassName={colors.input}
               />
-              <label className="block md:col-span-2">
-                <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
-                  Source / Status / Applied Date
-                </span>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <select
-                    className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} w-full`}
-                    value={form.source}
-                    onChange={(e) => setForm({ ...form, source: e.target.value })}
-                  >
-                    {PLATFORMS.filter((p) => p.id !== "all").map((platform) => (
-                      <option key={platform.id} value={platform.id}>
-                        {platform.label}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} w-full`}
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  >
-                    {APPLICATION_STATUSES.filter((s) => s.id !== "all").map((status) => (
-                      <option key={status.id} value={status.id}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="date"
-                    value={form.appliedDate}
-                    onChange={(e) => setForm({ ...form, appliedDate: e.target.value })}
-                    className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${colors.input}`}
-                  />
-                </div>
-              </label>
-              <label className="md:col-span-2 block">
-                <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
-                  Notes
-                </span>
-                <textarea
-                  rows={3}
-                  className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${colors.input}`}
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Select
+                  className="w-full"
+                  value={createForm.source}
+                  onChange={(v) => setCreateForm({ ...createForm, source: v })}
+                  options={PLATFORMS.filter((p) => p.id !== "all")}
+                  placeholder="Source"
                 />
-              </label>
-              <button
-                onClick={async () => {
-                  if (!form.company || !form.role) {
-                    toast.error("Company and Role are required");
-                    return;
-                  }
-                  try {
-                    await createApplication(form);
-                    toast.success("Application logged");
-                    setForm({
-                      company: "",
-                      role: "",
-                      source: "website",
-                      status: "applied",
-                      appliedDate: new Date().toISOString().split("T")[0],
-                      notes: "",
-                    });
-                    setCreating(false);
-                  } catch (error) {
-                    toast.error(error?.message || "Unable to log application");
-                  }
-                }}
-                className={`md:col-span-2 py-3 rounded-xl font-bold text-sm uppercase tracking-wider ${colors.primary}`}
-              >
+                <Select
+                  className="w-full"
+                  value={createForm.status}
+                  onChange={(v) => setCreateForm({ ...createForm, status: v })}
+                  options={APPLICATION_STATUSES.filter((s) => s.id !== "all")}
+                  placeholder="Status"
+                />
+                <input
+                  type="date"
+                  value={createForm.appliedDate}
+                  onChange={(e) => setCreateForm({ ...createForm, appliedDate: e.target.value })}
+                  className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${colors.input}`}
+                />
+              </div>
+              <Button onClick={handleCreate} className={`md:col-span-2 py-3 ${colors.primary}`}>
                 Save Application
-              </button>
+              </Button>
             </div>
-          ) : null}
+          )}
         </motion.div>
+
         <motion.div variants={itemVariants} className="mb-4 flex flex-col gap-3">
           <div className="flex flex-col md:flex-row gap-2">
             <div className="relative flex-1">
@@ -225,33 +207,26 @@ const Tracker = () => {
                 onChange={(e) => setFilter(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
-              <select
-                className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} flex-1`}
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                {APPLICATION_STATUSES.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} flex-1`}
-                value={sourceFilter}
-                onChange={(e) => setSourceFilter(e.target.value)}
-              >
-                {PLATFORMS.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
+            <div className="flex gap-2 w-full md:w-auto">
+              <div className="flex-1 md:w-40">
+                <Select
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  options={APPLICATION_STATUSES}
+                  placeholder="Status"
+                />
+              </div>
+              <div className="flex-1 md:w-40">
+                <Select
+                  value={sourceFilter}
+                  onChange={setSourceFilter}
+                  options={PLATFORMS}
+                  placeholder="Source"
+                />
+              </div>
               <button
                 onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
-                className={`p-2.5 rounded-xl border flex items-center justify-center ${colors.card}`}
-                aria-label="Toggle sort order"
+                className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${colors.card}`}
               >
                 <SortDesc
                   size={18}
@@ -262,7 +237,7 @@ const Tracker = () => {
           </div>
         </motion.div>
 
-        <div className="md:hidden space-y-2 pb-4 no-scrollbar">
+        <div className="md:hidden space-y-4 pb-4 no-scrollbar">
           {filtered.map((app) => (
             <TrackerCard
               key={app.id}
@@ -273,17 +248,6 @@ const Tracker = () => {
               onDetails={(item) => openDetails(item)}
             />
           ))}
-          {applicationsLoading ? (
-            <div className="text-center py-10 opacity-40 text-xs font-bold uppercase tracking-widest">
-              Loading applications...
-            </div>
-          ) : (
-            filtered.length === 0 && (
-              <div className="text-center py-10 opacity-40 text-xs font-bold uppercase tracking-widest">
-                No applications found.
-              </div>
-            )
-          )}
         </div>
 
         <div className="hidden md:block flex-1 overflow-x-auto">
@@ -295,7 +259,7 @@ const Tracker = () => {
               <div className="col-span-2">Date</div>
               <div className="col-span-1 text-right">Action</div>
             </div>
-            {filtered.map((app) => (
+            {paginatedApps.map((app) => (
               <motion.div
                 variants={itemVariants}
                 key={app.id}
@@ -308,12 +272,12 @@ const Tracker = () => {
                   <div>
                     <h4 className="font-bold text-sm">{app.company}</h4>
                     <p className="text-[10px] uppercase tracking-wider opacity-60">{app.role}</p>
-                    {app.statusDetails?.date || app.statusDetails?.round || app.statusDetails?.mode ? (
-                      <p className="text-[10px] opacity-60">
-                        {app.statusDetails?.round ? `${app.statusDetails.round}` : ""}
-                        {app.statusDetails?.mode ? `${app.statusDetails.round ? " • " : ""}${app.statusDetails.mode}` : ""}
-                        {app.statusDetails?.date ? `${app.statusDetails.round || app.statusDetails.mode ? " • " : ""}${formatDateDisplay(app.statusDetails.date)}` : ""}
-                        {app.statusDetails?.time ? ` ${app.statusDetails.time}` : ""}
+                    {app.statusDetails?.date || app.statusDetails?.round ? (
+                      <p className="text-[10px] opacity-60 mt-0.5 text-blue-500">
+                        {app.statusDetails.round}{" "}
+                        {app.statusDetails.date
+                          ? `• ${formatDateDisplay(app.statusDetails.date)}`
+                          : ""}
                       </p>
                     ) : null}
                   </div>
@@ -328,23 +292,13 @@ const Tracker = () => {
                     {PLATFORMS.find((p) => p.id === app.source)?.label}
                   </span>
                 </div>
-                <div className="col-span-3">
-                  <select
-                    className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} w-full`}
-                    value={app.status}
-                    onChange={(e) => handleStatusChange(app, e.target.value)}
-                  >
-                    {APPLICATION_STATUSES.filter((s) => s.id !== "all").map((status) => (
-                      <option key={status.id} value={status.id}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="col-span-3 flex items-center gap-2">
+                  <StatusSelect status={app.status} onChange={(v) => openDetails(app, v)} />
                   <button
                     onClick={() => openDetails(app)}
-                    className="mt-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100"
+                    className="p-1 hover:bg-gray-100 rounded"
                   >
-                    Details
+                    <Edit3 size={12} className="opacity-50" />
                   </button>
                 </div>
                 <div className="col-span-2 text-xs font-mono opacity-60">
@@ -352,9 +306,8 @@ const Tracker = () => {
                 </div>
                 <div className="col-span-1 flex justify-end">
                   <button
-                    onClick={() => deleteApplication(app.id)}
+                    onClick={() => handleDelete(app)}
                     className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-gray-400"
-                    aria-label="Delete application"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -363,84 +316,138 @@ const Tracker = () => {
             ))}
           </div>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-dashed border-gray-500/20">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
+                currentPage === 1
+                  ? "opacity-30 cursor-not-allowed"
+                  : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+              } ${colors.secondary}`}
+            >
+              Previous
+            </button>
+            <span className="text-xs font-mono opacity-50">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
+                currentPage === totalPages
+                  ? "opacity-30 cursor-not-allowed"
+                  : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+              } ${colors.secondary}`}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
-      {detailsOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className={`w-full max-w-md rounded-2xl border p-5 ${colors.card}`}>
-            <h3 className="text-sm font-bold tracking-wide mb-4">Status Details</h3>
-            <div className="space-y-3">
+      {detailsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`w-full max-w-md rounded-2xl border p-5 shadow-2xl ${colors.card}`}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-bold tracking-wide">Status Details</h3>
+              <button onClick={() => setDetailsOpen(false)}>
+                <X size={18} className="opacity-50 hover:opacity-100" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
               <label className="block">
                 <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
                   Status
                 </span>
-                <select
-                  className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} w-full`}
+                <Select
                   value={detailsStatus}
-                  onChange={(e) => setDetailsStatus(e.target.value)}
-                >
-                  {APPLICATION_STATUSES.filter((s) => s.id !== "all").map((status) => (
-                    <option key={status.id} value={status.id}>
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <LabeledInput
-                label="Round (Optional)"
-                value={detailsForm.round}
-                onChange={(e) => setDetailsForm({ ...detailsForm, round: e.target.value })}
-                inputClassName={colors.input}
-              />
-              <label className="block">
-                <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
-                  Mode (Optional)
-                </span>
-                <select
-                  className={`custom-select px-3 py-2.5 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} w-full`}
-                  value={detailsForm.mode}
-                  onChange={(e) => setDetailsForm({ ...detailsForm, mode: e.target.value })}
-                >
-                  <option value="">Not set</option>
-                  <option value="online">Online</option>
-                  <option value="offline">Offline</option>
-                </select>
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="date"
-                  value={detailsForm.date}
-                  onChange={(e) => setDetailsForm({ ...detailsForm, date: e.target.value })}
-                  className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${colors.input}`}
+                  onChange={setDetailsStatus}
+                  options={APPLICATION_STATUSES.filter((s) => s.id !== "all")}
+                  className="w-full"
                 />
-                <input
-                  type="time"
-                  value={detailsForm.time}
-                  onChange={(e) => setDetailsForm({ ...detailsForm, time: e.target.value })}
-                  className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${colors.input}`}
-                />
-              </div>
-              <p className="text-[10px] uppercase tracking-widest opacity-50">
-                Optional fields: round, mode, date, time.
-              </p>
-              <div className="flex items-center justify-end gap-2 pt-2">
+              </label>
+
+              {showInterviewFields && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="space-y-4 pt-2 border-t border-dashed border-gray-500/20"
+                >
+                  <LabeledInput
+                    label="Round"
+                    value={detailsForm.round}
+                    onChange={(e) => setDetailsForm({ ...detailsForm, round: e.target.value })}
+                    inputClassName={colors.input}
+                    placeholder="e.g. Technical, HR"
+                  />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={detailsForm.date}
+                        onChange={(e) => setDetailsForm({ ...detailsForm, date: e.target.value })}
+                        className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                        Time
+                      </label>
+                      <input
+                        type="time"
+                        value={detailsForm.time}
+                        onChange={(e) => setDetailsForm({ ...detailsForm, time: e.target.value })}
+                        className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
+                      />
+                    </div>
+                  </div>
+
+                  <label className="block">
+                    <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                      Mode
+                    </span>
+                    <Select
+                      value={detailsForm.mode}
+                      onChange={(v) => setDetailsForm({ ...detailsForm, mode: v })}
+                      options={[
+                        { id: "online", label: "Online" },
+                        { id: "offline", label: "Offline" },
+                      ]}
+                    />
+                  </label>
+                </motion.div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
                 <button
                   onClick={() => setDetailsOpen(false)}
-                  className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${colors.secondary}`}
+                  className={`px-4 py-2 text-xs border rounded-lg ${colors.secondary}`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={saveDetails}
-                  className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider ${colors.primary}`}
+                  className={`px-4 py-2 text-xs rounded-lg ${colors.primary}`}
                 >
-                  Save
+                  Save Changes
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
-      ) : null}
+      )}
     </motion.div>
   );
 };

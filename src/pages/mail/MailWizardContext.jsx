@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth, useGlobal } from "../../context";
 import { getTemplateVariables } from "./utils";
-import { get, post } from "../../services/api";
+import { del, get, post, put } from "../../services/api";
 
 const MailWizardContext = createContext(null);
 
@@ -58,6 +58,33 @@ export const MailWizardProvider = ({ children }) => {
     [normalizeTemplate, setTemplates],
   );
 
+  const updateTemplate = useCallback(
+    async (payload) => {
+      try {
+        setTemplateSaving(true);
+        const response = await put("templates", payload);
+        const data = response?.data || response?.template || response;
+        const normalized = normalizeTemplate(data);
+        if (normalized) {
+          setTemplates((prev) => prev.map((tpl) => (tpl.id === normalized.id ? normalized : tpl)));
+        }
+        return normalized;
+      } finally {
+        setTemplateSaving(false);
+      }
+    },
+    [normalizeTemplate, setTemplates],
+  );
+
+  const deleteTemplate = useCallback(
+    async (id) => {
+      if (!id) return;
+      await del(`templates/${id}`);
+      setTemplates((prev) => prev.filter((tpl) => tpl.id !== id));
+    },
+    [setTemplates],
+  );
+
   useEffect(() => {
     if (!user || hasLoadedRef.current) return;
     hasLoadedRef.current = true;
@@ -101,6 +128,8 @@ export const MailWizardProvider = ({ children }) => {
       templatesLoading,
       templateSaving,
       createTemplate,
+      updateTemplate,
+      deleteTemplate,
       refreshTemplates: loadTemplates,
       refreshApplications: fetchApplications,
       profile,
@@ -117,6 +146,8 @@ export const MailWizardProvider = ({ children }) => {
       templatesLoading,
       templateSaving,
       createTemplate,
+      updateTemplate,
+      deleteTemplate,
       loadTemplates,
       fetchApplications,
       profile,

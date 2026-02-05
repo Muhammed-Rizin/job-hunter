@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
 import { useAuth } from "./AuthContext";
 import { del, get, post, put } from "../services/api";
@@ -28,99 +36,34 @@ const normalizeProfile = (value = {}) => {
   return merged;
 };
 
-const isLegacySeedProfile = (value) =>
-  value?.name === "Rizin" && value?.email === "rizin@example.com";
-
-const DUMMY_APPS = [
-  {
-    id: 1,
-    company: "Google",
-    role: "Frontend Engineer",
-    status: "interview",
-    source: "linkedin",
-    appliedDate: "2025-10-12",
-  },
-  {
-    id: 2,
-    company: "Netflix",
-    role: "UI Developer",
-    status: "rejected",
-    source: "website",
-    appliedDate: "2025-10-15",
-  },
-  {
-    id: 3,
-    company: "Spotify",
-    role: "Web Engineer",
-    status: "offer",
-    source: "indeed",
-    appliedDate: "2025-10-20",
-  },
-  {
-    id: 4,
-    company: "Amazon",
-    role: "SDE I",
-    status: "applied",
-    source: "naukri",
-    appliedDate: "2025-10-22",
-  },
-  {
-    id: 5,
-    company: "Airbnb",
-    role: "Frontend Dev",
-    status: "hr_contact",
-    source: "mail",
-    appliedDate: "2025-10-25",
-  },
-  {
-    id: 6,
-    company: "Microsoft",
-    role: "React Developer",
-    status: "technical",
-    source: "linkedin",
-    appliedDate: "2025-10-26",
-  },
-  {
-    id: 7,
-    company: "Vercel",
-    role: "Design Engineer",
-    status: "applied",
-    source: "website",
-    appliedDate: "2025-10-27",
-  },
-  {
-    id: 8,
-    company: "Notion",
-    role: "Product Engineer",
-    status: "applied",
-    source: "mail",
-    appliedDate: "2025-10-28",
-  },
-];
-
 export const GlobalProvider = ({ children }) => {
   const { user } = useAuth();
   const [profile, setProfileState] = useLocalStorage("jh_profile_v6", DEFAULT_PROFILE);
   const [goal, setGoalState] = useLocalStorage("jh_goal_v2", {
-    targetDate: new Date(new Date().setMonth(new Date().getMonth() + 2))
-      .toISOString()
-      .split("T")[0],
-    targetRole: "Frontend Dev",
-    targetCount: 50,
-    title: "Apply to 50 roles",
+    targetDate: "",
+    targetRole: "",
+    targetCount: 0,
+    title: "",
   });
-  const [applications, setApplications] = useLocalStorage("jh_apps_v3", DUMMY_APPS);
+  const [applications, setApplications] = useLocalStorage("jh_apps_v3", []);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [applicationsMeta, setApplicationsMeta] = useState({
+    total: 0,
+    page: 1,
+    pages: 1,
+    limit: 20,
+  });
   const applicationsLoadedRef = useRef(false);
-  const [templates, setTemplates] = useLocalStorage("jh_templates_v2", [
-    {
-      id: 1,
-      name: "Cold Email (Standard)",
-      subject: "Application for {{Role}} - {{Name}}",
-      body:
-        "Hi {{HiringManager}},\n\nI'm writing to apply for the {{Role}} position at {{Company}}.\n\nI have experience in frontend technologies and I'm passionate about building great products.\n\nNotice Period: {{NoticePeriod}}\nExpected CTC: {{ExpectedCTC}}\n\nResume attached.\n\nBest,\n{{Name}}",
-    },
-  ]);
+  const applicationsQueryRef = useRef({
+    search: "",
+    status: "all",
+    source: "all",
+    sort: "newest",
+    page: 1,
+    limit: 20,
+  });
+  const profileLoadedRef = useRef(false);
+  const [templates, setTemplates] = useLocalStorage("jh_templates_v2", []);
   const [notes, setNotes] = useLocalStorage("jh_notes_v2", []);
 
   const setProfile = (updater) => {
@@ -135,10 +78,7 @@ export const GlobalProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    setProfileState((prev) => {
-      const normalized = normalizeProfile(prev);
-      return isLegacySeedProfile(normalized) ? normalizeProfile({}) : normalized;
-    });
+    setProfileState((prev) => normalizeProfile(prev));
   }, []);
 
   useEffect(() => {
@@ -171,6 +111,29 @@ export const GlobalProvider = ({ children }) => {
     });
   }, [user]);
 
+  useEffect(() => {
+    if (!user) {
+      profileLoadedRef.current = false;
+      return;
+    }
+    if (profileLoadedRef.current) return;
+    profileLoadedRef.current = true;
+
+    const loadProfile = async () => {
+      try {
+        const response = await get("user/me");
+        const data = response?.data || response?.user || response?.profile;
+        if (data) {
+          setProfileState((prev) => normalizeProfile({ ...prev, ...data }));
+        }
+      } catch (error) {
+        // ignore profile load errors
+      }
+    };
+
+    loadProfile();
+  }, [user]);
+
   const normalizeApplication = useCallback((application) => {
     if (!application) return null;
     const id = application._id || application.id || application.applicationId || Date.now();
@@ -181,21 +144,44 @@ export const GlobalProvider = ({ children }) => {
     };
   }, []);
 
-  const fetchApplications = useCallback(async () => {
-    if (!user) return;
-    try {
-      setApplicationsLoading(true);
-      const response = await get("applications");
-      const data = response?.data || response?.applications || response;
-      if (Array.isArray(data)) {
-        setApplications(data.map(normalizeApplication));
+  const fetchApplications = useCallback(
+    async (query = {}) => {
+      if (!user) return;
+      try {
+        setApplicationsLoading(true);
+        const mergedQuery = { ...applicationsQueryRef.current, ...query };
+        applicationsQueryRef.current = mergedQuery;
+        const params = new URLSearchParams();
+        if (mergedQuery.search) params.set("search", mergedQuery.search);
+        if (mergedQuery.status) params.set("status", mergedQuery.status);
+        if (mergedQuery.source) params.set("source", mergedQuery.source);
+        if (mergedQuery.sort) params.set("sort", mergedQuery.sort);
+        if (mergedQuery.page) params.set("page", String(mergedQuery.page));
+        if (mergedQuery.limit) params.set("limit", String(mergedQuery.limit));
+        const queryString = params.toString();
+
+        const response = await get(queryString ? `applications?${queryString}` : "applications");
+        const payload = response?.data || response;
+        const data = payload?.data || payload?.applications || payload;
+        const meta = payload?.meta || payload?.pagination;
+        if (Array.isArray(data)) {
+          setApplications(data.map(normalizeApplication));
+        }
+        if (meta) {
+          setApplicationsMeta((prev) => ({
+            ...prev,
+            ...meta,
+          }));
+        }
+      } catch (error) {
+        console.log("Error fetching applications:", error);
+        // ignore application load errors
+      } finally {
+        setApplicationsLoading(false);
       }
-    } catch (error) {
-      // ignore application load errors
-    } finally {
-      setApplicationsLoading(false);
-    }
-  }, [normalizeApplication, setApplications, user]);
+    },
+    [normalizeApplication, setApplications, user],
+  );
 
   const createApplication = useCallback(
     async (payload) => {
@@ -203,33 +189,29 @@ export const GlobalProvider = ({ children }) => {
       const data = response?.data || response?.application || response;
       const normalized = normalizeApplication(data);
       if (normalized) {
-        setApplications((prev) => [normalized, ...prev]);
+        await fetchApplications({ page: 1 });
       }
       return normalized;
     },
-    [normalizeApplication, setApplications],
+    [fetchApplications, normalizeApplication],
   );
 
   const updateApplicationStatus = useCallback(
     async (id, status, statusDetails) => {
       if (!id) return;
       await put("applications", { id, status, statusDetails });
-      setApplications((prev) =>
-        prev.map((app) =>
-          app.id === id ? { ...app, status, statusDetails: statusDetails || app.statusDetails } : app,
-        ),
-      );
+      await fetchApplications(applicationsQueryRef.current);
     },
-    [setApplications],
+    [fetchApplications],
   );
 
   const deleteApplication = useCallback(
     async (id) => {
       if (!id) return;
       await del(`applications/${id}`);
-      setApplications((prev) => prev.filter((app) => app.id !== id));
+      await fetchApplications(applicationsQueryRef.current);
     },
-    [setApplications],
+    [fetchApplications],
   );
 
   useEffect(() => {
@@ -272,6 +254,7 @@ export const GlobalProvider = ({ children }) => {
         applications,
         setApplications,
         applicationsLoading,
+        applicationsMeta,
         fetchApplications,
         createApplication,
         updateApplicationStatus,

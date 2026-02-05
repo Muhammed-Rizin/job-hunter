@@ -52,6 +52,16 @@ import {
   Zap,
   Clock3,
   FileEdit,
+  Smile,
+  Image as ImageIcon,
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  Type,
+  List,
+  AlertCircle,
+  Eye,
 } from "lucide-react";
 
 // --- 1. UTILITY & CONSTANTS ---
@@ -79,8 +89,14 @@ const useLocalStorage = (key, initialValue) => {
   return [storedValue, setValue];
 };
 
+const formatDateDisplay = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
 const APPLICATION_STATUSES = [
-  { id: "all", label: "All", color: "bg-gray-100 text-gray-600" },
+  { id: "all", label: "All Statuses", color: "bg-gray-100 text-gray-600" },
   { id: "applied", label: "Applied", color: "bg-zinc-100 text-zinc-700 border-zinc-200" },
   { id: "hr_contact", label: "HR Call", color: "bg-amber-50 text-amber-700 border-amber-200" },
   { id: "interview", label: "Interview", color: "bg-blue-50 text-blue-700 border-blue-200" },
@@ -106,6 +122,7 @@ const DUMMY_APPS = [
     status: "interview",
     source: "linkedin",
     appliedDate: "2025-10-12",
+    statusDetails: { round: "System Design", mode: "online", date: "2025-10-15", time: "14:00" },
   },
   {
     id: 2,
@@ -139,46 +156,6 @@ const DUMMY_APPS = [
     source: "mail",
     appliedDate: "2025-10-25",
   },
-  {
-    id: 6,
-    company: "Microsoft",
-    role: "React Developer",
-    status: "technical",
-    source: "linkedin",
-    appliedDate: "2025-10-26",
-  },
-  {
-    id: 7,
-    company: "Vercel",
-    role: "Design Engineer",
-    status: "applied",
-    source: "website",
-    appliedDate: "2025-10-27",
-  },
-  {
-    id: 8,
-    company: "Notion",
-    role: "Product Engineer",
-    status: "applied",
-    source: "mail",
-    appliedDate: "2025-10-28",
-  },
-  {
-    id: 9,
-    company: "Stripe",
-    role: "Full Stack",
-    status: "applied",
-    source: "linkedin",
-    appliedDate: "2025-10-29",
-  },
-  {
-    id: 10,
-    company: "Uber",
-    role: "Mobile Dev",
-    status: "hr_contact",
-    source: "indeed",
-    appliedDate: "2025-10-30",
-  },
 ];
 
 // --- 2. STYLES & ANIMATIONS ---
@@ -208,12 +185,8 @@ const GlobalStyles = ({ theme }) => (
       background-size: 24px 24px;
     }
     
-    .custom-select {
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      background-size: 0.8em;
+    .dark input::placeholder, .dark textarea::placeholder {
+        color: #555;
     }
   `}</style>
 );
@@ -238,13 +211,46 @@ const Input = ({ label, value, onChange, colors, type = "text", placeholder = ""
     </label>
     <input
       type={type}
-      className={`w-full p-3 rounded-lg text-sm font-medium outline-none transition-all ${colors.input}`}
+      className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${colors.input}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
     />
   </div>
 );
+
+const LabeledInput = ({ label, value, onChange, inputClassName, placeholder, type = "text" }) => (
+  <div className="w-full">
+    <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+      {label}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${inputClassName}`}
+    />
+  </div>
+);
+
+const Button = ({ children, onClick, className, variant = "primary", disabled }) => {
+  const baseStyle =
+    "rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center";
+  const primaryStyle = "bg-black text-white dark:bg-white dark:text-black hover:opacity-90";
+  const secondaryStyle =
+    "border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-800";
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseStyle} ${variant === "primary" ? primaryStyle : secondaryStyle} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};
 
 const NavButton = ({ id, icon: Icon, label, active, setActive, colors }) => (
   <button
@@ -301,6 +307,7 @@ const StatusSelect = ({ status, onChange }) => (
   <select
     value={status}
     onChange={(e) => onChange(e.target.value)}
+    onClick={(e) => e.stopPropagation()}
     className={`w-full py-1 px-2 rounded-md text-[10px] uppercase font-bold tracking-wider appearance-none outline-none border cursor-pointer ${APPLICATION_STATUSES.find((s) => s.id === status)?.color}`}
   >
     {APPLICATION_STATUSES.map((s) => (
@@ -412,204 +419,281 @@ const Select = ({
   );
 };
 
-const TrackerCard = ({ app, colors, isDark, setApplications }) => (
-  <motion.div
-    variants={itemVariants}
-    className={`p-3 rounded-2xl border ${colors.card} shadow-sm transition-shadow hover:shadow-md`}
-  >
-    <div className="flex justify-between items-center mb-3">
-      <div className="flex items-center gap-3 overflow-hidden">
-        <div
-          className={`p-2.5 rounded-full flex items-center justify-center shrink-0 border ${isDark ? "bg-zinc-800 border-zinc-700 text-white" : "bg-blue-50 border-blue-100 shadow-sm text-blue-600"}`}
-        >
-          <span className="font-bold text-sm">{app.company.charAt(0)}</span>
-        </div>
-        <div className="min-w-0">
-          <h4 className="font-bold text-sm tracking-wide leading-none mb-1">{app.company}</h4>
-          <p
-            className={`text-[10px] uppercase tracking-widest opacity-50 ${isDark ? "text-zinc-400" : "text-gray-500"}`}
-          >
-            {app.role}
-          </p>
-        </div>
-      </div>
-      <button
-        onClick={() => {
-          if (confirm("Delete this application?")) {
-            setApplications((prev) => prev.filter((p) => p.id !== app.id));
-            toast.success("Application removed");
-          }
-        }}
-        className="text-gray-400 hover:text-red-500 transition-colors p-1"
-      >
-        <Trash2 size={16} />
-      </button>
-    </div>
-    <div className="flex items-center justify-between pt-2 border-t border-dashed border-gray-500/20">
-      <div className="flex-1 mr-4">
-        <StatusSelect
-          status={app.status}
-          onChange={(v) => {
-            setApplications((prev) => prev.map((p) => (p.id === app.id ? { ...p, status: v } : p)));
-            toast.success(
-              `Status updated to ${APPLICATION_STATUSES.find((s) => s.id === v).label}`,
-            );
-          }}
-        />
-      </div>
-      <div className="flex items-center gap-1 opacity-50 text-[10px] font-mono font-bold">
-        <Calendar size={10} />
-        <span>{app.appliedDate}</span>
-      </div>
-    </div>
-  </motion.div>
-);
-
-const GmailPreview = ({ content, isDark, profile, handleSend }) => (
-  <div
-    className={`rounded-2xl overflow-hidden shadow-2xl border flex flex-col h-full max-h-[85vh] md:max-h-full ${isDark ? "border-zinc-700" : "border-gray-200"}`}
-  >
-    <div
-      className={`px-4 py-3 flex items-center justify-between shrink-0 ${isDark ? "bg-[#202124] text-gray-200" : "bg-[#f2f2f2] text-gray-700"}`}
-    >
-      <div className="text-sm font-bold tracking-tight">New Message</div>
-      <div className="flex gap-2">
-        <X size={16} />
-      </div>
-    </div>
-    <div
-      className={`p-5 flex-1 flex flex-col overflow-y-auto ${isDark ? "bg-[#1b1b1b] text-gray-200" : "bg-white text-gray-800"}`}
-    >
-      <div className="flex flex-col gap-2 mb-6">
-        <div className="flex items-center border-b border-gray-500/20 pb-2">
-          <span className="text-[10px] uppercase font-bold opacity-50 w-16 tracking-wider">To</span>
-          <span className="text-sm font-medium">recruiter@company.com</span>
-        </div>
-        <div className="flex items-center border-b border-gray-500/20 pb-2">
-          <span className="text-[10px] uppercase font-bold opacity-50 w-16 tracking-wider">
-            Subject
-          </span>
-          <span className="text-sm font-bold truncate">{content.sub || "(No Subject)"}</span>
-        </div>
-      </div>
-
-      <div className="flex-1 whitespace-pre-wrap text-sm leading-relaxed font-sans mb-6">
-        {content.body}
-      </div>
-
-      {profile.resumeName && (
-        <div
-          className={`mt-auto mb-4 flex items-center gap-3 p-3 rounded-xl border w-full max-w-sm ${isDark ? "bg-zinc-800/50 border-zinc-700" : "bg-gray-50 border-gray-200"}`}
-        >
-          <div className="p-2.5 bg-red-500/10 rounded-lg text-red-500">
-            <FileText size={18} />
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="text-xs font-bold truncate">{profile.resumeName}</p>
-            <p className="text-[10px] opacity-50 uppercase tracking-wider font-bold">
-              PDF Document • 145 KB
-            </p>
-          </div>
-          <Check size={16} className="text-green-500 mr-2" />
-        </div>
-      )}
-    </div>
-    <div
-      className={`p-4 flex items-center justify-between border-t shrink-0 ${isDark ? "bg-[#1b1b1b] border-zinc-800" : "bg-white border-gray-100"}`}
-    >
-      <div className="flex gap-4 items-center">
-        <button
-          onClick={handleSend}
-          className="px-8 py-2.5 rounded-full bg-[#0b57d0] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center gap-2"
-        >
-          Send <Send size={14} className="opacity-80" />
-        </button>
-        <div className="flex items-center gap-4 opacity-60">
-          <Paperclip size={20} className="hover:opacity-100 cursor-pointer" />
-          <LinkIcon size={20} className="hover:opacity-100 cursor-pointer" />
-        </div>
-      </div>
-      <Trash2 size={20} className="opacity-40 hover:opacity-100 cursor-pointer" />
-    </div>
-  </div>
-);
-
-// --- 4. DESKTOP HEADER & VIEWS ---
-
-const DesktopHeader = ({ activeTab, profile, theme, setTheme, isDark, colors, setActive }) => {
-  let title = "Dashboard";
-  let subtitle = "Overview";
-
-  if (activeTab === "dashboard") {
-    title = `Good Morning, ${profile.name.split(" ")[0]}`;
-    subtitle = "Your Activity Overview";
-  } else if (activeTab === "tracker") {
-    title = "Applications";
-    subtitle = "Pipeline Status";
-  } else if (activeTab === "mail") {
-    title = "Mail Wizard";
-    subtitle = "Compose & Send";
-  } else if (activeTab === "notes") {
-    title = "Notes";
-    subtitle = "Ideas & Prep";
-  } else if (activeTab === "profile") {
-    title = "Profile";
-    subtitle = "Settings & Goal";
-  }
-
-  const currentDate = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
+const TrackerCard = ({ app, colors, isDark, onDelete, onStatusChange, onDetails }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="hidden md:flex justify-between items-end mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800"
+      variants={itemVariants}
+      className={`p-3 rounded-2xl border ${colors.card} shadow-sm transition-shadow hover:shadow-md`}
     >
-      <div>
-        <h2
-          className={`text-3xl font-extrabold tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}
-        >
-          {title}
-        </h2>
-        <p
-          className={`text-xs font-bold uppercase tracking-widest opacity-50 mt-1 flex items-center gap-2`}
-        >
-          {subtitle} <span className="w-1 h-1 rounded-full bg-current" /> {currentDate}
-        </p>
-      </div>
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setTheme(isDark ? "clean" : "nothing")}
-          className={`p-2.5 rounded-xl border transition-colors ${colors.card} hover:bg-gray-100 dark:hover:bg-zinc-800`}
-        >
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-        <div className={`p-2.5 rounded-xl border ${colors.card}`}>
-          <Bell size={20} />
-        </div>
-        <div
-          onClick={() => setActive("profile")}
-          className={`flex items-center gap-3 px-3 py-1.5 rounded-xl border cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ${colors.card}`}
-        >
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-3 overflow-hidden">
           <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
+            className={`p-2.5 rounded-full flex items-center justify-center shrink-0 border ${isDark ? "bg-zinc-800 border-zinc-700 text-white" : "bg-blue-50 border-blue-100 shadow-sm text-blue-600"}`}
           >
-            {profile.name.charAt(0)}
+            <span className="font-bold text-sm">{app.company.charAt(0)}</span>
           </div>
-          <div className="text-left hidden lg:block">
-            <p className="text-xs font-bold">{profile.name}</p>
-            <p className="text-[10px] opacity-50">{profile.title}</p>
+          <div className="min-w-0">
+            <h4 className="font-bold text-sm tracking-wide leading-none mb-1">{app.company}</h4>
+            <p
+              className={`text-[10px] uppercase tracking-widest opacity-50 ${isDark ? "text-zinc-400" : "text-gray-500"}`}
+            >
+              {app.role}
+            </p>
           </div>
-          <ChevronDown size={14} className="opacity-40" />
+        </div>
+        <div className="flex gap-1">
+          <button
+            onClick={() => onDetails?.(app)}
+            className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={() => onDelete?.(app.id)}
+            className="text-gray-400 hover:text-red-500 transition-colors p-2"
+            aria-label="Delete application"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Details Row */}
+      <div className="flex flex-col gap-2 pt-2 border-t border-dashed border-gray-500/20">
+        <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60">
+          <div className="flex items-center gap-1">
+            {(() => {
+              const match = PLATFORMS.find((p) => p.id === app.source);
+              const Icon = match?.icon;
+              return Icon ? <Icon size={12} /> : <Globe size={12} />;
+            })()}
+            <span>{PLATFORMS.find((p) => p.id === app.source)?.label || app.source}</span>
+          </div>
+        </div>
+
+        {/* Status & Date Row */}
+        <div className="flex items-center gap-3 mt-1">
+          <div className="flex-1">
+            <StatusSelect status={app.status} onChange={(v) => onStatusChange?.(app, v)} />
+          </div>
+          <div className="flex items-center gap-1 opacity-50 text-[10px] font-mono font-bold">
+            <Calendar size={10} />
+            <span>{formatDateDisplay(app.appliedDate)}</span>
+          </div>
         </div>
       </div>
     </motion.div>
   );
 };
+
+const GmailPreview = ({ content, isDark, profile, handleSend, onClose }) => {
+  // Local state for interactivity
+  const [to, setTo] = useState("recruiter@company.com");
+  const [subject, setSubject] = useState(content.sub || "");
+  const [body, setBody] = useState(content.body || "");
+  const [activeFormats, setActiveFormats] = useState([]);
+
+  // Sync state when props change
+  useEffect(() => {
+    setSubject(content.sub || "");
+    setBody(content.body || "");
+  }, [content]);
+
+  const toggleFormat = (fmt) => {
+    setActiveFormats((prev) =>
+      prev.includes(fmt) ? prev.filter((f) => f !== fmt) : [...prev, fmt],
+    );
+    toast.success(`${fmt} toggled (Visual)`);
+  };
+
+  const onSendClick = () => {
+    handleSend({
+      sub: subject,
+      body: body,
+      to: to,
+    });
+  };
+
+  return (
+    <div
+      className={`rounded-xl overflow-hidden shadow-2xl border flex flex-col h-full max-h-[85vh] md:max-h-full ${isDark ? "border-zinc-700 bg-[#121212]" : "border-gray-200 bg-white"}`}
+    >
+      {/* Header */}
+      <div
+        className={`px-4 py-3 flex items-center justify-between shrink-0 ${isDark ? "bg-[#202124] text-gray-200" : "bg-[#f2f2f2] text-gray-700"}`}
+      >
+        <div className="text-sm font-bold tracking-tight">New Message</div>
+        <div className="flex gap-4 opacity-60">
+          <Minus
+            size={14}
+            className="cursor-pointer hover:opacity-100 transition-opacity"
+            onClick={() => toast("Minimized")}
+          />
+          <Maximize2
+            size={14}
+            className="cursor-pointer hover:opacity-100 transition-opacity"
+            onClick={() => toast("Maximized")}
+          />
+          <X
+            size={14}
+            className="cursor-pointer hover:text-red-500 transition-colors"
+            onClick={onClose}
+          />
+        </div>
+      </div>
+
+      {/* Body */}
+      <div
+        className={`flex-1 flex flex-col overflow-hidden relative ${isDark ? "text-gray-200" : "text-gray-800"}`}
+      >
+        <div className="px-4 pt-2">
+          <div
+            className={`flex items-center border-b ${isDark ? "border-zinc-700" : "border-gray-200"} py-2`}
+          >
+            <span className="text-xs font-bold opacity-50 w-14 cursor-pointer hover:underline">
+              To
+            </span>
+            <input
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="flex-1 bg-transparent outline-none text-sm"
+              placeholder="Recipient"
+            />
+          </div>
+          <div
+            className={`flex items-center border-b ${isDark ? "border-zinc-700" : "border-gray-200"} py-2 mb-2`}
+          >
+            <span className="text-xs font-bold opacity-50 w-14">Subject</span>
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="flex-1 bg-transparent outline-none text-sm font-medium"
+              placeholder="Subject"
+            />
+          </div>
+        </div>
+
+        <textarea
+          className={`flex-1 w-full p-4 bg-transparent outline-none resize-none text-sm leading-relaxed font-sans no-scrollbar ${activeFormats.includes("Bold") ? "font-bold" : ""} ${activeFormats.includes("Italic") ? "italic" : ""} ${activeFormats.includes("Underline") ? "underline" : ""}`}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Compose your email..."
+        />
+
+        {/* Resume Attachment Chip */}
+        {profile.resumeName && (
+          <div className="px-4 pb-4">
+            <div
+              className={`flex items-center gap-3 p-2 pr-4 rounded-lg border w-fit cursor-pointer hover:bg-opacity-50 transition-colors ${isDark ? "bg-zinc-800 border-zinc-700" : "bg-gray-50 border-gray-200"}`}
+            >
+              <div className="p-2 bg-red-100 text-red-600 rounded">
+                <FileText size={18} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold truncate max-w-[150px]">
+                  {profile.resumeName}
+                </span>
+                <span className="text-[10px] opacity-60 uppercase tracking-wider font-bold">
+                  PDF • 145 KB
+                </span>
+              </div>
+              <div className="ml-2 opacity-50 hover:opacity-100 hover:text-blue-500 transition-all">
+                <Download size={16} />
+              </div>
+              <div className="opacity-30 hover:opacity-100 hover:text-red-500 transition-all">
+                <X size={14} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div
+        className={`p-3 flex items-center justify-between border-t shrink-0 ${isDark ? "bg-[#121212] border-zinc-800" : "bg-white border-gray-100"}`}
+      >
+        <div className="flex gap-4 items-center">
+          <button
+            onClick={onSendClick}
+            className="px-6 py-2 rounded-full bg-[#0b57d0] text-white font-bold text-sm shadow-md hover:shadow-lg hover:bg-blue-600 transition-all active:scale-95 flex items-center gap-2"
+          >
+            Send <Send size={14} className="opacity-90" />
+          </button>
+          <div className="flex items-center gap-1 text-gray-500">
+            <button
+              title="Bold"
+              onClick={() => toggleFormat("Bold")}
+              className={`p-2 rounded hover:bg-black/5 transition-colors ${activeFormats.includes("Bold") ? "bg-black/10 text-blue-600" : ""}`}
+            >
+              <Bold size={18} />
+            </button>
+            <button
+              title="Italic"
+              onClick={() => toggleFormat("Italic")}
+              className={`p-2 rounded hover:bg-black/5 transition-colors ${activeFormats.includes("Italic") ? "bg-black/10 text-blue-600" : ""}`}
+            >
+              <Italic size={18} />
+            </button>
+            <button
+              title="Underline"
+              onClick={() => toggleFormat("Underline")}
+              className={`p-2 rounded hover:bg-black/5 transition-colors ${activeFormats.includes("Underline") ? "bg-black/10 text-blue-600" : ""}`}
+            >
+              <Underline size={18} />
+            </button>
+            <div className="w-px h-5 bg-gray-300 mx-1"></div>
+            <button
+              title="Attach File"
+              onClick={() => toast("Attachment Added")}
+              className="p-2 rounded hover:bg-black/5 transition-colors"
+            >
+              <Paperclip size={18} />
+            </button>
+            <button title="Insert Link" className="p-2 rounded hover:bg-black/5 transition-colors">
+              <LinkIcon size={18} />
+            </button>
+            <button title="Insert Emoji" className="p-2 rounded hover:bg-black/5 transition-colors">
+              <Smile size={18} />
+            </button>
+            <button title="Insert Photo" className="p-2 rounded hover:bg-black/5 transition-colors">
+              <ImageIcon size={18} />
+            </button>
+          </div>
+        </div>
+        <Trash2
+          size={18}
+          className="opacity-40 hover:opacity-100 cursor-pointer hover:text-red-500 transition-colors mr-2"
+          onClick={onClose}
+        />
+      </div>
+    </div>
+  );
+};
+
+// --- 4. VIEW COMPONENTS ---
+
+const NotFoundView = ({ colors, isDark, setActive }) => (
+  <motion.div
+    variants={itemVariants}
+    className="flex flex-col items-center justify-center h-full pb-20"
+  >
+    <div className={`p-8 rounded-full mb-6 ${isDark ? "bg-zinc-800/50" : "bg-gray-100"}`}>
+      <AlertCircle size={64} className="opacity-20" />
+    </div>
+    <h2 className="text-3xl font-extrabold mb-2">Page Not Found</h2>
+    <p
+      className={`text-sm opacity-50 max-w-xs text-center mb-8 ${isDark ? "text-zinc-400" : "text-gray-500"}`}
+    >
+      We couldn't find the page you're looking for. It might have been moved or deleted.
+    </p>
+    <button
+      onClick={() => setActive("dashboard")}
+      className={`px-8 py-3 rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-transform ${colors.primary}`}
+    >
+      Back to Dashboard
+    </button>
+  </motion.div>
+);
 
 const CreateTemplateView = ({ onSave, onCancel, colors, isDark }) => {
   const [t, setT] = useState({ name: "", subject: "", body: "" });
@@ -872,6 +956,26 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
   const [sourceFilter, setSourceFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
 
+  // PAGINATION STATE
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
+
+  // DETAILS MODAL STATE
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsApp, setDetailsApp] = useState(null);
+  const [detailsForm, setDetailsForm] = useState({ round: "", mode: "online", date: "", time: "" });
+  const [detailsStatus, setDetailsStatus] = useState(""); // NEW for status change inside modal
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    company: "",
+    role: "",
+    source: "website",
+    status: "applied",
+    appliedDate: new Date().toISOString().split("T")[0],
+    notes: "",
+  });
+
+  // Filter & Sort Logic
   const filtered = applications
     .filter((a) => {
       const matchesText =
@@ -887,14 +991,117 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
         : new Date(a.appliedDate) - new Date(b.appliedDate);
     });
 
+  // Pagination Logic
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedApps = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, statusFilter, sourceFilter, sortOrder]);
+
+  const openDetails = (app, statusOverride) => {
+    setDetailsApp(app);
+    setDetailsStatus(statusOverride || app.status); // Use override if provided (from dropdown), else current status
+    setDetailsForm(app.statusDetails || { round: "", mode: "online", date: "", time: "" });
+    setDetailsOpen(true);
+  };
+
+  const saveDetails = () => {
+    if (!detailsApp) return;
+    setApplications((prev) =>
+      prev.map((p) =>
+        p.id === detailsApp.id ? { ...p, status: detailsStatus, statusDetails: detailsForm } : p,
+      ),
+    );
+    setDetailsOpen(false);
+    toast.success("Details Updated");
+  };
+
+  const handleCreate = () => {
+    if (!createForm.company || !createForm.role) return toast.error("Company & Role required");
+    setApplications((prev) => [{ id: Date.now(), ...createForm }, ...prev]);
+    setCreating(false);
+    setCreateForm({
+      company: "",
+      role: "",
+      source: "website",
+      status: "applied",
+      appliedDate: new Date().toISOString().split("T")[0],
+      notes: "",
+    });
+    toast.success("Application Logged");
+  };
+
+  // Determine if we should show extra fields
+  const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(
+    detailsStatus,
+  );
+
   return (
     <div className="px-4 md:px-0 h-full flex flex-col">
-      <motion.div variants={itemVariants} className="mb-4 flex flex-col gap-3">
-        {/* Desktop Header handles main title */}
-        <div className="md:hidden flex justify-between items-center">
-          <h2 className="text-xl md:text-3xl font-extrabold tracking-tight">Applications</h2>
+      <motion.div variants={itemVariants} className={`p-4 rounded-2xl border mb-4 ${colors.card}`}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-bold text-sm tracking-wide">Log Application</h3>
+            <p className="text-[10px] uppercase tracking-widest opacity-50">
+              Add new application manually
+            </p>
+          </div>
+          <button
+            onClick={() => setCreating(!creating)}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${colors.secondary}`}
+          >
+            {creating ? "Close" : "New"}
+          </button>
         </div>
+        {creating && (
+          <div className="grid md:grid-cols-2 gap-3 animate-slide-up">
+            <LabeledInput
+              label="Company"
+              value={createForm.company}
+              onChange={(e) => setCreateForm({ ...createForm, company: e.target.value })}
+              inputClassName={colors.input}
+            />
+            <LabeledInput
+              label="Role"
+              value={createForm.role}
+              onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
+              inputClassName={colors.input}
+            />
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Select
+                className="w-full"
+                value={createForm.source}
+                onChange={(v) => setCreateForm({ ...createForm, source: v })}
+                options={PLATFORMS.filter((p) => p.id !== "all")}
+                isDark={isDark}
+              />
+              <Select
+                className="w-full"
+                value={createForm.status}
+                onChange={(v) => setCreateForm({ ...createForm, status: v })}
+                options={APPLICATION_STATUSES.filter((s) => s.id !== "all")}
+                isDark={isDark}
+              />
+              <input
+                type="date"
+                value={createForm.appliedDate}
+                onChange={(e) => setCreateForm({ ...createForm, appliedDate: e.target.value })}
+                className={`w-full p-3 rounded-xl text-sm font-medium outline-none transition-all ${colors.input}`}
+              />
+            </div>
+            <Button onClick={handleCreate} className={`md:col-span-2 py-3 ${colors.primary}`}>
+              Save Application
+            </Button>
+          </div>
+        )}
+      </motion.div>
 
+      <motion.div variants={itemVariants} className="mb-4 flex flex-col gap-3">
         <div className="flex flex-col md:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 opacity-30" size={16} />
@@ -938,22 +1145,24 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
         </div>
       </motion.div>
 
-      <div className="md:hidden space-y-2 pb-4">
-        {filtered.map((app) => (
+      <div className="md:hidden space-y-2 pb-4 no-scrollbar">
+        {paginatedApps.map((app) => (
           <TrackerCard
             key={app.id}
             app={app}
             colors={colors}
             isDark={isDark}
             setApplications={setApplications}
+            onStatusChange={(item, status) => openDetails(item, status)}
+            onDetails={() => openDetails(app)}
+            onDelete={() => {
+              if (confirm("Delete?"))
+                setApplications((prev) => prev.filter((p) => p.id !== app.id));
+            }}
           />
         ))}
-        {filtered.length === 0 && (
-          <div className="text-center py-10 opacity-40 text-xs font-bold uppercase tracking-widest">
-            No applications found.
-          </div>
-        )}
       </div>
+
       <div className="hidden md:block flex-1 overflow-x-auto">
         <div className="min-w-[800px] md:min-w-0 space-y-2">
           <div
@@ -965,7 +1174,7 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
             <div className="col-span-2">Date</div>
             <div className="col-span-1 text-right">Action</div>
           </div>
-          {filtered.map((app) => (
+          {paginatedApps.map((app) => (
             <motion.div
               variants={itemVariants}
               key={app.id}
@@ -980,6 +1189,14 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
                 <div>
                   <h4 className="font-bold text-sm">{app.company}</h4>
                   <p className="text-[10px] uppercase tracking-wider opacity-60">{app.role}</p>
+                  {app.statusDetails?.date || app.statusDetails?.round ? (
+                    <p className="text-[10px] opacity-60 mt-0.5 text-blue-500">
+                      {app.statusDetails.round}{" "}
+                      {app.statusDetails.date
+                        ? `• ${formatDateDisplay(app.statusDetails.date)}`
+                        : ""}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <div className="col-span-2 flex items-center gap-2 opacity-70">
@@ -990,20 +1207,21 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
                   {PLATFORMS.find((p) => p.id === app.source)?.label}
                 </span>
               </div>
-              <div className="col-span-3">
-                <StatusSelect
-                  status={app.status}
-                  onChange={(v) =>
-                    setApplications((prev) =>
-                      prev.map((p) => (p.id === app.id ? { ...p, status: v } : p)),
-                    )
-                  }
-                />
+              <div className="col-span-3 flex items-center gap-2">
+                <StatusSelect status={app.status} onChange={(v) => openDetails(app, v)} />
+                <button onClick={() => openDetails(app)} className="p-1 hover:bg-gray-100 rounded">
+                  <Edit3 size={12} className="opacity-50" />
+                </button>
               </div>
-              <div className="col-span-2 text-xs font-mono opacity-60">{app.appliedDate}</div>
+              <div className="col-span-2 text-xs font-mono opacity-60">
+                {formatDateDisplay(app.appliedDate)}
+              </div>
               <div className="col-span-1 flex justify-end">
                 <button
-                  onClick={() => setApplications((prev) => prev.filter((p) => p.id !== app.id))}
+                  onClick={() => {
+                    if (confirm("Delete?"))
+                      setApplications((prev) => prev.filter((p) => p.id !== app.id));
+                  }}
                   className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-gray-400"
                 >
                   <Trash2 size={14} />
@@ -1013,6 +1231,132 @@ const TrackerView = ({ applications, setApplications, colors, isDark }) => {
           ))}
         </div>
       </div>
+
+      {/* PAGINATION CONTROLS */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-dashed border-gray-500/20">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${currentPage === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-gray-50 dark:hover:bg-zinc-800"} ${colors.secondary}`}
+          >
+            Previous
+          </button>
+          <span className="text-xs font-mono opacity-50">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${currentPage === totalPages ? "opacity-30 cursor-not-allowed" : "hover:bg-gray-50 dark:hover:bg-zinc-800"} ${colors.secondary}`}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* DETAILS MODAL */}
+      {detailsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`w-full max-w-md rounded-2xl border p-5 shadow-2xl ${colors.card}`}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-bold tracking-wide">Status Details</h3>
+              <button onClick={() => setDetailsOpen(false)}>
+                <X size={18} className="opacity-50 hover:opacity-100" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                  Status
+                </span>
+                <Select
+                  value={detailsStatus}
+                  onChange={setDetailsStatus}
+                  options={APPLICATION_STATUSES.filter((s) => s.id !== "all")}
+                  isDark={isDark}
+                  className="w-full"
+                />
+              </label>
+
+              {/* CONDITIONAL FIELDS BASED ON STATUS */}
+              {showInterviewFields && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="space-y-4 pt-2 border-t border-dashed border-gray-500/20"
+                >
+                  <LabeledInput
+                    label="Round"
+                    value={detailsForm.round}
+                    onChange={(e) => setDetailsForm({ ...detailsForm, round: e.target.value })}
+                    inputClassName={colors.input}
+                    placeholder="e.g. Technical, HR"
+                  />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={detailsForm.date}
+                        onChange={(e) => setDetailsForm({ ...detailsForm, date: e.target.value })}
+                        className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                        Time
+                      </label>
+                      <input
+                        type="time"
+                        value={detailsForm.time}
+                        onChange={(e) => setDetailsForm({ ...detailsForm, time: e.target.value })}
+                        className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
+                      />
+                    </div>
+                  </div>
+
+                  <label className="block">
+                    <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                      Mode
+                    </span>
+                    <Select
+                      value={detailsForm.mode}
+                      onChange={(v) => setDetailsForm({ ...detailsForm, mode: v })}
+                      options={[
+                        { id: "online", label: "Online" },
+                        { id: "offline", label: "Offline" },
+                      ]}
+                      isDark={isDark}
+                    />
+                  </label>
+                </motion.div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  onClick={() => setDetailsOpen(false)}
+                  className={`px-4 py-2 text-xs border ${colors.secondary}`}
+                  variant="secondary"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={saveDetails} className={`px-4 py-2 text-xs ${colors.primary}`}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1086,96 +1430,48 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
       />
     );
 
-  // 1. MENU - Redesigned for Visual Appeal
   if (view === "MENU") {
     return (
-      <motion.div variants={itemVariants} className="max-w-4xl mx-auto px-4 md:px-0 pt-4">
-        {/* Mobile Header Title Only */}
+      <motion.div variants={itemVariants} className="max-w-2xl mx-auto px-4 md:px-0">
         <div className="md:hidden mb-6">
-          <h2 className="text-xl font-bold">Mail Wizard</h2>
+          <h2 className="text-xl font-bold">How are you applying?</h2>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Primary Action: Compose via Template */}
+        <div className="grid grid-cols-1 gap-3">
           <div
             onClick={() => setView("LIST")}
-            className={`relative p-6 rounded-3xl cursor-pointer border overflow-hidden group transition-all hover:shadow-lg ${colors.card} h-48 flex flex-col justify-between`}
+            className={`p-5 rounded-2xl cursor-pointer border hover:border-current transition-all ${colors.card}`}
           >
-            <div
-              className={`absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 rotate-12 ${isDark ? "bg-white" : "bg-black"}`}
-            >
-              <LayoutTemplate size={100} />
-            </div>
-            <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDark ? "bg-blue-500/20 text-blue-400" : "bg-blue-50 text-blue-600"}`}
-            >
-              <LayoutTemplate size={24} />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold tracking-tight">Use Template</h3>
-              <p className="text-xs opacity-60 mt-1">
-                Select from your saved cover letters and auto-fill details.
-              </p>
+            <div className="flex items-center gap-4">
+              <div
+                className={`p-3 rounded-xl flex items-center justify-center ${isDark ? "bg-black" : "bg-blue-50 text-blue-600"}`}
+              >
+                <LayoutTemplate size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold tracking-wide">Use Template</h3>
+                <p className="text-[10px] uppercase tracking-widest opacity-50">
+                  Generate email from templates
+                </p>
+              </div>
             </div>
           </div>
-
-          {/* Primary Action: Log External */}
           <div
             onClick={() => setView("MANUAL")}
-            className={`relative p-6 rounded-3xl cursor-pointer border overflow-hidden group transition-all hover:shadow-lg ${colors.card} h-48 flex flex-col justify-between`}
+            className={`p-5 rounded-2xl cursor-pointer border hover:border-current transition-all ${colors.card}`}
           >
-            <div
-              className={`absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 rotate-12 ${isDark ? "bg-white" : "bg-black"}`}
-            >
-              <Globe size={100} />
+            <div className="flex items-center gap-4">
+              <div
+                className={`p-3 rounded-xl flex items-center justify-center ${isDark ? "bg-black" : "bg-green-50 text-green-600"}`}
+              >
+                <Globe size={20} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold tracking-wide">Log External App</h3>
+                <p className="text-[10px] uppercase tracking-widest opacity-50">
+                  LinkedIn, Indeed, Website, etc.
+                </p>
+              </div>
             </div>
-            <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDark ? "bg-green-500/20 text-green-400" : "bg-green-50 text-green-600"}`}
-            >
-              <Globe size={24} />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold tracking-tight">Log Application</h3>
-              <p className="text-xs opacity-60 mt-1">
-                Record an application submitted via LinkedIn, Indeed, etc.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions Grid */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-widest opacity-50">
-              Quick Actions
-            </h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button
-              onClick={() => setIsCreating(true)}
-              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors ${colors.card}`}
-            >
-              <Plus size={20} className="mb-2 opacity-50" />
-              <span className="text-xs font-bold block">New Template</span>
-            </button>
-            <button
-              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors opacity-50 cursor-not-allowed ${colors.card}`}
-            >
-              <Clock3 size={20} className="mb-2 opacity-50" />
-              <span className="text-xs font-bold block">Scheduled</span>
-            </button>
-            <button
-              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors opacity-50 cursor-not-allowed ${colors.card}`}
-            >
-              <Send size={20} className="mb-2 opacity-50" />
-              <span className="text-xs font-bold block">Sent Mails</span>
-            </button>
-            <button
-              className={`p-4 rounded-2xl border text-left hover:border-current transition-colors opacity-50 cursor-not-allowed ${colors.card}`}
-            >
-              <FileEdit size={20} className="mb-2 opacity-50" />
-              <span className="text-xs font-bold block">Drafts</span>
-            </button>
           </div>
         </div>
       </motion.div>
@@ -1184,8 +1480,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
 
   if (view === "MANUAL") {
     return (
-      <motion.div variants={itemVariants} className="max-w-xl mx-auto p-4 md:p-0 pt-4">
-        <div className="flex items-center mb-6">
+      <motion.div variants={itemVariants} className="max-w-xl mx-auto p-4 md:p-0">
+        <div className="flex items-center mb-4">
           <button
             onClick={() => setView("MENU")}
             className="mr-3 p-2 rounded-full hover:bg-gray-500/10"
@@ -1227,7 +1523,7 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
               toast.success("Logged Successfully!");
               setView("MENU");
             }}
-            className={`w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider mt-4 ${colors.primary}`}
+            className={`w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider mt-2 ${colors.primary}`}
           >
             Save Record
           </button>
@@ -1238,8 +1534,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
 
   if (view === "LIST") {
     return (
-      <motion.div variants={itemVariants} className="max-w-2xl mx-auto px-4 md:px-0 pt-4">
-        <div className="flex items-center justify-between mb-6">
+      <motion.div variants={itemVariants} className="max-w-2xl mx-auto px-4 md:px-0">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <button
               onClick={() => setView("MENU")}
@@ -1275,11 +1571,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
   if (view === "FILL") {
     const content = getCompiledContent();
     return (
-      <motion.div
-        variants={itemVariants}
-        className="max-w-6xl mx-auto px-4 md:px-0 h-full pb-20 pt-4"
-      >
-        <div className="flex items-center mb-6">
+      <motion.div variants={itemVariants} className="max-w-6xl mx-auto px-4 md:px-0 h-full pb-20">
+        <div className="flex items-center mb-4">
           <button
             onClick={() => setView("LIST")}
             className="mr-3 p-2 rounded-full hover:bg-gray-500/10"
@@ -1289,10 +1582,10 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
           <h2 className="text-xl font-bold">Details</h2>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-8 h-full">
-          <div className="w-full md:w-1/2 flex flex-col space-y-6">
-            <div className={`p-6 rounded-3xl border ${colors.card}`}>
-              <div className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-6 h-full">
+          <div className="w-full md:w-1/2 flex flex-col space-y-4">
+            <div className={`p-5 rounded-2xl border ${colors.card}`}>
+              <div className="space-y-3">
                 {Object.keys(templateVars).length === 0 && (
                   <p className="opacity-50 text-xs italic">No variables in this template.</p>
                 )}
@@ -1309,17 +1602,18 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
             </div>
             <button
               onClick={() => setView("PREVIEW")}
-              className={`md:hidden w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg ${colors.primary}`}
+              className={`md:hidden w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg ${colors.primary}`}
             >
               Preview
             </button>
           </div>
-          <div className="hidden md:block w-1/2 h-[600px]">
+          <div className="hidden md:block w-1/2 h-[500px]">
             <GmailPreview
               content={content}
               isDark={isDark}
               profile={profile}
               handleSend={handleSend}
+              onClose={() => setView("FILL")}
             />
           </div>
         </div>
@@ -1330,8 +1624,8 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
   if (view === "PREVIEW") {
     const content = getCompiledContent();
     return (
-      <motion.div variants={itemVariants} className="max-w-3xl mx-auto px-4 md:px-0 pb-32 pt-4">
-        <div className="flex items-center mb-6">
+      <motion.div variants={itemVariants} className="max-w-3xl mx-auto px-4 md:px-0 pb-32">
+        <div className="flex items-center mb-4">
           <button
             onClick={() => setView("FILL")}
             className="mr-3 p-2 rounded-full hover:bg-gray-500/10"
@@ -1340,12 +1634,13 @@ const MailWizard = ({ templates, setTemplates, profile, onSend, colors, isDark }
           </button>
           <h2 className="text-xl font-bold">Preview</h2>
         </div>
-        <div className="flex flex-col min-h-[60vh]">
+        <div className="flex flex-col min-h-[50vh]">
           <GmailPreview
             content={content}
             isDark={isDark}
             profile={profile}
             handleSend={handleSend}
+            onClose={() => setView("FILL")}
           />
         </div>
       </motion.div>
@@ -1369,27 +1664,27 @@ const NotesView = ({ notes, setNotes, colors, isDark }) => {
     setNoteForm({ title: "", text: "" });
   };
   return (
-    <div className="grid md:grid-cols-2 gap-8 px-4 md:px-0 pt-4">
+    <div className="grid md:grid-cols-2 gap-8 px-4 md:px-0">
       <motion.div variants={itemVariants}>
-        <h2 className="text-2xl md:text-3xl font-bold mb-6">Quick Notes</h2>
-        <div className={`p-6 rounded-3xl ${colors.card}`}>
+        <h2 className="text-2xl md:text-3xl font-bold mb-4 md:hidden">Quick Notes</h2>
+        <div className={`p-5 rounded-3xl ${colors.card}`}>
           <input
             placeholder="Title"
-            className={`w-full p-2 mb-3 rounded-lg bg-transparent font-bold text-xl outline-none border-b border-gray-500/20 ${isDark ? "text-white" : "text-gray-900"}`}
+            className={`w-full p-2 mb-2 rounded-lg bg-transparent font-bold text-lg outline-none border-b border-gray-500/20 ${isDark ? "text-white" : "text-gray-900"}`}
             value={noteForm.title}
             onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
           />
           <textarea
-            className={`w-full h-48 bg-transparent resize-none outline-none text-base leading-relaxed ${isDark ? "text-zinc-300" : "text-gray-600"}`}
+            className={`w-full h-40 bg-transparent resize-none outline-none text-base ${isDark ? "text-zinc-300" : "text-gray-600"}`}
             placeholder="Type here..."
             value={noteForm.text}
             onChange={(e) => setNoteForm({ ...noteForm, text: e.target.value })}
           ></textarea>
           <button
             onClick={add}
-            className={`w-full py-3 mt-4 rounded-xl font-bold text-sm uppercase tracking-wider ${colors.primary}`}
+            className={`w-full py-3 mt-2 rounded-xl font-bold ${colors.primary}`}
           >
-            Save Note
+            Save
           </button>
         </div>
       </motion.div>
@@ -1398,15 +1693,15 @@ const NotesView = ({ notes, setNotes, colors, isDark }) => {
           <motion.div
             variants={itemVariants}
             key={n.id}
-            className={`p-6 rounded-3xl relative ${colors.card}`}
+            className={`p-5 rounded-2xl relative ${colors.card}`}
           >
-            <h4 className="font-bold text-lg mb-2">{n.title}</h4>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed opacity-80">{n.text}</p>
+            <h4 className="font-bold mb-2">{n.title}</h4>
+            <p className="whitespace-pre-wrap text-sm opacity-80">{n.text}</p>
             <button
               onClick={() => setNotes((ns) => ns.filter((x) => x.id !== n.id))}
-              className="absolute top-6 right-6 text-red-500 opacity-50 hover:opacity-100"
+              className="absolute top-4 right-4 text-red-500 opacity-50 hover:opacity-100"
             >
-              <Trash2 size={20} />
+              <Trash2 size={16} />
             </button>
           </motion.div>
         ))}
@@ -1689,6 +1984,81 @@ const ProfileView = ({ profile, setProfile, goal, setGoal, colors, isDark, onLog
 };
 
 // --- 5. SCREENS (Defined before App) ---
+
+const DesktopHeader = ({ activeTab, profile, theme, setTheme, isDark, colors, setActive }) => {
+  let title = "Dashboard";
+  let subtitle = "Overview";
+
+  if (activeTab === "dashboard") {
+    title = `Good Morning, ${profile.name.split(" ")[0]}`;
+    subtitle = "Your Activity Overview";
+  } else if (activeTab === "tracker") {
+    title = "Applications";
+    subtitle = "Pipeline Status";
+  } else if (activeTab === "mail") {
+    title = "Mail Wizard";
+    subtitle = "Compose & Send";
+  } else if (activeTab === "notes") {
+    title = "Notes";
+    subtitle = "Ideas & Prep";
+  } else if (activeTab === "profile") {
+    title = "Profile";
+    subtitle = "Settings & Goal";
+  }
+
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="hidden md:flex justify-between items-end mb-6 pb-4 border-b border-gray-200 dark:border-zinc-800"
+    >
+      <div>
+        <h2
+          className={`text-3xl font-extrabold tracking-tight ${isDark ? "text-white" : "text-gray-900"}`}
+        >
+          {title}
+        </h2>
+        <p
+          className={`text-xs font-bold uppercase tracking-widest opacity-50 mt-1 flex items-center gap-2`}
+        >
+          {subtitle} <span className="w-1 h-1 rounded-full bg-current" /> {currentDate}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => setTheme(isDark ? "clean" : "nothing")}
+          className={`p-2.5 rounded-xl border transition-colors ${colors.card} hover:bg-gray-100 dark:hover:bg-zinc-800`}
+        >
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        <div className={`p-2.5 rounded-xl border ${colors.card}`}>
+          <Bell size={20} />
+        </div>
+        <div
+          onClick={() => setActive("profile")}
+          className={`flex items-center gap-3 px-3 py-1.5 rounded-xl border cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ${colors.card}`}
+        >
+          <div
+            className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-zinc-800" : "bg-gray-100"}`}
+          >
+            {profile.name.charAt(0)}
+          </div>
+          <div className="text-left hidden lg:block">
+            <p className="text-xs font-bold">{profile.name}</p>
+            <p className="text-[10px] opacity-50">{profile.title}</p>
+          </div>
+          <ChevronDown size={14} className="opacity-40" />
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const LoadingScreen = ({ theme, isDark }) => (
   <div
@@ -2104,6 +2474,9 @@ export default function App() {
                   isDark={isDark}
                   onLogout={() => setIsAuthenticated(false)}
                 />
+              )}
+              {!["dashboard", "tracker", "mail", "notes", "profile"].includes(activeTab) && (
+                <NotFoundView colors={colors} isDark={isDark} setActive={setActiveTab} />
               )}
             </motion.div>
           </AnimatePresence>

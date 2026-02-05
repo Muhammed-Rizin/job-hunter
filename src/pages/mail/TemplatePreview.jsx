@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import GmailPreview from "../../components/mail/GmailPreview";
+import { motion } from "framer-motion";
+import { containerVariants, itemVariants } from "../../utils/animations";
 import { compileTemplateWithFallback, getMissingVariables } from "./utils";
 import { useMailWizard } from "./MailWizardContext";
 import MailBackButton from "./BackButton";
@@ -87,16 +89,18 @@ const MailTemplatePreview = () => {
   return (
     <MailPage className="pb-32">
       <MailBackButton to={`/mail/templates/${template.id}`} />
-      <div className="flex flex-col min-h-[60vh] md:min-h-[70vh]">
-        <GmailPreview
-          content={content}
-          profile={profile}
-          handleSend={handleSendTemplate}
-          sending={sending}
-          recipient={templateVars.To}
-          missingVars={missingVars}
-        />
-      </div>
+      <motion.div variants={containerVariants} className="flex flex-col min-h-[60vh] md:min-h-[70vh]">
+        <motion.div variants={itemVariants}>
+          <GmailPreview
+            content={content}
+            profile={profile}
+            handleSend={handleSendTemplate}
+            sending={sending}
+            recipient={templateVars.To}
+            missingVars={missingVars}
+          />
+        </motion.div>
+      </motion.div>
     </MailPage>
   );
 };

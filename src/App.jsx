@@ -14,6 +14,7 @@ import MailMenu from "./pages/mail/Menu";
 import MailManual from "./pages/mail/Manual";
 import MailTemplateList from "./pages/mail/TemplateList";
 import MailTemplateCreate from "./pages/mail/TemplateCreate";
+import MailTemplateEdit from "./pages/mail/TemplateEdit";
 import MailTemplateFill from "./pages/mail/TemplateFill";
 import MailTemplatePreview from "./pages/mail/TemplatePreview";
 import Notes from "./pages/notes";
@@ -57,6 +58,7 @@ const App = () => {
             <Route path="manual" element={<MailManual />} />
             <Route path="templates" element={<MailTemplateList />} />
             <Route path="templates/new" element={<MailTemplateCreate />} />
+            <Route path="templates/:templateId/edit" element={<MailTemplateEdit />} />
             <Route path="templates/:templateId" element={<MailTemplateFill />} />
             <Route path="templates/:templateId/preview" element={<MailTemplatePreview />} />
           </Route>

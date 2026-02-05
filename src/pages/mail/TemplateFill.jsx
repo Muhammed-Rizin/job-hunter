@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import { colors } from "../../utils/theme";
+import { motion } from "framer-motion";
+import { containerVariants, itemVariants } from "../../utils/animations";
 import LabeledInput from "../../components/common/LabeledInput";
 import GmailPreview from "../../components/mail/GmailPreview";
 import { compileTemplate, compileTemplateWithFallback, getMissingVariables } from "./utils";
@@ -10,6 +12,7 @@ import { useMailWizard } from "./MailWizardContext";
 import MailBackButton from "./BackButton";
 import MailPage from "./MailPage";
 import { post } from "../../services/api";
+import Card from "../../components/common/Card";
 
 const MailTemplateFill = () => {
   const navigate = useNavigate();
@@ -92,9 +95,9 @@ const MailTemplateFill = () => {
     <MailPage className="h-full pb-20">
       <MailBackButton to="/mail/templates" />
 
-      <div className="flex flex-col md:flex-row gap-8 h-full">
-        <div className="w-full md:w-1/2 flex flex-col space-y-6">
-          <div className={`p-6 rounded-3xl border ${colors.card}`}>
+      <motion.div variants={containerVariants} className="flex flex-col md:flex-row gap-8 h-full">
+        <motion.div variants={itemVariants} className="w-full md:w-1/2 flex flex-col space-y-6">
+          <Card className={`p-6 rounded-3xl border ${colors.card}`} hover={false}>
             <div className="space-y-4">
               <LabeledInput
                 label="Recipient Email"
@@ -129,25 +132,28 @@ const MailTemplateFill = () => {
                 ))
               )}
             </div>
-          </div>
+          </Card>
           <button
             onClick={() => navigate(`/mail/templates/${template.id}/preview`)}
             className={`md:hidden w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg ${colors.primary}`}
           >
             Preview
           </button>
-        </div>
-        <div className="hidden md:block w-full md:w-1/2 min-h-105 lg:min-h-150">
-        <GmailPreview
-          content={content}
-          profile={profile}
-          handleSend={handleSendTemplate}
-          sending={sending}
-          recipient={templateVars.To}
-          missingVars={missingVars}
-        />
-      </div>
-      </div>
+        </motion.div>
+        <motion.div
+          variants={itemVariants}
+          className="hidden md:block w-full md:w-1/2 min-h-105 lg:min-h-150"
+        >
+          <GmailPreview
+            content={content}
+            profile={profile}
+            handleSend={handleSendTemplate}
+            sending={sending}
+            recipient={templateVars.To}
+            missingVars={missingVars}
+          />
+        </motion.div>
+      </motion.div>
     </MailPage>
   );
 };

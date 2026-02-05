@@ -3,12 +3,22 @@ import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { itemVariants } from "../../utils/animations";
+import Card from "../common/Card";
 import LabeledInput from "../common/LabeledInput";
 import MailBackButton from "../../pages/mail/BackButton";
 import MailPage from "../../pages/mail/MailPage";
 
-const CreateTemplateView = ({ onSave, onCancel, colors, isSaving = false }) => {
-  const [template, setTemplate] = useState({ name: "", subject: "", body: "" });
+const CreateTemplateView = ({
+  onSave,
+  onCancel,
+  colors,
+  isSaving = false,
+  initialTemplate = null,
+  submitLabel = "Save Template",
+}) => {
+  const [template, setTemplate] = useState(
+    initialTemplate || { name: "", subject: "", body: "" },
+  );
 
   const handleSave = () => {
     if (!template.name || !template.body) {
@@ -27,7 +37,7 @@ const CreateTemplateView = ({ onSave, onCancel, colors, isSaving = false }) => {
   return (
     <MailPage>
       <MailBackButton onClick={onCancel} />
-      <div className="space-y-4">
+      <motion.div variants={itemVariants} className="space-y-4">
         <LabeledInput
           label="Template Name"
           value={template.name}
@@ -50,7 +60,7 @@ const CreateTemplateView = ({ onSave, onCancel, colors, isSaving = false }) => {
             onChange={(e) => setTemplate({ ...template, body: e.target.value })}
           />
         </div>
-        <div className={`p-4 rounded-2xl border ${colors.card}`}>
+        <Card className={`p-4 rounded-2xl border ${colors.card}`} hover={false}>
           <h4 className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-2">
             Template Variables
           </h4>
@@ -68,15 +78,15 @@ const CreateTemplateView = ({ onSave, onCancel, colors, isSaving = false }) => {
               ))}
             </div>
           )}
-        </div>
+        </Card>
         <button
           onClick={handleSave}
           disabled={isSaving}
           className={`w-full py-3 rounded-xl font-bold text-sm ${colors.primary}`}
         >
-          {isSaving ? "Saving..." : "Save Template"}
+          {isSaving ? "Saving..." : submitLabel}
         </button>
-      </div>
+      </motion.div>
     </MailPage>
   );
 };
