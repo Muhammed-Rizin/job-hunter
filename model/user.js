@@ -12,6 +12,9 @@ const schema = new Schema(
     mobile: String,
     username: String,
     password: String,
+    googleId: String,
+    githubId: String,
+    provider: String,
 
     // Profile (Job App related)
     title: String,

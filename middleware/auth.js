@@ -4,7 +4,11 @@ import models from "../model/index.js";
 
 const auth = asyncErrorHandler(async (req, res, next) => {
   try {
-    const token = req.cookies.accessToken;
+    const headerToken = req.headers["x-access-token"];
+    const bearer = req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.slice(7)
+      : null;
+    const token = req.cookies?.accessToken || headerToken || bearer;
     if (!token) throw new Error("Access Denied: No token provided", 403);
 
     const tokenData = jwt.verify(token, ACCESS_TOKEN.SECRET);

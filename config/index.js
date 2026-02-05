@@ -1,8 +1,17 @@
+export const NODE_ENV = process.env.NODE_ENV || "development";
+export const IS_PRODUCTION = NODE_ENV === "production";
+export const IS_DEVELOPMENT = NODE_ENV === "development";
+
 export const PORT = process.env.PORT || 4000;
 export const DATABASE_URL = process.env.DATABASE_URL;
 
-export const CLIENT_URL = process.env.CLIENT_URL;
-export const ORIGINS = process.env.ORIGINS?.split(",");
+export const ORIGINS = process.env.ORIGINS?.split(",").map((origin) => origin.trim());
+export const CLIENT_URL = process.env.CLIENT_URL || ORIGINS?.[0] || "http://localhost:5173";
+export const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
+const IS_LOCALHOST =
+  CLIENT_URL?.includes("localhost") || CLIENT_URL?.includes("127.0.0.1") || SERVER_URL.includes("localhost");
+const COOKIE_SECURE = IS_PRODUCTION && !IS_LOCALHOST;
+const COOKIE_SAMESITE = COOKIE_SECURE ? "none" : "lax";
 
 export const ACCESS_TOKEN = {
   SECRET: process.env.ACCESS_TOKEN_SECRET,
@@ -16,39 +25,27 @@ export const REFRESH_TOKEN = {
   MAX_AGE: 30 * 24 * 60 * 60 * 1000, // 30 days
 };
 
-export const TYPES = { INCOME: 1, EXPENSE: 2 };
+export const COOKIE_OPTIONS = {
+  ACCESS: {
+    httpOnly: true,
+    secure: COOKIE_SECURE,
+    sameSite: COOKIE_SAMESITE,
+  },
+  REFRESH: {
+    httpOnly: true,
+    secure: COOKIE_SECURE,
+    sameSite: COOKIE_SAMESITE,
+  },
+};
 
-// <div
-//   className={`p-3 rounded-full ${
-//     data.type === "cash"
-//       ? "bg-orange-100 text-orange-600 dark:bg-neutral-800 dark:text-orange-400"
-//       : data.type === "investment"
-//         ? "bg-purple-100 text-purple-600 dark:bg-neutral-800 dark:text-purple-400"
-//         : "bg-blue-50 text-blue-600 dark:bg-neutral-800 dark:text-white"
-//   }`}
-// >
-//   {data.type === "cash" ? (
-//     <Wallet size={20} />
-//   ) : data.type === "investment" ? (
-//     <TrendingUp size={20} />
-//   ) : (
-//     <Banknote size={20} />
-//   )}
-// </div>;
-export const ACCOUNTS_ICON = {
-  cash: {
-    icon: "Wallet",
-    bg: "bg-orange-100 dark:bg-neutral-800",
-    text: "text-orange-600 dark:text-orange-400",
-  },
-  investment: {
-    icon: "TrendingUp",
-    bg: "bg-purple-100 dark:bg-neutral-800",
-    text: "text-purple-600 dark:text-purple-400",
-  },
-  bank: {
-    icon: "Banknote",
-    bg: "bg-blue-50 dark:bg-neutral-800",
-    text: "text-blue-600 dark:text-white",
-  },
+export const GOOGLE_OAUTH = {
+  CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || `${SERVER_URL}/auth/google/callback`,
+};
+
+export const GITHUB_OAUTH = {
+  CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+  CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+  REDIRECT_URI: process.env.GITHUB_REDIRECT_URI || `${SERVER_URL}/auth/github/callback`,
 };

@@ -6,6 +6,7 @@ const schema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, required: true, ref: COLLECTIONS.USERS },
     token: { type: String, required: true },
+    deviceId: { type: String, default: null, index: true },
     // expireAt: { type: Date, default: () => new Date(Date.now() + 60 * 1000), expires: 0 },
     expireAt: {
       type: Date,
