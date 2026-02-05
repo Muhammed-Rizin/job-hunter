@@ -48,7 +48,6 @@ axiosApi.interceptors.response.use(
       originalConfig._retry = true;
       try {
         if (!refreshPromise) {
-          console.log("Refreshing token...");
           refreshPromise = refreshToken().finally(() => {
             refreshPromise = null;
           });
@@ -57,7 +56,6 @@ axiosApi.interceptors.response.use(
         return axiosApi(originalConfig);
       } catch (refreshError) {
         refreshFailed = true;
-        console.error("Token refresh failed:", refreshError);
         clearSession();
         window.location = "/login";
         return Promise.reject(refreshError);

@@ -6,8 +6,6 @@ const ProfileEditForm = ({
   tempGoal,
   setTempGoal,
   colors,
-  fileInputRef,
-  onFileUpload,
 }) => {
   return (
     <div className="grid md:grid-cols-2 gap-4 animate-slide-up">
@@ -23,7 +21,7 @@ const ProfileEditForm = ({
         inputClassName={colors.input}
       />
       <LabeledInput
-        label="Mobile"
+        label="Phone"
         value={tempProfile.mobile}
         onChange={(e) => setTempProfile({ ...tempProfile, mobile: e.target.value })}
         inputClassName={colors.input}
@@ -32,6 +30,66 @@ const ProfileEditForm = ({
         label="Location"
         value={tempProfile.location}
         onChange={(e) => setTempProfile({ ...tempProfile, location: e.target.value })}
+        inputClassName={colors.input}
+      />
+      <LabeledInput
+        label="Job Title"
+        value={tempProfile.title}
+        onChange={(e) => setTempProfile({ ...tempProfile, title: e.target.value })}
+        inputClassName={colors.input}
+      />
+
+      <div className="md:col-span-2 mt-2">
+        <h3 className="font-bold border-b pb-2 mb-2 opacity-50 text-[10px] uppercase tracking-widest">
+          About
+        </h3>
+      </div>
+      <label className="md:col-span-2 block">
+        <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+          Summary
+        </span>
+        <textarea
+          rows={4}
+          className={`w-full p-3 rounded-lg text-sm font-medium outline-none transition-all ${colors.input}`}
+          value={tempProfile.summary}
+          onChange={(e) => setTempProfile({ ...tempProfile, summary: e.target.value })}
+          placeholder="Brief profile summary"
+        />
+      </label>
+      <label className="md:col-span-2 block">
+        <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+          Skills
+        </span>
+        <textarea
+          rows={3}
+          className={`w-full p-3 rounded-lg text-sm font-medium outline-none transition-all ${colors.input}`}
+          value={tempProfile.skills}
+          onChange={(e) => setTempProfile({ ...tempProfile, skills: e.target.value })}
+          placeholder="React, Node.js, Tailwind, ..."
+        />
+      </label>
+
+      <div className="md:col-span-2 mt-2">
+        <h3 className="font-bold border-b pb-2 mb-2 opacity-50 text-[10px] uppercase tracking-widest">
+          Compensation
+        </h3>
+      </div>
+      <LabeledInput
+        label="Notice Period"
+        value={tempProfile.noticePeriod}
+        onChange={(e) => setTempProfile({ ...tempProfile, noticePeriod: e.target.value })}
+        inputClassName={colors.input}
+      />
+      <LabeledInput
+        label="Current CTC"
+        value={tempProfile.currentCtc}
+        onChange={(e) => setTempProfile({ ...tempProfile, currentCtc: e.target.value })}
+        inputClassName={colors.input}
+      />
+      <LabeledInput
+        label="Expected CTC"
+        value={tempProfile.expectedCtc}
+        onChange={(e) => setTempProfile({ ...tempProfile, expectedCtc: e.target.value })}
         inputClassName={colors.input}
       />
 
@@ -47,27 +105,29 @@ const ProfileEditForm = ({
         onChange={(e) => setTempProfile({ ...tempProfile, resumeLink: e.target.value })}
         inputClassName={colors.input}
       />
-      <div className="flex items-end">
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept=".pdf,.doc,.docx"
-          onChange={onFileUpload}
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className={`w-full p-3 rounded-lg border text-sm font-medium ${colors.secondary}`}
-        >
-          Upload File {tempProfile.resumeName ? `(${tempProfile.resumeName})` : ""}
-        </button>
-      </div>
+      <p className="md:col-span-2 text-[10px] uppercase tracking-widest opacity-50">
+        Link must be public and point to a PDF under 3 MB.
+      </p>
+      <LabeledInput
+        label="Resume File Name"
+        placeholder="Resume.pdf"
+        value={tempProfile.resumeName || ""}
+        onChange={(e) => setTempProfile({ ...tempProfile, resumeName: e.target.value })}
+        inputClassName={colors.input}
+      />
 
       <div className="md:col-span-2 mt-2">
         <h3 className="font-bold border-b pb-2 mb-2 opacity-50 text-[10px] uppercase tracking-widest">
-          Goal
+          Challenge Goal
         </h3>
       </div>
+      <LabeledInput
+        label="Goal Title"
+        placeholder="Apply to 100 jobs"
+        value={tempGoal.title || ""}
+        onChange={(e) => setTempGoal({ ...tempGoal, title: e.target.value })}
+        inputClassName={colors.input}
+      />
       <LabeledInput
         label="Target Role"
         value={tempGoal.targetRole}
@@ -79,6 +139,13 @@ const ProfileEditForm = ({
         type="number"
         value={tempGoal.targetCount}
         onChange={(e) => setTempGoal({ ...tempGoal, targetCount: Number(e.target.value) })}
+        inputClassName={colors.input}
+      />
+      <LabeledInput
+        label="Target Date"
+        type="date"
+        value={tempGoal.targetDate}
+        onChange={(e) => setTempGoal({ ...tempGoal, targetDate: e.target.value })}
         inputClassName={colors.input}
       />
     </div>

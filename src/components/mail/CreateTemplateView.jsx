@@ -7,7 +7,7 @@ import LabeledInput from "../common/LabeledInput";
 import MailBackButton from "../../pages/mail/BackButton";
 import MailPage from "../../pages/mail/MailPage";
 
-const CreateTemplateView = ({ onSave, onCancel, colors }) => {
+const CreateTemplateView = ({ onSave, onCancel, colors, isSaving = false }) => {
   const [template, setTemplate] = useState({ name: "", subject: "", body: "" });
 
   const handleSave = () => {
@@ -18,6 +18,11 @@ const CreateTemplateView = ({ onSave, onCancel, colors }) => {
     onSave(template);
     toast.success("Template saved!");
   };
+
+  const variableMatches = [...`${template.body} ${template.subject}`.matchAll(/{{(.*?)}}/g)]
+    .map((match) => match[1])
+    .filter(Boolean);
+  const variables = [...new Set(variableMatches)];
 
   return (
     <MailPage>
@@ -45,11 +50,31 @@ const CreateTemplateView = ({ onSave, onCancel, colors }) => {
             onChange={(e) => setTemplate({ ...template, body: e.target.value })}
           />
         </div>
+        <div className={`p-4 rounded-2xl border ${colors.card}`}>
+          <h4 className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-2">
+            Template Variables
+          </h4>
+          {variables.length === 0 ? (
+            <p className="text-xs opacity-60">No variables found.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {variables.map((variable) => (
+                <span
+                  key={variable}
+                  className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-gray-200 dark:border-zinc-700"
+                >
+                  {variable}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           onClick={handleSave}
+          disabled={isSaving}
           className={`w-full py-3 rounded-xl font-bold text-sm ${colors.primary}`}
         >
-          Save Template
+          {isSaving ? "Saving..." : "Save Template"}
         </button>
       </div>
     </MailPage>

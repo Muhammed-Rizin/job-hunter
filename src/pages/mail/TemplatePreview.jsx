@@ -1,12 +1,13 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import GmailPreview from "../../components/mail/GmailPreview";
-import { compileTemplate } from "./utils";
+import { compileTemplateWithFallback, getMissingVariables } from "./utils";
 import { useMailWizard } from "./MailWizardContext";
 import MailBackButton from "./BackButton";
 import MailPage from "./MailPage";
+import { post } from "../../services/api";
 
 const MailTemplatePreview = () => {
   const navigate = useNavigate();
@@ -14,13 +15,14 @@ const MailTemplatePreview = () => {
   const {
     templates,
     profile,
-    addApplication,
+    refreshApplications,
     activeTemplateId,
     setActiveTemplateId,
     templateVars,
     setTemplateVars,
     buildTemplateVars,
   } = useMailWizard();
+  const [sending, setSending] = useState(false);
 
   const template = useMemo(
     () => templates.find((item) => String(item.id) === String(templateId)),
@@ -51,26 +53,49 @@ const MailTemplatePreview = () => {
 
   if (!template) return null;
 
-  const content = compileTemplate(template, templateVars);
+  const content = compileTemplateWithFallback(template, templateVars);
+  const requiredKeys = ["To", "Company", "Role", ...Object.keys(templateVars || {})];
+  const missingVars = getMissingVariables(templateVars, [...new Set(requiredKeys)]);
 
-  const handleSendTemplate = () => {
-    addApplication({
-      company: templateVars.Company || "Unknown",
-      role: templateVars.Role || "Unknown",
-      status: "applied",
-      source: "mail",
-      notes: `Emailed: ${content.sub}`,
-      mailBody: content.body,
-    });
-    toast.success("Application Sent!");
-    navigate("/mail");
+  const handleSendTemplate = async () => {
+    if (missingVars.length > 0) {
+      toast.error(`Please fill: ${missingVars.join(", ")}`);
+      return;
+    }
+    if (sending) return;
+
+    try {
+      setSending(true);
+      await post("mail/send", {
+        to: recipient,
+        subject: content.sub,
+        body: content.body,
+        company: templateVars.Company,
+        role: templateVars.Role,
+      });
+
+      await refreshApplications?.();
+      toast.success("Application Sent!");
+      navigate("/mail");
+    } catch (error) {
+      toast.error(error?.message || "Unable to send mail");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <MailPage className="pb-32">
       <MailBackButton to={`/mail/templates/${template.id}`} />
       <div className="flex flex-col min-h-[60vh] md:min-h-[70vh]">
-        <GmailPreview content={content} profile={profile} handleSend={handleSendTemplate} />
+        <GmailPreview
+          content={content}
+          profile={profile}
+          handleSend={handleSendTemplate}
+          sending={sending}
+          recipient={templateVars.To}
+          missingVars={missingVars}
+        />
       </div>
     </MailPage>
   );

@@ -1,4 +1,5 @@
 import { ArrowUpRight, Download, FileText } from "lucide-react";
+import { formatDateDisplay } from "../../utils/date";
 
 const ProfileSummary = ({ profile, goal, progress, strokeDashoffset }) => {
   return (
@@ -14,24 +15,47 @@ const ProfileSummary = ({ profile, goal, progress, strokeDashoffset }) => {
         </div>
         <div>
           <h3 className="font-bold text-[10px] uppercase tracking-widest opacity-50 mb-2">
+            Skills
+          </h3>
+          <p className="text-xs leading-relaxed opacity-80">
+            {profile.skills || "Add your primary skills and stack."}
+          </p>
+        </div>
+        <div>
+          <h3 className="font-bold text-[10px] uppercase tracking-widest opacity-50 mb-2">
             Contact
           </h3>
-          <div className="space-y-2 text-xs opacity-80 font-mono">
+          <div className="space-y-2 text-xs opacity-80 font-mono break-words">
             <p>{profile.email || "Email not set"}</p>
-            <p>{profile.mobile || "Mobile not set"}</p>
+            <p>{profile.mobile || "Phone not set"}</p>
+          </div>
+        </div>
+        <div>
+          <h3 className="font-bold text-[10px] uppercase tracking-widest opacity-50 mb-2">
+            Compensation
+          </h3>
+          <div className="space-y-2 text-xs opacity-80">
+            <p>Notice Period: {profile.noticePeriod || "Not set"}</p>
+            <p>Current CTC: {profile.currentCtc || "Not set"}</p>
+            <p>Expected CTC: {profile.expectedCtc || "Not set"}</p>
           </div>
         </div>
       </div>
       <div className="md:col-span-2 space-y-4">
-        <div className="p-4 rounded-2xl border flex items-center justify-between relative overflow-hidden border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative overflow-hidden border-gray-100 bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900/50">
           <div className="z-10">
-            <h3 className="font-bold text-sm tracking-wide mb-1">Goal: {goal.targetRole}</h3>
+            <h3 className="font-bold text-sm tracking-wide mb-1">
+              Goal: {goal.title || goal.targetRole || "Challenge"}
+            </h3>
             <p className="text-[10px] uppercase tracking-widest opacity-50 mb-3">
               Target: {goal.targetCount}
             </p>
+            <p className="text-[10px] uppercase tracking-widest opacity-50 mb-3">
+              Deadline: {goal.targetDate ? formatDateDisplay(goal.targetDate) : "Not set"}
+            </p>
             <div className="text-xl font-mono font-bold">{goal.targetCount}</div>
           </div>
-          <div className="relative w-16 h-16 mr-2">
+          <div className="relative w-16 h-16 sm:mr-2 self-end sm:self-auto">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
               <circle
                 cx="50"
@@ -75,15 +99,15 @@ const ProfileSummary = ({ profile, goal, progress, strokeDashoffset }) => {
               </a>
             ) : null}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="p-2 bg-red-100 text-red-600 rounded-lg">
               <FileText size={16} />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="font-bold text-xs">{profile.resumeName || "No resume uploaded"}</p>
               <p className="text-[10px] opacity-50">PDF Document</p>
             </div>
-            <button className="ml-auto p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <button className="sm:ml-auto p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
               <Download size={14} />
             </button>
           </div>

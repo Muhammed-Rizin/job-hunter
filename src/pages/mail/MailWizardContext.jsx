@@ -1,19 +1,78 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { useGlobal } from "../../context";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth, useGlobal } from "../../context";
 import { getTemplateVariables } from "./utils";
+import { get, post } from "../../services/api";
 
 const MailWizardContext = createContext(null);
 
 export const MailWizardProvider = ({ children }) => {
-  const { templates, setTemplates, profile, setApplications } = useGlobal();
+  const { user } = useAuth();
+  const { templates, setTemplates, profile, createApplication, fetchApplications } = useGlobal();
   const [activeTemplateId, setActiveTemplateId] = useState(null);
   const [templateVars, setTemplateVars] = useState({});
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templateSaving, setTemplateSaving] = useState(false);
+  const hasLoadedRef = useRef(false);
+
+  const normalizeTemplate = useCallback((template) => {
+    if (!template) return null;
+    const id = template._id || template.id || template.templateId || Date.now();
+    return {
+      ...template,
+      id,
+      _id: template._id || id,
+    };
+  }, []);
+
+  const loadTemplates = useCallback(async () => {
+    if (!user) return;
+    try {
+      setTemplatesLoading(true);
+      const response = await get("templates");
+      const data = response?.data || response?.templates || response;
+      if (Array.isArray(data)) {
+        setTemplates(data.map(normalizeTemplate));
+      }
+    } catch (error) {
+      // ignore template load errors
+    } finally {
+      setTemplatesLoading(false);
+    }
+  }, [normalizeTemplate, setTemplates, user]);
+
+  const createTemplate = useCallback(
+    async (payload) => {
+      try {
+        setTemplateSaving(true);
+        const response = await post("templates", payload);
+        const data = response?.data || response?.template || response;
+        const normalized = normalizeTemplate(data);
+        if (normalized) {
+          setTemplates((prev) => [normalized, ...prev]);
+        }
+        return normalized;
+      } finally {
+        setTemplateSaving(false);
+      }
+    },
+    [normalizeTemplate, setTemplates],
+  );
+
+  useEffect(() => {
+    if (!user || hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    loadTemplates();
+  }, [user]);
 
   const buildTemplateVars = useCallback(
     (template) => {
       const variables = getTemplateVariables(template);
       const profileKeys = Object.keys(profile || {});
-      const initialVars = {};
+      const initialVars = {
+        To: "",
+        Company: "",
+        Role: "",
+      };
 
       variables.forEach((variable) => {
         const profileKey = profileKeys.find(
@@ -28,18 +87,22 @@ export const MailWizardProvider = ({ children }) => {
   );
 
   const addApplication = useCallback(
-    (payload) => {
+    async (payload) => {
       const appliedDate = payload.appliedDate || new Date().toISOString().split("T")[0];
-      const next = { ...payload, id: payload.id || Date.now(), appliedDate };
-      setApplications((prev) => [next, ...prev]);
+      return createApplication({ ...payload, appliedDate });
     },
-    [setApplications],
+    [createApplication],
   );
 
   const value = useMemo(
     () => ({
       templates,
       setTemplates,
+      templatesLoading,
+      templateSaving,
+      createTemplate,
+      refreshTemplates: loadTemplates,
+      refreshApplications: fetchApplications,
       profile,
       addApplication,
       activeTemplateId,
@@ -51,6 +114,11 @@ export const MailWizardProvider = ({ children }) => {
     [
       templates,
       setTemplates,
+      templatesLoading,
+      templateSaving,
+      createTemplate,
+      loadTemplates,
+      fetchApplications,
       profile,
       addApplication,
       activeTemplateId,

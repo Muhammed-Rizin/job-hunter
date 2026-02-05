@@ -1,14 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import { colors } from "../../utils/theme";
 import LabeledInput from "../../components/common/LabeledInput";
 import GmailPreview from "../../components/mail/GmailPreview";
-import { compileTemplate } from "./utils";
+import { compileTemplate, compileTemplateWithFallback, getMissingVariables } from "./utils";
 import { useMailWizard } from "./MailWizardContext";
 import MailBackButton from "./BackButton";
 import MailPage from "./MailPage";
+import { post } from "../../services/api";
 
 const MailTemplateFill = () => {
   const navigate = useNavigate();
@@ -16,13 +17,14 @@ const MailTemplateFill = () => {
   const {
     templates,
     profile,
-    addApplication,
+    refreshApplications,
     activeTemplateId,
     setActiveTemplateId,
     templateVars,
     setTemplateVars,
     buildTemplateVars,
   } = useMailWizard();
+  const [sending, setSending] = useState(false);
 
   const template = useMemo(
     () => templates.find((item) => String(item.id) === String(templateId)),
@@ -53,19 +55,37 @@ const MailTemplateFill = () => {
 
   if (!template) return null;
 
-  const content = compileTemplate(template, templateVars);
+  const content = compileTemplateWithFallback(template, templateVars);
+  const requiredKeys = ["To", "Company", "Role", ...Object.keys(templateVars || {})];
+  const missingVars = getMissingVariables(templateVars, [...new Set(requiredKeys)]);
+  const fixedKeys = ["To", "Company", "Role"];
+  const variableKeys = Object.keys(templateVars || {}).filter((key) => !fixedKeys.includes(key));
 
-  const handleSendTemplate = () => {
-    addApplication({
-      company: templateVars.Company || "Unknown",
-      role: templateVars.Role || "Unknown",
-      status: "applied",
-      source: "mail",
-      notes: `Emailed: ${content.sub}`,
-      mailBody: content.body,
-    });
-    toast.success("Application Sent!");
-    navigate("/mail");
+  const handleSendTemplate = async () => {
+    if (missingVars.length > 0) {
+      toast.error(`Please fill: ${missingVars.join(", ")}`);
+      return;
+    }
+    if (sending) return;
+
+    try {
+      setSending(true);
+      await post("mail/send", {
+        to: templateVars.To,
+        subject: content.sub,
+        body: content.body,
+        company: templateVars.Company,
+        role: templateVars.Role,
+      });
+
+      await refreshApplications?.();
+      toast.success("Application Sent!");
+      navigate("/mail");
+    } catch (error) {
+      toast.error(error?.message || "Unable to send mail");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -76,10 +96,29 @@ const MailTemplateFill = () => {
         <div className="w-full md:w-1/2 flex flex-col space-y-6">
           <div className={`p-6 rounded-3xl border ${colors.card}`}>
             <div className="space-y-4">
-              {Object.keys(templateVars).length === 0 ? (
+              <LabeledInput
+                label="Recipient Email"
+                value={templateVars.To || ""}
+                onChange={(e) => setTemplateVars({ ...templateVars, To: e.target.value })}
+                inputClassName={colors.input}
+              />
+              <LabeledInput
+                label="Company"
+                value={templateVars.Company || ""}
+                onChange={(e) => setTemplateVars({ ...templateVars, Company: e.target.value })}
+                inputClassName={colors.input}
+              />
+              <LabeledInput
+                label="Role"
+                value={templateVars.Role || ""}
+                onChange={(e) => setTemplateVars({ ...templateVars, Role: e.target.value })}
+                inputClassName={colors.input}
+              />
+
+              {variableKeys.length === 0 ? (
                 <p className="opacity-50 text-xs italic">No variables in this template.</p>
               ) : (
-                Object.keys(templateVars).map((key) => (
+                variableKeys.map((key) => (
                   <LabeledInput
                     key={key}
                     label={key}
@@ -99,8 +138,15 @@ const MailTemplateFill = () => {
           </button>
         </div>
         <div className="hidden md:block w-full md:w-1/2 min-h-105 lg:min-h-150">
-          <GmailPreview content={content} profile={profile} handleSend={handleSendTemplate} />
-        </div>
+        <GmailPreview
+          content={content}
+          profile={profile}
+          handleSend={handleSendTemplate}
+          sending={sending}
+          recipient={templateVars.To}
+          missingVars={missingVars}
+        />
+      </div>
       </div>
     </MailPage>
   );

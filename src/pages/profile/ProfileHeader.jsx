@@ -6,18 +6,19 @@ const ProfileHeader = ({
   tempProfile,
   setTempProfile,
   colors,
+  isSaving = false,
   onToggleEdit,
   onLogout,
 }) => {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start mb-6">
-      <div className="flex flex-col md:flex-row items-center md:items-center gap-6">
+    <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto">
         <div
           className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-gray-100 bg-gray-100 dark:border-zinc-800 dark:bg-zinc-800 flex items-center justify-center text-3xl font-bold shadow-sm overflow-hidden"
         >
           {profile.name ? profile.name.charAt(0) : <User />}
         </div>
-        <div className="text-center md:text-left">
+        <div className="text-left w-full">
           {isEditing ? (
             <div className="space-y-2">
               <input
@@ -41,19 +42,22 @@ const ProfileHeader = ({
               <p className="text-xs text-gray-500 dark:text-zinc-400">
                 {profile.title || "Job Title"}
               </p>
-              <p className="text-[10px] uppercase tracking-widest opacity-60 flex items-center justify-center md:justify-start mt-2">
+              <p className="text-[10px] uppercase tracking-widest opacity-60 flex items-center justify-start mt-2">
                 <MapPin size={10} className="mr-1" /> {profile.location || "Location"}
               </p>
             </>
           )}
         </div>
       </div>
-      <div className="flex gap-2 mt-4 md:mt-0">
+      <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
         <button
           onClick={onToggleEdit}
-          className={`px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center gap-2 border transition-all active:scale-95 ${isEditing ? "bg-green-600 text-white border-green-600" : colors.secondary}`}
+          disabled={isSaving}
+          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border transition-all active:scale-95 ${isEditing ? "bg-green-600 text-white border-green-600" : colors.secondary}`}
         >
-          {isEditing ? (
+          {isSaving ? (
+            <>Saving...</>
+          ) : isEditing ? (
             <>
               <Save size={14} /> Save
             </>
@@ -65,10 +69,11 @@ const ProfileHeader = ({
         </button>
         <button
           onClick={onLogout}
-          className="md:hidden px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border text-red-500 border-red-500/20 bg-red-500/10"
+          className="md:hidden w-full sm:w-auto px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border text-red-500 border-red-500/20 bg-red-500/10 flex items-center justify-center gap-2"
           aria-label="Log out"
         >
           <LogOut size={14} />
+          <span>Logout</span>
         </button>
       </div>
     </div>

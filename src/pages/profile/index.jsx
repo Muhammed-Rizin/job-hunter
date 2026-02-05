@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 
@@ -8,15 +8,16 @@ import { colors } from "../../utils/theme";
 import ProfileHeader from "./ProfileHeader";
 import ProfileEditForm from "./ProfileEditForm";
 import ProfileSummary from "./ProfileSummary";
+import { put } from "../../services/api";
 
 const Profile = () => {
-  const { logout } = useAuth();
+  const { logout, updateUser } = useAuth();
   const { profile, setProfile, goal, setGoal } = useGlobal();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [tempProfile, setTempProfile] = useState(profile);
   const [tempGoal, setTempGoal] = useState(goal);
-  const fileInputRef = useRef(null);
 
   const progress = goal.targetCount > 0 ? Math.min(100, (50 / goal.targetCount) * 100) : 0;
   const circumference = 251;
@@ -29,18 +30,70 @@ const Profile = () => {
     }
   }, [isEditing, profile, goal]);
 
-  const handleSave = () => {
-    setProfile(tempProfile);
-    setGoal(tempGoal);
-    setIsEditing(false);
-    toast.success("Profile Updated");
-  };
+  const handleSave = async () => {
+    try {
+      if (isSaving) return;
+      if (!tempGoal?.targetDate) {
+        toast.error("Please set a target date for the challenge");
+        return;
+      }
+      if (!tempGoal?.targetCount) {
+        toast.error("Please set a target count for the challenge");
+        return;
+      }
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setTempProfile({ ...tempProfile, resumeName: file.name, resumeLink: "" });
-      toast.success(`Uploaded: ${file.name}`);
+      const goalTitle =
+        tempGoal.title || tempGoal.targetRole || `Apply to ${tempGoal.targetCount} jobs`;
+
+      setIsSaving(true);
+      const startTime = Date.now();
+
+      const profilePayload = {
+        name: tempProfile.name,
+        title: tempProfile.title,
+        email: tempProfile.email,
+        mobile: tempProfile.mobile,
+        location: tempProfile.location,
+        summary: tempProfile.summary,
+        skills: tempProfile.skills,
+        noticePeriod: tempProfile.noticePeriod,
+        currentCtc: tempProfile.currentCtc,
+        expectedCtc: tempProfile.expectedCtc,
+        resumeName: tempProfile.resumeName,
+        resumeLink: tempProfile.resumeLink,
+      };
+
+      const [profileResponse, goalResponse] = await Promise.all([
+        put("user/profile", profilePayload),
+        put("goals/active", {
+          title: goalTitle,
+          targetRole: tempGoal.targetRole,
+          targetCount: tempGoal.targetCount,
+          targetDate: tempGoal.targetDate,
+        }),
+      ]);
+
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 400) {
+        await new Promise((resolve) => setTimeout(resolve, 400 - elapsed));
+      }
+
+      const profileData =
+        profileResponse?.data || profileResponse?.user || profileResponse?.profile;
+      const goalData = goalResponse?.data || goalResponse?.goal;
+
+      if (profileData) {
+        setProfile(profileData);
+        updateUser(profileData);
+      }
+      if (goalData) setGoal(goalData);
+
+      setIsEditing(false);
+      toast.success("Profile updated");
+    } catch (error) {
+      toast.error(error?.message || "Unable to update profile");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -54,7 +107,7 @@ const Profile = () => {
     >
       <motion.div
         variants={itemVariants}
-        className="max-w-4xl mx-auto space-y-4 px-4 md:px-0 pb-32 pt-4"
+        className="max-w-4xl mx-auto space-y-4 px-4 md:px-0 pb-4 pt-4"
       >
         <div className={`p-5 md:p-8 rounded-3xl border shadow-sm ${colors.card}`}>
           <ProfileHeader
@@ -63,6 +116,7 @@ const Profile = () => {
             tempProfile={tempProfile}
             setTempProfile={setTempProfile}
             colors={colors}
+            isSaving={isSaving}
             onToggleEdit={() => (isEditing ? handleSave() : setIsEditing(true))}
             onLogout={logout}
           />
@@ -74,8 +128,6 @@ const Profile = () => {
               tempGoal={tempGoal}
               setTempGoal={setTempGoal}
               colors={colors}
-              fileInputRef={fileInputRef}
-              onFileUpload={handleFileUpload}
             />
           ) : (
             <ProfileSummary

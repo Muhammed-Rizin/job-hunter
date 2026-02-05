@@ -33,7 +33,7 @@ const MainLayout = () => {
         {!isMobile && <SideBar />}
 
         {/* <main className="flex-1 h-full overflow-y-auto no-scrollbar pt-20 pb-32 md:py-4 md:pr-4 md:pb-4 scroll-smooth"> */}
-        <main className="flex-1 h-full overflow-y-auto no-scrollbar pt-20 pb-32 md:py-4 md:pr-4 md:pb-4 scroll-smooth">
+        <main className="flex-1 h-full overflow-y-auto no-scrollbar pt-20 pb-32 md:pt-0 md:pr-4 md:pb-4 scroll-smooth">
           <div className="max-w-6xl mx-auto min-h-full flex flex-col">
             <Header />
             <AnimatePresence mode="wait">

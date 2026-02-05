@@ -41,7 +41,6 @@ export const AuthProvider = ({ children }) => {
       toast.success("Welcome back!");
       navigate("/");
     } catch (error) {
-      console.error("Login error:", error);
       toast.error(error.message || "Login failed");
     }
   };
@@ -62,7 +61,6 @@ export const AuthProvider = ({ children }) => {
 
       await login({ username: resolvedUsername, password });
     } catch (error) {
-      console.error("Register error:", error);
       toast.error(error.message || "Registration failed");
     }
   };
@@ -77,6 +75,12 @@ export const AuthProvider = ({ children }) => {
       clearSession();
       navigate("/login");
     }
+  };
+
+  const updateUser = (nextUser) => {
+    if (!nextUser) return;
+    setUser(nextUser);
+    setStoredUser(nextUser);
   };
 
   // Check auth state on initial load
@@ -116,7 +120,6 @@ export const AuthProvider = ({ children }) => {
           logout();
         }
       } catch (err) {
-        console.log("Auth check error:", err);
         logout();
       } finally {
         setLoading(false);
@@ -127,7 +130,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, serverReady }}>
+    <AuthContext.Provider
+      value={{ user, login, register, logout, loading, serverReady, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

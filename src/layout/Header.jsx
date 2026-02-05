@@ -48,7 +48,7 @@ const Header = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="hidden md:flex justify-between items-end pb-4 border-b border-gray-200 dark:border-zinc-800"
+        className="hidden md:flex sticky top-0 z-20 py-3 backdrop-blur-md justify-between items-end border-b border-gray-200 dark:border-zinc-800"
       >
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight">{title}</h2>
@@ -61,6 +61,7 @@ const Header = () => {
 
         <div className="flex items-end gap-3">
           <button
+            onClick={() => navigate("/tracker", { state: { openCreate: true } })}
             className="px-5 py-2.5 rounded-xl font-bold flex items-center justify-center shadow-lg transition-transform active:scale-95 text-sm
               bg-black hover:bg-zinc-800 text-white
               dark:bg-red-600 dark:hover:bg-red-500 dark:text-white"
@@ -93,34 +94,26 @@ const Header = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="md:hidden fixed top-0 w-full z-30 px-5 py-4
-          bg-white/90 dark:bg-black/80 backdrop-blur-md
+        className="md:hidden fixed top-0 left-0 right-0 z-30 px-5 py-4
+          bg-white/95 dark:bg-black/90 backdrop-blur-md
           border-b border-gray-100 dark:border-zinc-900
           flex justify-between items-center"
       >
-        
-        <div>
-          <h2 className="text-lg font-extrabold tracking-tight">{title}</h2>
-          <p className="text-[10px] uppercase tracking-widest opacity-50 font-bold">{subtitle}</p>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-black dark:bg-red-600">
+            <span className="font-bold text-white text-xs">JH</span>
+          </div>
+          <span className="font-bold text-lg tracking-tight">JobHunter</span>
         </div>
-        <div className="flex items-end gap-3">
-          <button
-            className="px-5 py-2.5 rounded-xl font-bold flex items-center justify-center shadow-lg transition-transform active:scale-95 text-sm
-              bg-black hover:bg-zinc-800 text-white
-              dark:bg-red-600 dark:hover:bg-red-500 dark:text-white"
-          >
-            <Plus className="mr-2" size={18} /> Apply Now
-          </button>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full
-            bg-gray-100 hover:bg-gray-200
-            dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300"
-          >
-            <Sun className="block dark:hidden" size={18} />
-            <Moon className="hidden dark:block" size={18} />
-          </button>
-        </div>
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full
+          bg-gray-100 hover:bg-gray-200
+          dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300"
+        >
+          <Sun className="block dark:hidden" size={18} />
+          <Moon className="hidden dark:block" size={18} />
+        </button>
       </motion.div>
     </>
   );

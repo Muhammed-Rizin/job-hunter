@@ -6,13 +6,17 @@ import { useMailWizard } from "./MailWizardContext";
 
 const MailTemplateCreate = () => {
   const navigate = useNavigate();
-  const { setTemplates } = useMailWizard();
+  const { createTemplate, templateSaving, refreshTemplates } = useMailWizard();
 
   return (
     <CreateTemplateView
-      onSave={(template) => {
-        setTemplates((prev) => [...prev, { ...template, id: Date.now() }]);
-        navigate("/mail/templates");
+      isSaving={templateSaving}
+      onSave={async (template) => {
+        const created = await createTemplate(template);
+        if (created) {
+          await refreshTemplates();
+          navigate("/mail/templates");
+        }
       }}
       onCancel={() => navigate(-1)}
       colors={colors}

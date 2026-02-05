@@ -22,3 +22,27 @@ export const compileTemplate = (template, vars = {}) => {
 
   return { sub, body };
 };
+
+export const compileTemplateWithFallback = (template, vars = {}) => {
+  let sub = template?.subject || "";
+  let body = template?.body || "";
+
+  Object.keys(vars).forEach((key) => {
+    const reg = new RegExp(`{{${key}}}`, "g");
+    const value = vars[key];
+    const replacement = value ? value : `{{${key}}}`;
+    sub = sub.replace(reg, replacement);
+    body = body.replace(reg, replacement);
+  });
+
+  return { sub, body };
+};
+
+export const getMissingVariables = (vars = {}, requiredKeys = []) => {
+  const missing = [];
+  requiredKeys.forEach((key) => {
+    const value = vars[key];
+    if (!value || String(value).trim() === "") missing.push(key);
+  });
+  return missing;
+};

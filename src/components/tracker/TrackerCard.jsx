@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { Calendar, Trash2 } from "lucide-react";
+import { APPLICATION_STATUSES, PLATFORMS } from "../../config/job.constants";
 import { itemVariants } from "../../utils/animations";
-import StatusSelect from "./StatusSelect";
+import { formatDateDisplay } from "../../utils/date";
 
-const TrackerCard = ({ app, colors, setApplications }) => {
+const TrackerCard = ({ app, colors, onDelete, onStatusChange, onDetails }) => {
   return (
     <motion.div
       variants={itemVariants}
@@ -26,25 +27,58 @@ const TrackerCard = ({ app, colors, setApplications }) => {
           </div>
         </div>
         <button
-          onClick={() => setApplications((prev) => prev.filter((p) => p.id !== app.id))}
+          onClick={() => onDelete?.(app)}
           className="text-gray-400 hover:text-red-500 transition-colors p-1"
           aria-label="Delete application"
         >
           <Trash2 size={16} />
         </button>
       </div>
-      <div className="flex items-center justify-between pt-2 border-t border-dashed border-gray-500/20">
-        <div className="flex-1 mr-4">
-          <StatusSelect
-            status={app.status}
-            onChange={(v) =>
-              setApplications((prev) => prev.map((p) => (p.id === app.id ? { ...p, status: v } : p)))
-            }
-          />
+      <div className="flex flex-col gap-2 pt-2 border-t border-dashed border-gray-500/20">
+        <div className="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60">
+          {(() => {
+            const match = PLATFORMS.find((p) => p.id === app.source);
+            const Icon = match?.icon;
+            return Icon ? <Icon size={12} /> : null;
+          })()}
+          <span className="mr-auto">
+            {PLATFORMS.find((p) => p.id === app.source)?.label || app.source}
+          </span>
+          <button
+            onClick={() => onDetails?.(app)}
+            className="text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100"
+          >
+            Details
+          </button>
         </div>
-        <div className="flex items-center gap-1 opacity-50 text-[10px] font-mono font-bold">
-          <Calendar size={10} />
-          <span>{app.appliedDate}</span>
+        {app.statusDetails?.date || app.statusDetails?.round || app.statusDetails?.mode ? (
+          <div className="text-[10px] opacity-60">
+            {app.statusDetails?.round ? `${app.statusDetails.round}` : ""}
+            {app.statusDetails?.mode
+              ? `${app.statusDetails.round ? " • " : ""}${app.statusDetails.mode}`
+              : ""}
+            {app.statusDetails?.date
+              ? `${app.statusDetails.round || app.statusDetails.mode ? " • " : ""}${formatDateDisplay(app.statusDetails.date)}`
+              : ""}
+            {app.statusDetails?.time ? ` ${app.statusDetails.time}` : ""}
+          </div>
+        ) : null}
+        <div className="flex items-center gap-3">
+          <select
+            className={`custom-select px-3 py-2 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} flex-1`}
+            value={app.status}
+            onChange={(e) => onStatusChange?.(app, e.target.value)}
+          >
+            {APPLICATION_STATUSES.filter((s) => s.id !== "all").map((status) => (
+              <option key={status.id} value={status.id}>
+                {status.label}
+              </option>
+            ))}
+          </select>
+          <div className="flex items-center gap-1 opacity-50 text-[10px] font-mono font-bold">
+            <Calendar size={10} />
+            <span>{formatDateDisplay(app.appliedDate)}</span>
+          </div>
         </div>
       </div>
     </motion.div>

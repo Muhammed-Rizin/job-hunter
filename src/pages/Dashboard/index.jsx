@@ -4,6 +4,7 @@ import { useGlobal } from "../../context";
 import { motion } from "framer-motion";
 import { containerVariants, itemVariants } from "../../utils/animations";
 import { colors } from "../../utils/theme";
+import { formatDateDisplay } from "../../utils/date";
 
 import { Activity, Calendar, Check, Clock, User } from "lucide-react";
 import StatWidget from "../../components/cards/StatWidget";
@@ -12,7 +13,10 @@ import Card from "../../components/common/Card";
 const Dashboard = () => {
   const { applications, goal, profile } = useGlobal();
 
-  const daysLeft = Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+  const hasTargetDate = Boolean(goal?.targetDate);
+  const daysLeft = hasTargetDate
+    ? Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24))
+    : 0;
   const progress =
     goal.targetCount > 0 ? Math.min(100, (applications.length / goal.targetCount) * 100) : 0;
   const circumference = 351;
@@ -42,11 +46,11 @@ const Dashboard = () => {
               <div>
                 <h3 className="font-bold text-sm tracking-wide">Goal Progress</h3>
                 <p className={`text-[10px] uppercase tracking-widest opacity-50`}>
-                  {goal.targetRole}
+                  {goal.title || goal.targetRole || "Challenge"}
                 </p>
               </div>
               <div className="px-2 py-1 rounded-md text-[10px] font-bold border bg-gray-100 border-gray-200 dark:bg-zinc-800 dark:border-zinc-700 ">
-                {daysLeft} Days Left
+                {hasTargetDate ? `${daysLeft} Days Left` : "No Deadline"}
               </div>
             </div>
             <div className="flex items-end mt-4 relative z-10">
@@ -129,6 +133,18 @@ const Dashboard = () => {
                       <div>
                         <p className="font-bold text-xs">{app.company}</p>
                         <p className="text-[10px] opacity-50">{app.role}</p>
+                        {app.statusDetails?.date ? (
+                          <p className="text-[10px] opacity-60">
+                            {formatDateDisplay(app.statusDetails.date)}{" "}
+                            {app.statusDetails.time ? `• ${app.statusDetails.time}` : ""}
+                          </p>
+                        ) : null}
+                        {app.statusDetails?.round || app.statusDetails?.mode ? (
+                          <p className="text-[10px] opacity-60">
+                            {app.statusDetails.round || "Round"}{" "}
+                            {app.statusDetails.mode ? `• ${app.statusDetails.mode}` : ""}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <span className="text-[10px] font-bold uppercase bg-blue-500/10 text-blue-500 px-2 py-1 rounded">
@@ -169,7 +185,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <span className="text-[10px] font-mono opacity-50">
-                    {app.appliedDate.slice(5)}
+                    {formatDateDisplay(app.appliedDate)}
                   </span>
                 </div>
               ))}
