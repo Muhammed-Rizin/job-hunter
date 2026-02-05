@@ -17,11 +17,16 @@ import routes from "./routes/index.js";
 
 const app = express();
 
+app.set("etag", false);
 app.use(logger("dev"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: ORIGINS, credentials: true }));
+app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 
 app.use("/", routes);
 
@@ -32,6 +37,7 @@ app.use(notFound);
   try {
     await connectDB();
     app.listen(PORT, () => {
+      console.log(chalk.blueBright(`Server listening on http://localhost:${PORT}`));
     });
   } catch (error) {}
 })();

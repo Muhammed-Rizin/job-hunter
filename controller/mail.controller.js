@@ -1,5 +1,6 @@
 import { sendMailService } from "../services/mail.service.js";
 import models from "../model/index.js";
+import { markdownToHtml } from "../utils/email.js";
 
 export const sendMail = asyncErrorHandler(async (req, res) => {
   const { to, subject, body, company, role } = req.body;
@@ -13,6 +14,7 @@ export const sendMail = asyncErrorHandler(async (req, res) => {
     to,
     subject,
     text: body,
+    html: markdownToHtml(body),
     user: req.user._id,
     company,
     role,

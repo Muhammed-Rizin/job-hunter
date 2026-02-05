@@ -1,12 +1,51 @@
 import models from "../model/index.js";
 
 export const list = asyncErrorHandler(async (req, res) => {
-  const data = await models.Application.find({
+  const {
+    search,
+    status,
+    source,
+    sort = "newest",
+    page = 1,
+    limit = 20,
+  } = req.query;
+
+  const filter = {
     user: req.user._id,
     statusFlag: 0,
-  }).sort({ createdAt: -1 });
+  };
 
-  return new Response("Applications fetched", { data }, 200);
+  if (!isNull(status) && status !== "all") filter.status = status;
+  if (!isNull(source) && source !== "all") filter.source = source;
+
+  if (!isNull(search)) {
+    const regex = new RegExp(search, "i");
+    filter.$or = [{ company: regex }, { role: regex }];
+  }
+
+  const resolvedLimit = Math.min(Number(limit) || 20, 100);
+  const resolvedPage = Math.max(Number(page) || 1, 1);
+  const skip = (resolvedPage - 1) * resolvedLimit;
+
+  const sortField = sort === "oldest" ? 1 : -1;
+
+  console.log("FILTER:", filter);
+  const [data, total] = await Promise.all([
+    models.Application.find(filter).sort({ appliedDate: sortField, createdAt: sortField }).skip(skip).limit(resolvedLimit),
+    models.Application.countDocuments(filter),
+  ]);
+
+  const pages = Math.ceil(total / resolvedLimit) || 1;
+
+  return new Response("Applications fetched", {
+    data,
+    meta: {
+      total,
+      page: resolvedPage,
+      limit: resolvedLimit,
+      pages,
+    },
+  }, 200);
 });
 
 export const create = asyncErrorHandler(async (req, res) => {
