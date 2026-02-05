@@ -1,27 +1,69 @@
 import axios from "axios";
 import { API_URL } from "../config/app.config";
+import { getDeviceId } from "../utils/device";
+import { clearSession, getAccessToken, getRefreshToken, setAccessToken } from "../utils/session";
 
 axios.defaults.withCredentials = true;
 
 const axiosApi = axios.create({ baseURL: API_URL });
 
+axiosApi.interceptors.request.use((config) => {
+  const accessToken = getAccessToken();
+  const deviceId = getDeviceId();
+
+  if (accessToken) {
+    config.headers = config.headers || {};
+    config.headers["x-access-token"] = accessToken;
+  }
+
+  if (deviceId) {
+    config.headers = config.headers || {};
+    config.headers["x-device-id"] = deviceId;
+  }
+
+  return config;
+});
+
+let refreshPromise = null;
+let refreshFailed = false;
+
+const isRefreshEndpoint = (url = "") => url.includes("auth/refreshToken");
+
 axiosApi.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error?.response?.status === 403) {
-      try {
-        await refreshToken();
-        const response = await axios(error.config);
-        return response;
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-        // await logout ();
-        window.location = "/login";
+    const status = error?.response?.status;
+    const originalConfig = error?.config || {};
+    const requestUrl = originalConfig?.url || "";
+    const storedRefreshToken = getRefreshToken();
+    if (refreshFailed) {
+      return Promise.reject(error);
+    }
 
+    if (!storedRefreshToken && (status === 401 || status === 403)) {
+      return Promise.reject(error);
+    }
+
+    if ((status === 401 || status === 403) && !originalConfig._retry && !isRefreshEndpoint(requestUrl)) {
+      originalConfig._retry = true;
+      try {
+        if (!refreshPromise) {
+          console.log("Refreshing token...");
+          refreshPromise = refreshToken().finally(() => {
+            refreshPromise = null;
+          });
+        }
+        await refreshPromise;
+        return axiosApi(originalConfig);
+      } catch (refreshError) {
+        refreshFailed = true;
+        console.error("Token refresh failed:", refreshError);
+        clearSession();
+        window.location = "/login";
         return Promise.reject(refreshError);
       }
     }
-    console.log("Not a 401 or 403 error, or token refresh failed");
+
     return Promise.reject(error);
   },
 );
@@ -52,14 +94,15 @@ export async function del(url, config = {}) {
 }
 
 export const refreshToken = async () => {
-  const response = await put("auth/refreshToken");
+  const refresh = getRefreshToken();
+  if (!refresh) throw new Error("No refresh token");
+  const response = await put(
+    "auth/refreshToken",
+    { refreshToken: refresh, deviceId: getDeviceId() },
+    {
+      headers: refresh ? { "x-refresh-token": refresh } : {},
+    },
+  );
+  if (response?.accessToken) setAccessToken(response.accessToken);
   return response.accessToken;
-};
-
-export const logout = async () => {
-  console.log("Log out function");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("user");
-  window.location.href = "/login";
 };

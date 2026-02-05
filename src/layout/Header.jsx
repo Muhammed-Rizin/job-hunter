@@ -1,21 +1,27 @@
 import { motion } from "framer-motion";
-import { Sun, Moon, ChevronDown, Plus } from "lucide-react";
+import { Sun, Moon, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import { useGlobal } from "../context/GlobalContext";
 
 const Header = () => {
   const { toggleTheme } = useTheme();
   const { profile } = useGlobal();
+  const { user } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const displayName = profile?.name || user?.name;
+  const shortName = displayName ? displayName.split(" ")[0] : null;
+  const displayInitial = displayName ? displayName.charAt(0).toUpperCase() : "U";
 
   let title = "Dashboard";
   let subtitle = "Overview";
 
   if (location.pathname === "/") {
-    title = profile?.name ? `Good Morning, ${profile.name.split(" ")[0]}` : "Dashboard";
+    title = shortName ? `Good Morning, ${shortName}` : "Dashboard";
     subtitle = "Your Activity Overview";
   } else if (location.pathname.startsWith("/tracker")) {
     title = "Applications";
@@ -73,11 +79,11 @@ const Header = () => {
               className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm
               bg-gray-100 dark:bg-zinc-800"
             >
-              {profile?.name?.charAt(0) || "U"}
+              {displayInitial}
             </div>
 
             <div className="text-left hidden lg:block">
-              <p className="text-xs font-bold">{profile?.name || "User"}</p>
+              <p className="text-xs font-bold">{displayName || "User"}</p>
               <p className="text-[10px] opacity-50">{profile?.title || "Profile"}</p>
             </div>
           </div>

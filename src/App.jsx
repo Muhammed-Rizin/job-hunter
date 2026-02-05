@@ -2,8 +2,11 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import MainLayout from "./layout/MainLayout";
 import { Toaster } from "react-hot-toast";
+import { useAuth } from "./context/AuthContext";
+import LoadingScreen from "./components/common/LoadingScreen";
 
 import AuthScreen from "./pages/auth";
+import OAuthCallback from "./pages/auth/OAuthCallback";
 import Dashboard from "./pages/Dashboard";
 import Tracker from "./pages/tracker";
 import MailWizard from "./pages/mail";
@@ -15,8 +18,18 @@ import MailTemplateFill from "./pages/mail/TemplateFill";
 import MailTemplatePreview from "./pages/mail/TemplatePreview";
 import Notes from "./pages/notes";
 import Profile from "./pages/profile";
+import NotFound from "./pages/not-found";
 
 const App = () => {
+  const PublicRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+
+    if (loading) return <LoadingScreen />;
+    if (user) return <Navigate to="/" replace />;
+
+    return children;
+  };
+
   return (
     <>
       <Toaster
@@ -26,7 +39,15 @@ const App = () => {
         }}
       />
       <Routes>
-        <Route path="/login" element={<AuthScreen />} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <AuthScreen />
+            </PublicRoute>
+          }
+        />
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
 
         <Route element={<MainLayout />}>
           <Route index element={<Dashboard />} />
@@ -41,9 +62,8 @@ const App = () => {
           </Route>
           <Route path="notes" element={<Notes />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

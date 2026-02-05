@@ -18,7 +18,7 @@ const ProfileSummary = ({ profile, goal, progress, strokeDashoffset }) => {
           </h3>
           <div className="space-y-2 text-xs opacity-80 font-mono">
             <p>{profile.email || "Email not set"}</p>
-            <p>{profile.phone || "Phone not set"}</p>
+            <p>{profile.mobile || "Mobile not set"}</p>
           </div>
         </div>
       </div>

@@ -23,9 +23,9 @@ const ProfileEditForm = ({
         inputClassName={colors.input}
       />
       <LabeledInput
-        label="Phone"
-        value={tempProfile.phone}
-        onChange={(e) => setTempProfile({ ...tempProfile, phone: e.target.value })}
+        label="Mobile"
+        value={tempProfile.mobile}
+        onChange={(e) => setTempProfile({ ...tempProfile, mobile: e.target.value })}
         inputClassName={colors.input}
       />
       <LabeledInput

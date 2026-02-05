@@ -1,7 +1,34 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useMemo } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
+import { useAuth } from "./AuthContext";
 
 const GlobalContext = createContext(null);
+
+const DEFAULT_PROFILE = {
+  userId: null,
+  name: "",
+  title: "",
+  email: "",
+  mobile: "",
+  location: "",
+  summary: "",
+  skills: "",
+  noticePeriod: "",
+  currentCtc: "",
+  expectedCtc: "",
+  resumeName: "",
+  resumeLink: "",
+  image: "",
+};
+
+const normalizeProfile = (value = {}) => {
+  const merged = { ...DEFAULT_PROFILE, ...value };
+  if (!merged.mobile && value?.phone) merged.mobile = value.phone;
+  return merged;
+};
+
+const isLegacySeedProfile = (value) =>
+  value?.name === "Rizin" && value?.email === "rizin@example.com";
 
 const DUMMY_APPS = [
   {
@@ -71,21 +98,8 @@ const DUMMY_APPS = [
 ];
 
 export const GlobalProvider = ({ children }) => {
-  const [profile, setProfile] = useLocalStorage("jh_profile_v6", {
-    name: "Rizin",
-    title: "Full Stack Developer",
-    email: "rizin@example.com",
-    phone: "+1 555 000 1234",
-    noticePeriod: "Immediate",
-    currentCtc: "$80k",
-    expectedCtc: "$120k",
-    resumeName: "Rizin_Resume_2026.pdf",
-    resumeLink: "",
-    location: "Austin, TX",
-    skills: "React, TypeScript, Node.js, Tailwind CSS",
-    summary:
-      "Full stack developer focused on clean UI and scalable systems. Loves shipping fast and iterating with users.",
-  });
+  const { user } = useAuth();
+  const [profile, setProfileState] = useLocalStorage("jh_profile_v6", DEFAULT_PROFILE);
   const [goal, setGoal] = useLocalStorage("jh_goal_v2", {
     targetDate: new Date(new Date().setMonth(new Date().getMonth() + 2))
       .toISOString()
@@ -105,10 +119,47 @@ export const GlobalProvider = ({ children }) => {
   ]);
   const [notes, setNotes] = useLocalStorage("jh_notes_v2", []);
 
+  const setProfile = (updater) => {
+    setProfileState((prev) => {
+      const nextValue = typeof updater === "function" ? updater(prev) : updater;
+      return normalizeProfile(nextValue);
+    });
+  };
+
+  useEffect(() => {
+    setProfileState((prev) => {
+      const normalized = normalizeProfile(prev);
+      return isLegacySeedProfile(normalized) ? normalizeProfile({}) : normalized;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileState((prev) => {
+      const normalized = normalizeProfile(prev);
+      const userId = user?._id || user?.id || user?.userId || normalized.userId;
+      const base =
+        normalized.userId && userId && normalized.userId !== userId
+          ? normalizeProfile({ userId })
+          : normalized;
+
+      return normalizeProfile({
+        ...base,
+        userId,
+        name: user?.name || base.name,
+        email: user?.email || base.email,
+        mobile: user?.mobile || user?.phone || base.mobile,
+        image: user?.image || base.image,
+      });
+    });
+  }, [user]);
+
+  const normalizedProfile = useMemo(() => normalizeProfile(profile), [profile]);
+
   return (
     <GlobalContext.Provider
       value={{
-        profile,
+        profile: normalizedProfile,
         setProfile,
         goal,
         setGoal,

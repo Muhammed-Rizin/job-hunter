@@ -98,7 +98,7 @@ const MailTemplateFill = () => {
             Preview
           </button>
         </div>
-        <div className="hidden md:block w-full md:w-1/2 min-h-[420px] lg:min-h-[600px]">
+        <div className="hidden md:block w-full md:w-1/2 min-h-105 lg:min-h-150">
           <GmailPreview content={content} profile={profile} handleSend={handleSendTemplate} />
         </div>
       </div>

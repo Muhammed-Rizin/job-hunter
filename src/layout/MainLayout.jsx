@@ -12,9 +12,11 @@ import { containerVariants } from "../utils/animations";
 const ProtectedRoute = ({ children }) => {
   const { user, loading, serverReady } = useAuth();
 
-  if (loading || !serverReady) return <LoadingScreen />;
+  if (loading) return <LoadingScreen />;
 
   if (!user) return <Navigate to="/login" replace />;
+
+  if (!serverReady) return <LoadingScreen />;
 
   return children;
 };

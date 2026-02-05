@@ -1,19 +1,26 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Smartphone, Key, Sun, Moon, Github } from "lucide-react";
+import { Smartphone, Key, Sun, Moon, Github, User, Mail } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import Card from "../../components/common/Card";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
+import { API_URL } from "../../config/app.config";
+import { getDeviceId } from "../../utils/device";
 
 const AuthScreen = () => {
-  const { login } = useAuth();
+  const { login, register } = useAuth();
   const { toggleTheme } = useTheme();
 
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({ mobile: "", password: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+    password: "",
+  });
 
   const handleValueChange = ({ name, value }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -24,10 +31,19 @@ const AuthScreen = () => {
     setLoading(true);
 
     try {
-      await login(formData);
+      if (isSignUp) {
+        await register(formData);
+      } else {
+        await login(formData);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOAuth = (provider) => {
+    const deviceId = getDeviceId();
+    window.location.href = `${API_URL}/auth/${provider}?deviceId=${encodeURIComponent(deviceId)}`;
   };
 
   const GoogleIcon = () => (
@@ -80,11 +96,36 @@ const AuthScreen = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          {isSignUp && (
+            <>
+              <Input
+                icon={User}
+                type="text"
+                placeholder="Full Name"
+                name="name"
+                required
+                value={formData.name || ""}
+                onChange={(e) => handleValueChange(e.target)}
+              />
+
+              <Input
+                icon={Mail}
+                type="email"
+                placeholder="Email Address"
+                name="email"
+                required
+                value={formData.email || ""}
+                onChange={(e) => handleValueChange(e.target)}
+              />
+            </>
+          )}
+
           <Input
             icon={Smartphone}
-            type="tel"
-            placeholder="Mobile Number"
+            type={isSignUp ? "tel" : "text"}
+            placeholder={isSignUp ? "Mobile Number" : "Mobile or Email"}
             name="mobile"
+            required
             value={formData.mobile || ""}
             onChange={(e) => handleValueChange(e.target)}
           />
@@ -94,6 +135,7 @@ const AuthScreen = () => {
             type="password"
             placeholder="Password"
             name="password"
+            required
             value={formData.password || ""}
             onChange={(e) => handleValueChange(e.target)}
           />
@@ -110,8 +152,8 @@ const AuthScreen = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <SignUpAction Icon={GoogleIcon} />
-          <SignUpAction Icon={Github} />
+          <SignUpAction Icon={GoogleIcon} onClick={() => handleOAuth("google")} />
+          <SignUpAction Icon={Github} onClick={() => handleOAuth("github")} />
         </div>
 
         <p className="mt-6 text-[10px] text-center opacity-60">
@@ -127,9 +169,12 @@ const AuthScreen = () => {
 
 export default AuthScreen;
 
-const SignUpAction = ({ Icon }) => {
+const SignUpAction = ({ Icon, onClick }) => {
   return (
-    <button className="p-3 rounded-xl flex items-center justify-center border hover:bg-opacity-50 transition-colors bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300">
+    <button
+      onClick={onClick}
+      className="p-3 rounded-xl flex items-center justify-center border hover:bg-opacity-50 transition-colors bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300"
+    >
       <Icon />
     </button>
   );
