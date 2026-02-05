@@ -52,7 +52,6 @@ export default (errorFunction) => (req, res, next) =>
       //   next(new ErrorHandler("Invalid Response. Expected Response object.", 500));
       // }
     } catch (error) {
-      console.error(error.message);
       next(error);
     }
   });

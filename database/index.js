@@ -11,9 +11,7 @@ const options = { connectTimeoutMS: 30000 };
 const connectDB = async () => {
   try {
     await mongoose.connect(DATABASE_URL, options);
-    console.log(chalk.whiteBright("Database connection established"));
   } catch (error) {
-    console.log(chalk.red("Error connecting to database:"), error.message);
   }
 };
 

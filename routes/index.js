@@ -5,6 +5,7 @@ import applications from "./applications.router.js";
 import templates from "./templates.router.js";
 import mail from "./mail.router.js";
 import user from "./user.router.js";
+import goals from "./goal.router.js";
 
 const app = Router();
 
@@ -15,5 +16,6 @@ app.use("/applications", applications);
 app.use("/templates", templates);
 app.use("/mail", mail);
 app.use("/user", user);
+app.use("/goals", goals);
 
 export default app;

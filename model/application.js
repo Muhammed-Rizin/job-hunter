@@ -25,6 +25,12 @@ const schema = new Schema(
       body: String,
       to: String,
     },
+    statusDetails: {
+      round: String,
+      mode: { type: String, enum: ["online", "offline"] },
+      date: String,
+      time: String,
+    },
 
     user: { type: Schema.Types.ObjectId, ref: COLLECTIONS.USERS },
     statusFlag: { type: Number, default: 0 },

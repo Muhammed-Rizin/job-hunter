@@ -29,13 +29,6 @@ const schema = new Schema(
     resumeName: String,
     resumeLink: String,
 
-    // Goal
-    goal: {
-      targetRole: String,
-      targetCount: Number,
-      targetDate: String,
-    },
-
     // System
     ip: String,
     uniqueId: String,

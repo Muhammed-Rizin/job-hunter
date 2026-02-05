@@ -3,4 +3,5 @@ export const COLLECTIONS = {
   USER_TOKEN: "userToken",
   TEMPLATES: "templates",
   APPLICATIONS: "applications",
+  GOALS: "goals",
 };

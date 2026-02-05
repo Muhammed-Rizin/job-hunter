@@ -36,7 +36,6 @@ export const verifyRefreshToken = async (refreshToken, deviceId = null) => {
 
     return tokenDetails;
   } catch (error) {
-    console.error("refresh error", error);
     throw new Error("Invalid refresh token", 400);
   }
 };

@@ -1,7 +1,13 @@
 import { sendMailService } from "../services/mail.service.js";
+import models from "../model/index.js";
 
 export const sendMail = asyncErrorHandler(async (req, res) => {
   const { to, subject, body, company, role } = req.body;
+
+  const userProfile = await models.User.findById(req.user._id, {
+    resumeLink: 1,
+    resumeName: 1,
+  });
 
   await sendMailService({
     to,
@@ -10,6 +16,8 @@ export const sendMail = asyncErrorHandler(async (req, res) => {
     user: req.user._id,
     company,
     role,
+    resumeLink: userProfile?.resumeLink,
+    resumeName: userProfile?.resumeName,
   });
 
   return new Response("Mail sent successfully", null, 200);

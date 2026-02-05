@@ -1,6 +1,6 @@
 import { transporter } from "../utils/mailer.js";
 import models from "../model/index.js";
-import axios from "axios";
+import { fetchResumeBuffer } from "../utils/resume.js";
 
 /**
  * Send mail with optional resume attachment
@@ -27,23 +27,17 @@ export const sendMailService = async ({
    * 🔗 Attach resume from URL
    */
   if (!isNull(resumeLink)) {
-    try {
-      const response = await axios.get(resumeLink, {
-        responseType: "arraybuffer",
-      });
-
-      attachments.push({
-        filename: resumeName || "Resume.pdf",
-        content: Buffer.from(response.data),
-      });
-    } catch (err) {
-      throw new Error("Unable to fetch resume file", 400);
-    }
+    const resume = await fetchResumeBuffer(resumeLink, resumeName);
+    attachments.push({
+      filename: resume?.filename || "Resume.pdf",
+      content: resume?.buffer,
+    });
   }
+
 
   // 1️⃣ Send mail
   const info = await transporter.sendMail({
-    from: `"Job Apply" <${process.env.MAIL_USER}>`,
+    from: process.env.MAIL_USER,
     to,
     subject,
     text,
@@ -54,8 +48,8 @@ export const sendMailService = async ({
   // 2️⃣ Log as application
   if (logApplication && user) {
     await models.Application.create({
-      company: company || "Unknown",
-      role: role || "Unknown",
+      company: company || "",
+      role: role || "",
       source: "mail",
       appliedDate: moment().format("YYYY-MM-DD"),
       mail: {

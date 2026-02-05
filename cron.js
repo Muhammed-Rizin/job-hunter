@@ -12,7 +12,6 @@ import {
 import { sendReportEmail } from "./helper/mail.js";
 
 const startCronJobs = () => {
-  console.log("🕒 Cron Jobs Initialized (cron package)…");
 
   // --------------------------------------------------
   // 1. DAILY REPORT – Runs every day at 08:00 AM IST
@@ -20,7 +19,6 @@ const startCronJobs = () => {
   const dailyJob = new CronJob(
     "0 8 * * *",
     async () => {
-      console.log("▶ Running Daily Report Job...");
 
       try {
         const users = await models.User.find({});
@@ -39,7 +37,7 @@ const startCronJobs = () => {
           }
         }
       } catch (error) {
-        console.error("Daily Cron Error:", error);
+        // ignore cron errors
       }
     },
     null,
@@ -53,7 +51,6 @@ const startCronJobs = () => {
   const weeklyJob = new CronJob(
     "0 5 * * 0", // second minute hour day month weekday
     async () => {
-      console.log("▶ Running Weekly Report Job...");
 
       try {
         const users = await models.User.find({});
@@ -80,7 +77,7 @@ const startCronJobs = () => {
           }
         }
       } catch (error) {
-        console.error("Weekly Cron Error:", error);
+        // ignore cron errors
       }
     },
     null,

@@ -15,7 +15,6 @@ const auth = asyncErrorHandler(async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log(error.message);
     if (error.name === "TokenExpiredError") throw new Error("Access Denied: Token Expired", 403);
     if (error.name === "JsonWebTokenError") throw new Error("Access Denied: Invalid token", 403);
     else throw new Error(`Access Denied: ${error.name}`, 403);

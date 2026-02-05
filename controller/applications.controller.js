@@ -21,13 +21,18 @@ export const create = asyncErrorHandler(async (req, res) => {
 });
 
 export const updateStatus = asyncErrorHandler(async (req, res) => {
-  const { id, status } = req.body;
+  const { id, status, statusDetails } = req.body;
 
   if (isNull(id)) throw new Error("ID required", 400);
 
+  const updatePayload = { status };
+  if (statusDetails) {
+    updatePayload.statusDetails = statusDetails;
+  }
+
   const updated = await models.Application.findOneAndUpdate(
     { _id: id, user: req.user._id },
-    { status },
+    updatePayload,
   );
 
   if (!updated) throw new Error("Application not found", 404);

@@ -32,7 +32,6 @@ app.use(notFound);
   try {
     await connectDB();
     app.listen(PORT, () => {
-      console.log(chalk.blueBright(`Server listening on http://localhost:${PORT}`));
     });
   } catch (error) {}
 })();

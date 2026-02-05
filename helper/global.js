@@ -18,6 +18,7 @@ global.isNull = (field) => {
 
 global.asyncErrorHandler = asyncErrorHandler;
 global.Error = ErrorHandler;
+global.ErrorHandler = ErrorHandler;
 global.Response = Response;
 
 global.ObjectId = (obj) => new Types.ObjectId(obj);

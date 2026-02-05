@@ -8,6 +8,5 @@ router.use(auth);
 
 router.get("/me", controller.me);
 router.put("/profile", controller.updateProfile);
-router.put("/goal", controller.updateGoal);
 
 export default router;
