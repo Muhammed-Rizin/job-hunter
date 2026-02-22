@@ -4,6 +4,7 @@ import MainLayout from "./layout/MainLayout";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./context/AuthContext";
 import LoadingScreen from "./components/common/LoadingScreen";
+import ScrollToTop from "./components/common/ScrollToTop";
 
 import AuthScreen from "./pages/auth";
 import OAuthCallback from "./pages/auth/OAuthCallback";
@@ -33,6 +34,7 @@ const App = () => {
 
   return (
     <>
+      <ScrollToTop />
       <Toaster
         position="top-center"
         toastOptions={{
