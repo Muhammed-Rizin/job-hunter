@@ -24,6 +24,8 @@ const schema = new Schema(
       subject: String,
       body: String,
       to: String,
+      sent: { type: Boolean, default: false },
+      messageId: String,
     },
     statusDetails: {
       round: String,

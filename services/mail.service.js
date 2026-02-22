@@ -69,6 +69,8 @@ export const sendMailService = async ({
         subject,
         body: html || text,
         hasAttachment: attachments.length > 0,
+        sent: true,
+        messageId: info.messageId,
       },
       user,
     });
