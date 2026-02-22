@@ -15,6 +15,9 @@ export const sendMailService = async ({
   role,
   resumeLink,
   resumeName,
+  source = "mail",
+  notes = "",
+  appliedDate = null,
   logApplication = true,
 }) => {
   if (isNull(to)) throw new Error("Recipient email is required", 400);
@@ -36,26 +39,35 @@ export const sendMailService = async ({
 
 
   // 1️⃣ Send mail
-  const info = await transporter.sendMail({
-    from: process.env.MAIL_USER,
+  console.log(`📡 Attempting to send mail to ${to}...`);
+  const mailOptions = {
+    from: `"${company || 'Job Application'}" <${process.env.MAIL_USER}>`,
     to,
     subject,
-    text,
+    text: text || "Please open this mail in an HTML-compatible client.",
     html,
-    attachments,
-  });
+    attachments: attachments.map(att => ({
+      filename: att.filename,
+      content: att.buffer || att.content,
+      contentType: 'application/pdf'
+    })),
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(`✅ Mail sent! Message ID: ${info.messageId}`);
 
   // 2️⃣ Log as application
   if (logApplication && user) {
     await models.Application.create({
       company: company || "",
       role: role || "",
-      source: "mail",
-      appliedDate: moment().format("YYYY-MM-DD"),
+      source: source || "mail",
+      appliedDate: appliedDate || moment().format("YYYY-MM-DD"),
+      notes: notes || "",
       mail: {
         to,
         subject,
-        body: text || html,
+        body: html || text,
         hasAttachment: attachments.length > 0,
       },
       user,
