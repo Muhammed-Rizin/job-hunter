@@ -10,6 +10,10 @@ import App from "./App";
 import "./index.css";
 import { GlobalProvider } from "./context/GlobalContext";
 
+// PWA registration
+import { registerSW } from "virtual:pwa-register";
+registerSW({ immediate: true });
+
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
