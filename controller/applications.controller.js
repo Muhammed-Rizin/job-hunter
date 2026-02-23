@@ -1,6 +1,4 @@
 import models from "../model/index.js";
-import { sendMailService, markPlanAsApplied } from "../services/mail.service.js";
-import { markdownToHtml } from "../utils/email.js";
 
 export const list = asyncErrorHandler(async (req, res) => {
   const {
@@ -17,11 +15,9 @@ export const list = asyncErrorHandler(async (req, res) => {
     statusFlag: 0,
   };
 
+  // If status is provided, use it. If 'all', explicitly allow all statuses EXCEPT bounced.
   if (!isNull(status) && status !== "all") {
     filter.status = status;
-  } else if (status === "all") {
-    // If explicitly 'all', we still exclude bounced by default unless asked
-    filter.status = { $ne: "bounced" };
   } else {
     filter.status = { $ne: "bounced" };
   }
@@ -39,7 +35,6 @@ export const list = asyncErrorHandler(async (req, res) => {
 
   const sortField = sort === "oldest" ? 1 : -1;
 
-  console.log("FILTER:", filter);
   const [data, total] = await Promise.all([
     models.Application.find(filter).sort({ appliedDate: sortField, createdAt: sortField }).skip(skip).limit(resolvedLimit),
     models.Application.countDocuments(filter),
@@ -108,37 +103,4 @@ export const listBounced = asyncErrorHandler(async (req, res) => {
   }).sort({ createdAt: -1 });
 
   return new Response("Bounced applications fetched", data, 200);
-});
-
-export const manual = asyncErrorHandler(async (req, res) => {
-  const { to, subject, body, company, role, source, notes, appliedDate, planId } = req.body;
-
-  if (isNull(to)) throw new Error("Recipient email required", 400);
-  if (isNull(subject)) throw new Error("Mail subject required", 400);
-  if (isNull(body)) throw new Error("Mail body required", 400);
-
-  const userProfile = await models.User.findById(req.user._id, {
-    resumeLink: 1,
-    resumeName: 1,
-  });
-
-  const result = await sendMailService({
-    to,
-    subject,
-    html: markdownToHtml(body),
-    user: req.user._id,
-    company,
-    role,
-    source,
-    notes,
-    appliedDate,
-    resumeLink: userProfile?.resumeLink,
-    resumeName: userProfile?.resumeName,
-  });
-
-  if (planId) {
-    await markPlanAsApplied(planId, result.messageId);
-  }
-
-  return new Response("Application manually entered & mail sent", null, 200);
 });
