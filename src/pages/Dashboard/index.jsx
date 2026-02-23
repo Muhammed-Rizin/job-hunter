@@ -96,11 +96,13 @@ const Dashboard = () => {
               title="Failed/Bounced" 
               value={stats.bouncedApps} 
               icon={AlertCircle} 
+              onClick={() => navigate("/tracker", { state: { activeTab: 'bounced' } })}
             />
             <StatWidget
               title="Awaiting Response"
               value={stats.pendingApps}
               icon={Clock}
+              onClick={() => navigate("/planning")}
             />
             <StatWidget
               title="Offers"
