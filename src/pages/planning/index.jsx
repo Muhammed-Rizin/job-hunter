@@ -35,6 +35,7 @@ const Planning = () => {
     try {
       setLoading(true);
       const response = await get("/plans");
+      // Centralized response mapping logic
       const data = response?.data?.data || response?.data || response;
       setPlans(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -113,22 +114,22 @@ const Planning = () => {
       variants={containerVariants} 
       className="h-full space-y-6"
     >
-      {/* Stats Row - Better mobile spacing */}
+      {/* Stats Row - Responsive Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className={`p-4 rounded-2xl border ${colors.card} shadow-sm`}>
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">Total Leads</p>
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Planned Leads</p>
              <p className="text-2xl font-black dark:text-white mt-1">{stats.total}</p>
           </div>
           <div className={`p-4 rounded-2xl border ${colors.card} shadow-sm`}>
-             <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest leading-tight">Pending</p>
+             <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest leading-tight">Ready to Apply</p>
              <p className="text-2xl font-black dark:text-white mt-1">{stats.pending}</p>
           </div>
           <div className={`p-4 rounded-2xl border ${colors.card} shadow-sm`}>
-             <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest leading-tight">Applied</p>
+             <p className="text-[10px] font-black text-green-500 uppercase tracking-widest leading-tight">Converted</p>
              <p className="text-2xl font-black dark:text-white mt-1">{stats.applied}</p>
           </div>
           <button className={`p-4 rounded-2xl border ${colors.card} shadow-sm flex items-center justify-center hover:border-red-500/50 transition-colors group`}>
-             <span className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-red-500 group-hover:scale-105 transition-transform">
+             <span className="flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-red-500 group-hover:scale-105 transition-transform">
                <Plus size={16} /> New Lead
              </span>
           </button>
@@ -147,8 +148,8 @@ const Planning = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
-              <div className="w-32 md:w-40">
+            <div className="flex gap-2 w-full md:w-auto">
+              <div className="flex-1 md:w-40">
                 <Select
                   value={filterStatus}
                   onChange={setFilterStatus}
@@ -160,7 +161,7 @@ const Planning = () => {
                   ]}
                 />
               </div>
-              <div className="w-32 md:w-40">
+              <div className="flex-1 md:w-40">
                 <Select
                   value={filterPriority}
                   onChange={setFilterPriority}
@@ -206,7 +207,7 @@ const Planning = () => {
                       ? "bg-green-500/10 text-green-500 border-green-500/20" 
                       : plan.status === "bounced"
                       ? "bg-red-500/10 text-red-500 border-red-500/20"
-                      : "bg-orange-500/10 text-orange-500 border-orange-500/20"
+                      : "bg-orange-500/10 text-orange-600 border-orange-500/20"
                     }`}>
                       {plan.status}
                     </span>
@@ -222,12 +223,12 @@ const Planning = () => {
 
                 <div className="space-y-3 mb-6">
                   {plan.location && (
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-neutral-400 text-xs font-bold uppercase tracking-wide">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-neutral-400 text-xs font-black uppercase tracking-wide opacity-80">
                       <MapPin size={14} className="opacity-40" /> {plan.location}
                     </div>
                   )}
                   {plan.package && (
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-neutral-400 text-xs font-bold uppercase tracking-wide">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-neutral-400 text-xs font-black uppercase tracking-wide opacity-80">
                       <DollarSign size={14} className="opacity-40" /> {plan.package}
                     </div>
                   )}
@@ -239,14 +240,14 @@ const Planning = () => {
                   )}
                   {plan.jobLink && (
                     <a href={plan.jobLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-blue-500 text-xs font-black uppercase tracking-widest hover:underline pt-1">
-                      <Globe size={14} /> Open Job Post <ExternalLink size={12} />
+                      <Globe size={14} /> Open Lead <ExternalLink size={12} />
                     </a>
                   )}
                 </div>
 
                 {plan.theHook && (
                   <div className="mb-4 p-4 bg-blue-500/5 rounded-[20px] border border-blue-500/10 shadow-inner">
-                    <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                    <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1.5 flex items-center gap-2">
                       <Zap size={12} /> The Hook
                     </p>
                     <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed line-clamp-3">{plan.theHook}</p>
@@ -255,7 +256,7 @@ const Planning = () => {
                 
                 {plan.winningMove && (
                   <div className="mb-6 p-4 bg-amber-500/5 rounded-[20px] border border-amber-500/10 shadow-inner">
-                    <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                    <p className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-[0.2em] mb-1.5 flex items-center gap-2">
                       <Trophy size={12} /> Winning Move
                     </p>
                     <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed line-clamp-3">{plan.winningMove}</p>
