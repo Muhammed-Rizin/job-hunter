@@ -12,7 +12,8 @@ import {
   DollarSign, 
   Zap,
   Globe,
-  Filter
+  Filter,
+  Trophy
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
