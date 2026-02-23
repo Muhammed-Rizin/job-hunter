@@ -48,44 +48,44 @@ const Header = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="hidden md:flex sticky top-0 z-20 py-3 backdrop-blur-md justify-between items-end border-b border-gray-200 dark:border-zinc-800"
+        className="hidden md:flex sticky top-0 z-20 py-4 backdrop-blur-md justify-between items-end border-b border-gray-200 dark:border-zinc-800"
       >
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight">{title}</h2>
-          <p className="text-xs font-bold uppercase tracking-widest opacity-50 mt-1 flex items-center gap-2">
+          <h2 className="text-3xl font-extrabold tracking-tight dark:text-white">{title}</h2>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mt-1.5 flex items-center gap-2 dark:text-white">
             {subtitle}
-            <span className="w-1 h-1 rounded-full bg-current" />
+            <span className="w-1 h-1 rounded-full bg-current opacity-20" />
             {currentDate}
           </p>
         </div>
 
-        <div className="flex items-end gap-3">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/tracker", { state: { openCreate: true } })}
-            className="px-5 py-2.5 rounded-xl font-bold flex items-center justify-center shadow-lg transition-transform active:scale-95 text-sm
+            className="px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 text-[11px]
               bg-black hover:bg-zinc-800 text-white
-              dark:bg-red-600 dark:hover:bg-red-500 dark:text-white"
+              dark:bg-red-600 dark:hover:bg-red-500 dark:text-white shadow-red-900/10"
           >
-            <Plus className="mr-2" size={18} /> Apply Now
+            <Plus className="mr-2 inline-block" size={16} /> Apply Now
           </button>
 
           <div
             onClick={() => navigate("/profile")}
-            className="flex items-center gap-3 px-3 py-1.5 rounded-xl border cursor-pointer
-              bg-white hover:bg-gray-100
+            className="flex items-center gap-3 px-4 py-2 rounded-2xl border cursor-pointer
+              bg-white hover:bg-gray-50
               dark:bg-zinc-900 dark:hover:bg-zinc-800
-              border-gray-200 dark:border-zinc-800 transition"
+              border-gray-200 dark:border-zinc-800 transition-all shadow-sm"
           >
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm
-              bg-gray-100 dark:bg-zinc-800"
+              className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm
+              bg-gray-100 dark:bg-black border border-gray-200 dark:border-zinc-800 dark:text-white"
             >
               {displayInitial}
             </div>
 
             <div className="text-left hidden lg:block">
-              <p className="text-xs font-bold">{displayName || "User"}</p>
-              <p className="text-[10px] opacity-50">{profile?.title || "Profile"}</p>
+              <p className="text-xs font-black tracking-tight dark:text-white">{displayName || "Authorized User"}</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest opacity-40 dark:text-white">{profile?.title || "System Access"}</p>
             </div>
           </div>
         </div>
@@ -94,25 +94,25 @@ const Header = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="md:hidden fixed top-0 left-0 right-0 z-30 px-5 py-4
+        className="md:hidden fixed top-0 left-0 right-0 z-30 px-6 py-5
           bg-white/95 dark:bg-black/90 backdrop-blur-md
           border-b border-gray-100 dark:border-zinc-900
-          flex justify-between items-center"
+          flex justify-between items-center shadow-sm"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-black dark:bg-red-600">
-            <span className="font-bold text-white text-xs">JH</span>
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-black dark:bg-red-600 shadow-lg">
+            <span className="font-black text-white text-sm">JH</span>
           </div>
-          <span className="font-bold text-lg tracking-tight">JobHunter</span>
+          <span className="font-black text-xl tracking-tighter dark:text-white">JobHunter</span>
         </div>
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-full
+          className="p-2.5 rounded-2xl
           bg-gray-100 hover:bg-gray-200
-          dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300"
+          dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300 transition-colors"
         >
-          <Sun className="block dark:hidden" size={18} />
-          <Moon className="hidden dark:block" size={18} />
+          <Sun className="block dark:hidden" size={20} />
+          <Moon className="hidden dark:block" size={20} />
         </button>
       </motion.div>
     </>
