@@ -31,6 +31,11 @@ const schema = new Schema(
       default: "pending",
     },
 
+    mail: {
+      sent: { type: Boolean, default: false },
+      messageId: String,
+    },
+
     user: { type: Schema.Types.ObjectId, ref: COLLECTIONS.USERS },
     statusFlag: { type: Number, default: 0 }, // 0: active, 1: deleted
   },

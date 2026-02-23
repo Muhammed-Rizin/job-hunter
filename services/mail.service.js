@@ -89,6 +89,8 @@ export const sendMailService = async ({
 export const markPlanAsApplied = async (planId, messageId) => {
   await models.Plan.findByIdAndUpdate(planId, {
     status: "applied",
+    "mail.sent": true,
+    "mail.messageId": messageId,
     "details.messageId": messageId,
   });
 };

@@ -23,7 +23,6 @@ export const list = asyncErrorHandler(async (req, res) => {
     filter.status = { $ne: "bounced" }; // Default to excluding bounced
   }
 
-  if (!isNull(status) && status !== "all") filter.status = status;
   if (!isNull(source) && source !== "all") filter.source = source;
 
   if (!isNull(search)) {
