@@ -71,7 +71,9 @@ export const GlobalProvider = ({ children }) => {
   const fetchStats = useCallback(async () => {
     try {
       const res = await get("stats/counts");
-      setStats(res.data);
+      if (res && res.data) {
+        setStats(res.data);
+      }
     } catch (e) {
       console.error("Stats error:", e);
     }
@@ -144,7 +146,7 @@ export const GlobalProvider = ({ children }) => {
     };
 
     loadProfile();
-  }, [user]);
+  }, [user, fetchStats]);
 
   const normalizeApplication = useCallback((application) => {
     if (!application) return null;
@@ -165,7 +167,10 @@ export const GlobalProvider = ({ children }) => {
         
         // Fetch bounced separately
         get("applications/bounced").then(res => {
-          setBouncedApps((res.data || res || []).map(normalizeApplication));
+          const list = res?.data || res || [];
+          if (Array.isArray(list)) {
+            setBouncedApps(list.map(normalizeApplication));
+          }
         }).catch(() => {});
 
         const mergedQuery = { ...applicationsQueryRef.current, ...query };
@@ -199,7 +204,7 @@ export const GlobalProvider = ({ children }) => {
         setApplicationsLoading(false);
       }
     },
-    [normalizeApplication, setApplications, user],
+    [normalizeApplication, setApplications, user, fetchStats],
   );
 
   const createApplication = useCallback(
