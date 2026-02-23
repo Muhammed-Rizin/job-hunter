@@ -15,6 +15,7 @@ export const list = asyncErrorHandler(async (req, res) => {
   const filter = {
     user: req.user._id,
     statusFlag: 0,
+    status: { $ne: "bounced" }, // Exclude bounced from general lists
   };
 
   if (!isNull(status) && status !== "all") filter.status = status;
@@ -90,6 +91,16 @@ export const del = asyncErrorHandler(async (req, res) => {
   if (!deleted) throw new Error("Application not found", 404);
 
   return new Response("Deleted", null, 200);
+});
+
+export const listBounced = asyncErrorHandler(async (req, res) => {
+  const data = await models.Application.find({
+    user: req.user._id,
+    status: "bounced",
+    statusFlag: 0,
+  }).sort({ createdAt: -1 });
+
+  return new Response("Bounced applications fetched", data, 200);
 });
 
 export const manual = asyncErrorHandler(async (req, res) => {

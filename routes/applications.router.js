@@ -7,6 +7,7 @@ const router = Router();
 router.use(auth);
 
 router.get("/", controller.list);
+router.get("/bounced", controller.listBounced);
 router.post("/", controller.create);
 router.post("/manual", controller.manual);
 router.put("/", controller.updateStatus);

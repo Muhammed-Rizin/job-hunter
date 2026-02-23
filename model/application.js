@@ -8,7 +8,7 @@ const schema = new Schema(
 
     status: {
       type: String,
-      enum: ["applied", "hr_contact", "interview", "technical", "offer", "rejected"],
+      enum: ["applied", "hr_contact", "interview", "technical", "offer", "rejected", "bounced"],
       default: "applied",
     },
 
