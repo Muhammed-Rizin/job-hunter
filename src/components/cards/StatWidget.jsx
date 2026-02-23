@@ -5,7 +5,7 @@ import Card from "../common/Card";
 const StatWidget = ({ title, value, icon: Icon, accent, onClick }) => (
   <Card 
     variants={itemVariants} 
-    className={`p-4 flex flex-col justify-between shadow-sm h-full ${onClick ? 'cursor-pointer hover:border-red-500/50' : ''}`}
+    className={`p-4 flex flex-col justify-between shadow-sm h-full ${onClick ? 'cursor-pointer hover:border-red-500/50 active:scale-95' : ''} transition-all`}
     onClick={onClick}
   >
     <div className="flex justify-between items-start mb-2">
@@ -16,7 +16,7 @@ const StatWidget = ({ title, value, icon: Icon, accent, onClick }) => (
       <span
         className={`text-2xl font-mono font-bold tracking-tight ${accent ? colors.accent : ""}`}
       >
-        {value}
+        {value ?? 0}
       </span>
     </div>
   </Card>
