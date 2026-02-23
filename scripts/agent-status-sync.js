@@ -4,7 +4,7 @@ import connectDB from "../database/index.js";
 import models from "../model/index.js";
 
 /**
- * 🤖 AGENT-STATUS-SYNC
+ * 🤖 AGENT-STATUS-SYNC v2.2
  * Allows AI agents to sync bounce or delivery status from external sources.
  * Usage: 
  *   node agent-status-sync.js --bounced --email <email_address>
@@ -23,17 +23,21 @@ const run = async () => {
       if (!email) throw new Error("Email required for bounce sync.");
       console.log(`🔍 Syncing bounce status for: ${email}`);
 
+      // 1. Update all existing applications with this email to 'bounced'
       const appResult = await models.Application.updateMany(
-        { "mail.to": email },
+        { "mail.to": email.toLowerCase().trim(), statusFlag: 0 },
         { $set: { status: "bounced" } }
       );
 
+      // 2. Update all existing plans with this email to 'bounced'
       const planResult = await models.Plan.updateMany(
-        { email: email },
+        { email: email.toLowerCase().trim(), statusFlag: 0 },
         { $set: { status: "bounced" } }
       );
 
-      console.log(`✅ Sync Complete. Apps: ${appResult.modifiedCount}, Plans: ${planResult.modifiedCount}`);
+      console.log(`✅ Sync Complete.`);
+      console.log(`📡 Applications updated: ${appResult.modifiedCount}`);
+      console.log(`📋 Plans updated:        ${planResult.modifiedCount}`);
     } 
     else if (action === "--sent") {
       const id = args[2];
@@ -52,7 +56,9 @@ const run = async () => {
       console.log(`✅ Plan marked as applied.`);
     }
     else {
-      console.log("Usage: node agent-status-sync.js --bounced --email <email> | --sent --id <id> --msgid <msgid>");
+      console.log("\n🤖 Usage:");
+      console.log("  Sync Bounce: node agent-status-sync.js --bounced --email <email>");
+      console.log("  Sync Send:   node agent-status-sync.js --sent --id <id> --msgid <msgid>");
     }
     process.exit(0);
   } catch (error) {
