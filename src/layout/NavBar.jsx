@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LayoutGrid, Briefcase, FileText, User, Plus, ClipboardList } from "lucide-react";
+import { LayoutGrid, Briefcase, User, Plus, ClipboardList } from "lucide-react";
 import Card from "../components/common/Card";
 
 const items = [
@@ -41,7 +41,6 @@ const NavBar = () => {
       <div className="relative flex items-center justify-between px-2 py-1">
         <div className="flex gap-1">
           <NavIcon to="/" icon={LayoutGrid} />
-          <NavIcon to="/planning" icon={ClipboardList} />
           <NavIcon to="/tracker" icon={Briefcase} />
         </div>
 
@@ -55,7 +54,7 @@ const NavBar = () => {
         </div>
 
         <div className="flex gap-1">
-          <NavIcon to="/tracker" icon={Briefcase} />
+          <NavIcon to="/planning" icon={ClipboardList} />
           <NavIcon to="/profile" icon={User} />
         </div>
       </div>
