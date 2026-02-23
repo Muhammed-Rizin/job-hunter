@@ -1,5 +1,5 @@
 import models from "../model/index.js";
-import { sendMailService } from "../services/mail.service.js";
+import { sendMailService, markPlanAsApplied } from "../services/mail.service.js";
 import { markdownToHtml } from "../utils/email.js";
 
 export const list = asyncErrorHandler(async (req, res) => {
@@ -93,7 +93,7 @@ export const del = asyncErrorHandler(async (req, res) => {
 });
 
 export const manual = asyncErrorHandler(async (req, res) => {
-  const { to, subject, body, company, role, source, notes, appliedDate } = req.body;
+  const { to, subject, body, company, role, source, notes, appliedDate, planId } = req.body;
 
   if (isNull(to)) throw new Error("Recipient email required", 400);
   if (isNull(subject)) throw new Error("Mail subject required", 400);
@@ -104,7 +104,7 @@ export const manual = asyncErrorHandler(async (req, res) => {
     resumeName: 1,
   });
 
-  await sendMailService({
+  const result = await sendMailService({
     to,
     subject,
     html: markdownToHtml(body),
@@ -117,6 +117,10 @@ export const manual = asyncErrorHandler(async (req, res) => {
     resumeLink: userProfile?.resumeLink,
     resumeName: userProfile?.resumeName,
   });
+
+  if (planId) {
+    await markPlanAsApplied(planId, result.messageId);
+  }
 
   return new Response("Application manually entered & mail sent", null, 200);
 });

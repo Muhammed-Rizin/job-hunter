@@ -2,7 +2,7 @@ import "dotenv/config";
 import "../helper/global.js";
 import connectDB from "../database/index.js";
 import models from "../model/index.js";
-import { sendMailService } from "../services/mail.service.js";
+import { sendMailService, markPlanAsApplied } from "../services/mail.service.js";
 import { markdownToHtml } from "../utils/email.js";
 import fs from "fs";
 
@@ -81,18 +81,26 @@ const run = async () => {
     const result = await sendMailService({
       to: payload.to,
       subject: payload.subject,
+      text: payload.body,
       html: markdownToHtml(payload.body),
       user: user._id,
       company: payload.company,
       role: payload.role,
       source: payload.source || "agent-automatic",
-      notes: payload.notes || "Automatically applied by AI Agent",
+      notes: payload.notes || `Winning Move: ${payload.winningMove || 'N/A'}`,
       resumeLink: user.resumeLink,
       resumeName: user.resumeName,
     });
 
     console.log("✅ SUCCESS: Mail dispatched and logged.");
     console.log(`📍 Message ID: ${result.messageId}`);
+
+    // 4. Mark plan as applied if planId exists
+    if (payload.planId) {
+      await markPlanAsApplied(payload.planId, result.messageId);
+      console.log(`✅ Plan [${payload.planId}] marked as applied.`);
+    }
+
     process.exit(0);
 
   } catch (error) {

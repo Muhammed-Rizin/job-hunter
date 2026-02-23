@@ -4,4 +4,5 @@ export const COLLECTIONS = {
   TEMPLATES: "templates",
   APPLICATIONS: "applications",
   GOALS: "goals",
+  PLANS: "plans",
 };

@@ -82,3 +82,13 @@ export const sendMailService = async ({
     hasAttachment: attachments.length > 0,
   };
 };
+
+/**
+ * Marks a plan as applied and logs the messageId.
+ */
+export const markPlanAsApplied = async (planId, messageId) => {
+  await models.Plan.findByIdAndUpdate(planId, {
+    status: "applied",
+    "details.messageId": messageId,
+  });
+};

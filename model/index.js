@@ -4,6 +4,7 @@ import UserToken from "./userToken.js";
 import Template from "./template.js";
 import Application from "./application.js";
 import Goal from "./goal.js";
+import Plan from "./plan.js";
 
 export default {
   Counter,
@@ -12,4 +13,5 @@ export default {
   Template,
   Application,
   Goal,
+  Plan,
 };

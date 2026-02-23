@@ -30,3 +30,39 @@ When an agent calls this script:
 2.  **HTML:** Any markdown in the `body` (e.g. `**bold**`) is converted to professional HTML.
 3.  **Database:** The application is logged in the `Applications` collection for Rizin to track later.
 4.  **Logging:** Success or failure is reported back via `STDOUT` / `STDERR` for the calling agent to process.
+
+---
+
+## 📅 Planning to Apply
+
+Use this feature to maintain a list of target companies before sending the mail.
+
+### 1. Add a Plan
+```bash
+node D:\development\projects\2026\job-hunter\server\scripts\agent-plan.js --add --json '{
+  "companyName": "Google",
+  "jobLink": "https://google.com/jobs/123",
+  "email": "jobs@google.com",
+  "package": "AED 12,000/mo",
+  "location": "Dubai",
+  "visaSupport": true,
+  "priority": "High",
+  "techStack": "React, Node, MongoDB",
+  "details": { "notes": "Found via recruiter" }
+}'
+```
+
+### 2. Apply from a Plan
+When you are ready to apply, use `agent-apply.js` and include the `planId` returned from the database.
+
+```bash
+node D:\development\projects\2026\job-hunter\server\scripts\agent-apply.js --json '{
+  "planId": "<plan_id_from_db>",
+  "to": "jobs@google.com",
+  "company": "Google",
+  "role": "Software Engineer",
+  "subject": "Application...",
+  "body": "..."
+}'
+```
+*(Including `planId` will automatically update that plan's status to `applied`)*
