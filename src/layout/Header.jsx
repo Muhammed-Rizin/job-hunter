@@ -35,6 +35,9 @@ const Header = () => {
   } else if (location.pathname.startsWith("/profile")) {
     title = "Profile";
     subtitle = "Settings & Goal";
+  } else if (location.pathname.startsWith("/planning")) {
+    title = "Planning";
+    subtitle = "Lead Pipeline";
   }
 
   const currentDate = new Date().toLocaleDateString("en-US", {
