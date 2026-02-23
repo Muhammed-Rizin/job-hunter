@@ -13,7 +13,9 @@ import {
   Zap,
   Globe,
   Filter,
-  Trophy
+  Trophy,
+  Mail,
+  MailCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -214,6 +216,17 @@ const Planning = () => {
                     >
                       <Globe size={14} /> View Job Post <ExternalLink size={12} />
                     </a>
+                  )}
+
+                  {plan.email && (
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-neutral-400 text-sm font-medium">
+                      {plan.mail?.sent ? (
+                        <MailCheck size={14} className="text-green-500" />
+                      ) : (
+                        <Mail size={14} className="text-slate-400" />
+                      )}
+                      {plan.email}
+                    </div>
                   )}
                 </div>
 
