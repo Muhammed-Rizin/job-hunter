@@ -30,8 +30,9 @@ const Dashboard = () => {
   const circumference = 351;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
   
+  const todayStr = new Date().toISOString().split("T")[0];
   const appsToday = (applications || []).filter(
-    (a) => a.appliedDate === new Date().toISOString().split("T")[0],
+    (a) => a.appliedDate === todayStr,
   ).length;
 
   return (
@@ -89,12 +90,17 @@ const Dashboard = () => {
                 </div>
               </div>
               <div>
-                <p className="text-3xl font-mono font-bold tracking-tighter">
-                  {totalSuccessful}
-                </p>
-                <p className={`text-[10px] uppercase tracking-widest opacity-50`}>
-                  Successful Apps
-                </p>
+                <div className="flex flex-col">
+                   <div className="flex items-baseline gap-1">
+                      <p className="text-3xl font-mono font-bold tracking-tighter">
+                        {totalSuccessful}
+                      </p>
+                      <p className="text-xs opacity-30 font-bold">/ {goal.targetCount || 0}</p>
+                   </div>
+                   <p className={`text-[10px] uppercase tracking-widest opacity-50 font-bold mt-1`}>
+                    Successful Apps
+                  </p>
+                </div>
               </div>
             </div>
           </Card>
