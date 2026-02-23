@@ -1,4 +1,4 @@
-# 🤖 AI Agent Integration Guide - Job Hunter
+# 🤖 AI Agent Integration Guide - Job Hunter v2.1
 
 This system allows AI agents to automatically apply for jobs on behalf of Rizin.
 
@@ -17,25 +17,9 @@ node D:\development\projects\2026\job-hunter\server\scripts\agent-apply.js --jso
 }'
 ```
 
-## 📜 Positional Method
-Good for simple one-line tests.
-
-```bash
-node D:\development\projects\2026\job-hunter\server\scripts\agent-apply.js "<email>" "<company>" "<role>" "<subject>" "<body>"
-```
-
-## 🛠️ Internal Logic (Automatic)
-When an agent calls this script:
-1.  **Resume:** The script fetches Rizin's profile, downloads his latest Resume PDF, and attaches it to the email.
-2.  **HTML:** Any markdown in the `body` (e.g. `**bold**`) is converted to professional HTML.
-3.  **Database:** The application is logged in the `Applications` collection for Rizin to track later.
-4.  **Logging:** Success or failure is reported back via `STDOUT` / `STDERR` for the calling agent to process.
-
 ---
 
 ## 📅 Planning to Apply
-
-Use this feature to maintain a list of target companies before sending the mail.
 
 ### 1. Add a Plan
 ```bash
@@ -53,7 +37,7 @@ node D:\development\projects\2026\job-hunter\server\scripts\agent-plan.js --add 
 ```
 
 ### 2. Apply from a Plan
-When you are ready to apply, use `agent-apply.js` and include the `planId` returned from the database.
+When you are ready to apply, use `agent-apply.js` and include the `planId`.
 
 ```bash
 node D:\development\projects\2026\job-hunter\server\scripts\agent-apply.js --json '{
@@ -65,4 +49,23 @@ node D:\development\projects\2026\job-hunter\server\scripts\agent-apply.js --jso
   "body": "..."
 }'
 ```
-*(Including `planId` will automatically update that plan's status to `applied`)*
+
+---
+
+## 🔄 Status Sync (Bounces & Delivery)
+If you detect a delivery failure (bounce-back) OR if you send a mail externally and need to sync the status.
+
+**Sync Bounce:**
+```bash
+node D:\development\projects\2026\job-hunter\server\scripts\agent-status-sync.js --bounced --email "hr-contact@company.com"
+```
+
+**Sync Manual Send (Mark Plan as Applied):**
+```bash
+node D:\development\projects\2026\job-hunter\server\scripts\agent-status-sync.js --sent --id "<plan_id>" --msgid "<message_id>"
+```
+
+## 🛠️ Internal Logic
+1.  **Resume:** Fetched and attached automatically.
+2.  **HTML:** Markdown is converted to professional HTML.
+3.  **Database:** Every action is logged for tracking.
