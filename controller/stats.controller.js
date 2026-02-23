@@ -1,3 +1,5 @@
+import models from "../model/index.js";
+
 export const getCounts = asyncErrorHandler(async (req, res) => {
   const userId = req.user._id;
 
