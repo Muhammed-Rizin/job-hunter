@@ -212,6 +212,24 @@ const Planning = () => {
                     </a>
                   )}
                 </div>
+
+                {plan.theHook && (
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20">
+                    <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                      <Zap size={10} /> The Hook
+                    </p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">{plan.theHook}</p>
+                  </div>
+                )}
+
+                {plan.winningMove && (
+                  <div className="mb-6 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20">
+                    <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                      <Trophy size={10} /> Winning Move
+                    </p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">{plan.winningMove}</p>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-neutral-800">
