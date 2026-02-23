@@ -90,6 +90,7 @@ const run = async () => {
       notes: payload.notes || `Winning Move: ${payload.winningMove || 'N/A'}`,
       resumeLink: user.resumeLink,
       resumeName: user.resumeName,
+      appliedDate: payload.appliedDate || null
     });
 
     console.log("✅ SUCCESS: Mail dispatched and logged.");
