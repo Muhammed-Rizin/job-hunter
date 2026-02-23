@@ -19,8 +19,11 @@ export const list = asyncErrorHandler(async (req, res) => {
 
   if (!isNull(status) && status !== "all") {
     filter.status = status;
+  } else if (status === "all") {
+    // If explicitly 'all', we still exclude bounced by default unless asked
+    filter.status = { $ne: "bounced" };
   } else {
-    filter.status = { $ne: "bounced" }; // Default to excluding bounced
+    filter.status = { $ne: "bounced" };
   }
 
   if (!isNull(source) && source !== "all") filter.source = source;
