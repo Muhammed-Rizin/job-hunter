@@ -11,14 +11,14 @@ import StatWidget from "../../components/cards/StatWidget";
 import Card from "../../components/common/Card";
 
 const Dashboard = () => {
-  const { applications, bouncedApps, goal, profile } = useGlobal();
+  const { applications, bouncedApps, goal, profile, stats, fetchStats } = useGlobal();
 
   const hasTargetDate = Boolean(goal?.targetDate);
   const daysLeft = hasTargetDate
     ? Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
   const progress =
-    goal.targetCount > 0 ? Math.min(100, (applications.length / goal.targetCount) * 100) : 0;
+    goal.targetCount > 0 ? Math.min(100, (stats.totalApps / goal.targetCount) * 100) : 0;
   const circumference = 351;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
   const appsToday = applications.filter(
@@ -81,7 +81,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-3xl font-mono font-bold tracking-tighter">
-                  {applications.length}
+                  {stats.totalApps}
                 </p>
                 <p className={`text-[10px] uppercase tracking-widest opacity-50`}>
                   Successful Apps
@@ -94,19 +94,17 @@ const Dashboard = () => {
             <StatWidget title="Applied Today" value={appsToday} icon={Calendar} />
             <StatWidget 
               title="Failed/Bounced" 
-              value={bouncedApps.length} 
+              value={stats.bouncedApps} 
               icon={AlertCircle} 
             />
             <StatWidget
               title="Awaiting Response"
-              value={
-                applications.filter((a) => ["applied", "hr_contact"].includes(a.status)).length
-              }
+              value={stats.pendingApps}
               icon={Clock}
             />
             <StatWidget
               title="Offers"
-              value={applications.filter((a) => a.status === "offer").length}
+              value={stats.offerApps}
               icon={Check}
               accent
             />

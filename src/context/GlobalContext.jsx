@@ -66,6 +66,16 @@ export const GlobalProvider = ({ children }) => {
   const profileLoadedRef = useRef(false);
   const [templates, setTemplates] = useLocalStorage("jh_templates_v2", []);
   const [notes, setNotes] = useLocalStorage("jh_notes_v2", []);
+  const [stats, setStats] = useState({ totalApps: 0, bouncedApps: 0, pendingApps: 0, offerApps: 0 });
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await get("stats/counts");
+      setStats(res.data);
+    } catch (e) {
+      console.error("Stats error:", e);
+    }
+  }, []);
 
   const setProfile = (updater) => {
     setProfileState((prev) => {
@@ -119,6 +129,7 @@ export const GlobalProvider = ({ children }) => {
     }
     if (profileLoadedRef.current) return;
     profileLoadedRef.current = true;
+    fetchStats();
 
     const loadProfile = async () => {
       try {
@@ -150,6 +161,7 @@ export const GlobalProvider = ({ children }) => {
       if (!user) return;
       try {
         setApplicationsLoading(true);
+        fetchStats();
         
         // Fetch bounced separately
         get("applications/bounced").then(res => {
@@ -267,6 +279,8 @@ export const GlobalProvider = ({ children }) => {
         createApplication,
         updateApplicationStatus,
         deleteApplication,
+        stats,
+        fetchStats,
         templates,
         setTemplates,
         notes,
