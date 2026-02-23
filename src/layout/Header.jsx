@@ -29,9 +29,6 @@ const Header = () => {
   } else if (location.pathname.startsWith("/mail")) {
     title = "Mail Wizard";
     subtitle = "Compose & Send";
-  } else if (location.pathname.startsWith("/notes")) {
-    title = "Notes";
-    subtitle = "Ideas & Prep";
   } else if (location.pathname.startsWith("/profile")) {
     title = "Profile";
     subtitle = "Settings & Goal";
