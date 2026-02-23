@@ -36,7 +36,7 @@ const Planning = () => {
     try {
       setLoading(true);
       const response = await get("/plans");
-      setPlans(response.data || []);
+      setPlans(response.data?.data || response.data || response || []);
     } catch (error) {
       toast.error("Failed to fetch plans");
     } finally {
@@ -70,7 +70,8 @@ const Planning = () => {
   };
 
   const filteredPlans = useMemo(() => {
-    return plans.filter((plan) => {
+    const list = Array.isArray(plans) ? plans : [];
+    return list.filter((plan) => {
       const matchesSearch = 
         plan.companyName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         plan.techStack?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,10 +89,11 @@ const Planning = () => {
   }, [plans, searchQuery, filterStatus, filterPriority, sortOrder]);
 
   const stats = useMemo(() => {
+    const list = Array.isArray(plans) ? plans : [];
     return {
-      total: plans.length,
-      pending: plans.filter(p => p.status === "pending").length,
-      applied: plans.filter(p => p.status === "applied").length,
+      total: list.length,
+      pending: list.filter(p => p.status === "pending").length,
+      applied: list.filter(p => p.status === "applied").length,
     };
   }, [plans]);
 
@@ -114,20 +116,20 @@ const Planning = () => {
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className={`p-4 rounded-2xl border ${colors.card} shadow-sm`}>
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Leads</p>
-             <p className="text-2xl font-black dark:text-white">{stats.total}</p>
+             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">Planned Leads</p>
+             <p className="text-2xl font-black dark:text-white mt-1">{stats.total}</p>
           </div>
           <div className={`p-4 rounded-2xl border ${colors.card} shadow-sm`}>
-             <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest">Pending</p>
-             <p className="text-2xl font-black dark:text-white">{stats.pending}</p>
+             <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest leading-tight">Ready to Apply</p>
+             <p className="text-2xl font-black dark:text-white mt-1">{stats.pending}</p>
           </div>
           <div className={`p-4 rounded-2xl border ${colors.card} shadow-sm`}>
-             <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Applied</p>
-             <p className="text-2xl font-black dark:text-white">{stats.applied}</p>
+             <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest leading-tight">Converted</p>
+             <p className="text-2xl font-black dark:text-white mt-1">{stats.applied}</p>
           </div>
           <div className={`p-4 rounded-2xl border ${colors.card} shadow-sm flex items-center justify-center`}>
              <button className="w-full h-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-red-500">
-               <Plus size={16} /> New Plan
+               <Plus size={16} /> New Lead
              </button>
           </div>
       </div>
@@ -234,27 +236,27 @@ const Planning = () => {
                   )}
                   {plan.jobLink && (
                     <a href={plan.jobLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-blue-500 text-[11px] font-bold uppercase tracking-wider hover:underline">
-                      <Globe size={12} /> Job Link <ExternalLink size={10} />
+                      <Globe size={12} /> Lead Link <ExternalLink size={10} />
                     </a>
                   )}
                 </div>
 
                 {plan.theHook && (
                   <div className="mb-3 p-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
-                    <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">The Hook</p>
+                    <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">Target Strategy</p>
                     <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">{plan.theHook}</p>
                   </div>
                 )}
                 
                 {plan.winningMove && (
                   <div className="mb-4 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
-                    <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">Winning Move</p>
+                    <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">Execution Advice</p>
                     <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">{plan.winningMove}</p>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-zinc-800">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-neutral-800 mt-2">
                 <div className="flex gap-2">
                   {plan.status === "pending" && (
                     <button onClick={() => handleMarkApplied(plan._id)} className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all shadow-md">
@@ -266,7 +268,7 @@ const Planning = () => {
                   </button>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] text-slate-400 uppercase font-black tracking-tighter">Created</p>
+                  <p className="text-[9px] text-slate-400 uppercase font-black tracking-tighter">Identified</p>
                   <p className="text-[10px] font-mono opacity-50">{new Date(plan.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
