@@ -1,6 +1,7 @@
 import {
   LayoutGrid,
   Briefcase,
+  ClipboardList,
   LayoutTemplate,
   FileText,
   User,
@@ -15,6 +16,7 @@ import NavItem from "../components/navigation/NavItem";
 
 const ITEMS = [
   { to: "/", icon: LayoutGrid, label: "Dashboard" },
+  { to: "/planning", icon: ClipboardList, label: "Planning" },
   { to: "/tracker", icon: Briefcase, label: "Applications" },
   { to: "/mail", icon: LayoutTemplate, label: "Mail Wizard" },
   { to: "/notes", icon: FileText, label: "Notes" },

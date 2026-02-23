@@ -20,6 +20,7 @@ import MailTemplateFill from "./pages/mail/TemplateFill";
 import MailTemplatePreview from "./pages/mail/TemplatePreview";
 import Notes from "./pages/notes";
 import Profile from "./pages/profile";
+import Planning from "./pages/planning";
 import NotFound from "./pages/not-found";
 
 const App = () => {
@@ -55,6 +56,7 @@ const App = () => {
         <Route element={<MainLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="tracker" element={<Tracker />} />
+          <Route path="planning" element={<Planning />} />
           <Route path="mail" element={<MailWizard />}>
             <Route index element={<MailMenu />} />
             <Route path="manual" element={<MailManual />} />
