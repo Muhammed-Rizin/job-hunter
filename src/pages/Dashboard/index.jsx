@@ -6,12 +6,12 @@ import { containerVariants, itemVariants } from "../../utils/animations";
 import { colors } from "../../utils/theme";
 import { formatDateDisplay } from "../../utils/date";
 
-import { Activity, Calendar, Check, Clock, User } from "lucide-react";
+import { Activity, Calendar, Check, Clock, User, AlertCircle } from "lucide-react";
 import StatWidget from "../../components/cards/StatWidget";
 import Card from "../../components/common/Card";
 
 const Dashboard = () => {
-  const { applications, goal, profile } = useGlobal();
+  const { applications, bouncedApps, goal, profile } = useGlobal();
 
   const hasTargetDate = Boolean(goal?.targetDate);
   const daysLeft = hasTargetDate
@@ -108,6 +108,11 @@ const Dashboard = () => {
               value={applications.filter((a) => a.status === "offer").length}
               icon={Check}
               accent
+            />
+            <StatWidget 
+              title="Bounced" 
+              value={bouncedApps.length} 
+              icon={AlertCircle} 
             />
           </div>
         </div>

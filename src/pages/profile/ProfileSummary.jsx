@@ -1,7 +1,7 @@
 import { ArrowUpRight, Download, FileText } from "lucide-react";
 import { formatDateDisplay } from "../../utils/date";
 
-const ProfileSummary = ({ profile, goal, currentCount, progress, strokeDashoffset }) => {
+const ProfileSummary = ({ profile, goal, currentCount, bouncedCount, progress, strokeDashoffset }) => {
   return (
     <div className="grid md:grid-cols-3 gap-6 border-t border-gray-500/10 pt-6 mt-4">
       <div className="space-y-4">
@@ -56,8 +56,15 @@ const ProfileSummary = ({ profile, goal, currentCount, progress, strokeDashoffse
             <div className="text-3xl font-mono font-bold tracking-tighter">
               {currentCount}
             </div>
-            <p className="text-[10px] uppercase tracking-widest opacity-50">
+            <p className="text-[10px] uppercase tracking-widest opacity-50 mb-4">
               Total Applications
+            </p>
+            
+            <div className="text-xl font-mono font-bold tracking-tighter text-orange-500">
+              {bouncedCount}
+            </div>
+            <p className="text-[10px] uppercase tracking-widest opacity-50">
+              Bounced Emails
             </p>
           </div>
           <div className="relative w-24 h-24 sm:mr-2 self-end sm:self-auto">

@@ -46,6 +46,7 @@ export const GlobalProvider = ({ children }) => {
     title: "",
   });
   const [applications, setApplications] = useLocalStorage("jh_apps_v3", []);
+  const [bouncedApps, setBouncedApps] = useState([]);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
   const [applicationsMeta, setApplicationsMeta] = useState({
     total: 0,
@@ -149,6 +150,12 @@ export const GlobalProvider = ({ children }) => {
       if (!user) return;
       try {
         setApplicationsLoading(true);
+        
+        // Fetch bounced separately
+        get("applications/bounced").then(res => {
+          setBouncedApps((res.data || res || []).map(normalizeApplication));
+        }).catch(() => {});
+
         const mergedQuery = { ...applicationsQueryRef.current, ...query };
         applicationsQueryRef.current = mergedQuery;
         const params = new URLSearchParams();
@@ -252,6 +259,7 @@ export const GlobalProvider = ({ children }) => {
         goal,
         setGoal,
         applications,
+        bouncedApps,
         setApplications,
         applicationsLoading,
         applicationsMeta,

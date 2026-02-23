@@ -12,7 +12,7 @@ import { put } from "../../services/api";
 
 const Profile = () => {
   const { logout, updateUser } = useAuth();
-  const { profile, setProfile, goal, setGoal, applications } = useGlobal();
+  const { profile, setProfile, goal, setGoal, applications, bouncedApps } = useGlobal();
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -20,6 +20,7 @@ const Profile = () => {
   const [tempGoal, setTempGoal] = useState(goal);
 
   const currentCount = applications.length;
+  const bouncedCount = bouncedApps.length;
   const progress =
     goal.targetCount > 0 ? Math.min(100, (currentCount / goal.targetCount) * 100) : 0;
   const circumference = 351;
@@ -136,6 +137,7 @@ const Profile = () => {
               profile={profile}
               goal={goal}
               currentCount={currentCount}
+              bouncedCount={bouncedCount}
               progress={progress}
               strokeDashoffset={strokeDashoffset}
             />

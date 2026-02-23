@@ -17,11 +17,14 @@ import Button from "../../components/common/Button";
 const Tracker = () => {
   const {
     applications,
+    bouncedApps,
     setApplications,
     createApplication,
     updateApplicationStatus,
     deleteApplication,
   } = useGlobal();
+
+  const [activeTab, setActiveTab] = useState("all"); // all, bounced
 
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -47,7 +50,8 @@ const Tracker = () => {
   });
 
   const filtered = useMemo(() => {
-    return applications
+    const list = activeTab === "bounced" ? bouncedApps : applications;
+    return list
       .filter((app) => {
         const matchesText =
           app.company.toLowerCase().includes(filter.toLowerCase()) ||
@@ -71,7 +75,7 @@ const Tracker = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, statusFilter, sourceFilter, sortOrder]);
+  }, [filter, statusFilter, sourceFilter, sortOrder, activeTab]);
 
   const openDetails = (app, statusOverride) => {
     setDetailsApp(app);
@@ -138,12 +142,20 @@ const Tracker = () => {
           variants={itemVariants}
           className={`p-4 rounded-2xl border mb-4 ${colors.card}`}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-sm tracking-wide">Log Application</h3>
-              <p className="text-[10px] uppercase tracking-widest opacity-50">
-                Add new application manually
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2 p-1 bg-gray-100 dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-neutral-800">
+              <button 
+                onClick={() => setActiveTab("all")}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'all' ? 'bg-white dark:bg-zinc-800 shadow-sm text-black dark:text-white' : 'text-slate-400'}`}
+              >
+                Applications
+              </button>
+              <button 
+                onClick={() => setActiveTab("bounced")}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'bounced' ? 'bg-white dark:bg-zinc-800 shadow-sm text-black dark:text-white' : 'text-slate-400'}`}
+              >
+                Bounced {bouncedApps.length > 0 && <span className="ml-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">{bouncedApps.length}</span>}
+              </button>
             </div>
             <button
               onClick={() => setCreating((prev) => !prev)}
@@ -152,8 +164,9 @@ const Tracker = () => {
               {creating ? "Close" : "New"}
             </button>
           </div>
+          
           {creating && (
-            <div className="grid md:grid-cols-2 gap-3 animate-slide-up">
+            <div className="grid md:grid-cols-2 gap-3 animate-slide-up mt-4">
               <LabeledInput
                 label="Company"
                 value={createForm.company}
