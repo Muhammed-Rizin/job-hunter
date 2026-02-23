@@ -9,19 +9,28 @@ import { formatDateDisplay } from "../../utils/date";
 import { Activity, Calendar, Check, Clock, User, AlertCircle } from "lucide-react";
 import StatWidget from "../../components/cards/StatWidget";
 import Card from "../../components/common/Card";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const { applications, bouncedApps, goal, profile, stats, fetchStats } = useGlobal();
+  const { applications, goal, profile, stats, fetchStats } = useGlobal();
+  const navigate = useNavigate();
 
   const hasTargetDate = Boolean(goal?.targetDate);
   const daysLeft = hasTargetDate
     ? Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
-  const progress =
-    goal.targetCount > 0 ? Math.min(100, (stats.totalApps / goal.targetCount) * 100) : 0;
+  
+  // Safe access for stats to prevent production crashes
+  const totalSuccessful = stats?.totalApps || 0;
+  const bouncedCount = stats?.bouncedApps || 0;
+  const pendingPlans = stats?.pendingApps || 0;
+  const offerCount = stats?.offerApps || 0;
+
+  const progress = goal.targetCount > 0 ? Math.min(100, (totalSuccessful / goal.targetCount) * 100) : 0;
   const circumference = 351;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
-  const appsToday = applications.filter(
+  
+  const appsToday = (applications || []).filter(
     (a) => a.appliedDate === new Date().toISOString().split("T")[0],
   ).length;
 
@@ -81,7 +90,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-3xl font-mono font-bold tracking-tighter">
-                  {stats.totalApps}
+                  {totalSuccessful}
                 </p>
                 <p className={`text-[10px] uppercase tracking-widest opacity-50`}>
                   Successful Apps
@@ -94,19 +103,19 @@ const Dashboard = () => {
             <StatWidget title="Applied Today" value={appsToday} icon={Calendar} />
             <StatWidget 
               title="Failed/Bounced" 
-              value={stats.bouncedApps} 
+              value={bouncedCount} 
               icon={AlertCircle} 
               onClick={() => navigate("/tracker", { state: { activeTab: 'bounced' } })}
             />
             <StatWidget
               title="Awaiting Response"
-              value={stats.pendingApps}
+              value={pendingPlans}
               icon={Clock}
               onClick={() => navigate("/planning")}
             />
             <StatWidget
               title="Offers"
-              value={stats.offerApps}
+              value={offerCount}
               icon={Check}
               accent
             />
@@ -121,12 +130,13 @@ const Dashboard = () => {
               </h3>
               <button
                 className="text-[10px] font-bold uppercase opacity-50 hover:opacity-100"
+                onClick={() => navigate("/tracker")}
               >
                 View All
               </button>
             </div>
             <div className="space-y-3">
-              {applications.slice(0, 3).map((app) => (
+              {(applications || []).slice(0, 3).map((app) => (
                 <div key={app.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
