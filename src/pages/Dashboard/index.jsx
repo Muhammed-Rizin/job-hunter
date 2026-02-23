@@ -120,7 +120,6 @@ const Dashboard = () => {
                 <Activity size={16} className="mr-2 opacity-50" /> Recent Activity
               </h3>
               <button
-                // onClick={() => setActive("tracker")}
                 className="text-[10px] font-bold uppercase opacity-50 hover:opacity-100"
               >
                 View All
@@ -131,7 +130,7 @@ const Dashboard = () => {
                 <div key={app.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-2 h-2 rounded-full ${app.status === "offer" ? "bg-green-500" : app.status === "rejected" ? "bg-red-500" : "bg-blue-500"}`}
+                      className={`w-2 h-2 rounded-full ${app.status === "offer" ? "bg-green-50" : app.status === "rejected" ? "bg-red-500" : "bg-blue-500"}`}
                     ></div>
                     <div>
                       <p className="font-bold text-xs">{app.company}</p>
