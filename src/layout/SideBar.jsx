@@ -3,7 +3,6 @@ import {
   Briefcase,
   ClipboardList,
   LayoutTemplate,
-  FileText,
   User,
   LogOut,
   Sun,
