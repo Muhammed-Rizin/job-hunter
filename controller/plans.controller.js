@@ -5,10 +5,13 @@ import models from "../model/index.js";
  * @route   GET /plans
  */
 export const list = asyncErrorHandler(async (req, res) => {
+  const { status } = req.query;
   const filter = {
     user: req.user._id,
     statusFlag: 0,
   };
+
+  if (!isNull(status) && status !== "all") filter.status = status;
 
   const data = await models.Plan.find(filter).sort({ createdAt: -1 });
 
