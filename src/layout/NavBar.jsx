@@ -7,7 +7,6 @@ const items = [
   { to: "/", icon: LayoutGrid },
   { to: "/planning", icon: ClipboardList },
   { to: "/tracker", icon: Briefcase },
-  { to: "/notes", icon: FileText },
   { to: "/profile", icon: User },
 ];
 
@@ -56,7 +55,7 @@ const NavBar = () => {
         </div>
 
         <div className="flex gap-1">
-          <NavIcon to="/notes" icon={FileText} />
+          <NavIcon to="/tracker" icon={Briefcase} />
           <NavIcon to="/profile" icon={User} />
         </div>
       </div>

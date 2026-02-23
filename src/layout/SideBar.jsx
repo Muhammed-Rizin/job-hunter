@@ -19,7 +19,6 @@ const ITEMS = [
   { to: "/planning", icon: ClipboardList, label: "Planning" },
   { to: "/tracker", icon: Briefcase, label: "Applications" },
   { to: "/mail", icon: LayoutTemplate, label: "Mail Wizard" },
-  { to: "/notes", icon: FileText, label: "Notes" },
   { to: "/profile", icon: User, label: "Profile", divider: true },
 ];
 

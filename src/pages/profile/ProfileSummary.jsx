@@ -3,8 +3,8 @@ import { formatDateDisplay } from "../../utils/date";
 
 const ProfileSummary = ({ profile, goal, currentCount, bouncedCount, progress, strokeDashoffset }) => {
   return (
-    <div className="grid md:grid-cols-3 gap-6 border-t border-gray-500/10 pt-6 mt-4">
-      <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gray-500/10 pt-6 mt-4">
+      <div className="space-y-6">
         <div>
           <h3 className="font-bold text-[10px] uppercase tracking-widest opacity-50 mb-2">
             About
@@ -57,7 +57,7 @@ const ProfileSummary = ({ profile, goal, currentCount, bouncedCount, progress, s
               {currentCount}
             </div>
             <p className="text-[10px] uppercase tracking-widest opacity-50 mb-4">
-              Total Applications
+              Successful Apps
             </p>
             
             <div className="text-xl font-mono font-bold tracking-tighter text-orange-500">
@@ -111,15 +111,15 @@ const ProfileSummary = ({ profile, goal, currentCount, bouncedCount, progress, s
               </a>
             ) : null}
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 text-red-600 rounded-lg shrink-0">
               <FileText size={16} />
             </div>
-            <div className="min-w-0">
-              <p className="font-bold text-xs">{profile.resumeName || "No resume uploaded"}</p>
-              <p className="text-[10px] opacity-50">PDF Document</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-xs truncate">{profile.resumeName || "No resume uploaded"}</p>
+              <p className="text-[10px] opacity-50 uppercase font-bold tracking-widest">PDF Document</p>
             </div>
-            <button className="sm:ml-auto p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
               <Download size={14} />
             </button>
           </div>

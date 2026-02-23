@@ -25,9 +25,6 @@ const Dashboard = () => {
     (a) => a.appliedDate === new Date().toISOString().split("T")[0],
   ).length;
 
-  const upcomingInterviews = applications
-    .filter((a) => ["interview", "technical"].includes(a.status))
-    .slice(0, 2);
   return (
     <motion.div
       initial="hidden"
@@ -87,7 +84,7 @@ const Dashboard = () => {
                   {applications.length}
                 </p>
                 <p className={`text-[10px] uppercase tracking-widest opacity-50`}>
-                  Total Applications
+                  Successful Apps
                 </p>
               </div>
             </div>
@@ -95,9 +92,13 @@ const Dashboard = () => {
 
           <div className="lg:col-span-2 grid grid-cols-2 gap-3 md:gap-4">
             <StatWidget title="Applied Today" value={appsToday} icon={Calendar} />
-            <StatWidget title="Interviews" value={upcomingInterviews.length} icon={User} />
+            <StatWidget 
+              title="Failed/Bounced" 
+              value={bouncedApps.length} 
+              icon={AlertCircle} 
+            />
             <StatWidget
-              title="Pending"
+              title="Awaiting Response"
               value={
                 applications.filter((a) => ["applied", "hr_contact"].includes(a.status)).length
               }
@@ -109,62 +110,10 @@ const Dashboard = () => {
               icon={Check}
               accent
             />
-            <StatWidget 
-              title="Bounced" 
-              value={bouncedApps.length} 
-              icon={AlertCircle} 
-            />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-          <Card className="p-5 rounded-2xl shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-sm tracking-wide flex items-center">
-                <Calendar size={16} className="mr-2 opacity-50" /> Upcoming Interviews
-              </h3>
-            </div>
-            <div className="space-y-3">
-              {upcomingInterviews.length > 0 ? (
-                upcomingInterviews.map((app) => (
-                  <div
-                    key={app.id}
-                    className="flex items-center justify-between p-3 rounded-xl border bg-gray-50 border-gray-100 dark:bg-zinc-800/30 dark:border-zinc-700 "
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200">
-                        {app.company[0]}
-                      </div>
-                      <div>
-                        <p className="font-bold text-xs">{app.company}</p>
-                        <p className="text-[10px] opacity-50">{app.role}</p>
-                        {app.statusDetails?.date ? (
-                          <p className="text-[10px] opacity-60">
-                            {formatDateDisplay(app.statusDetails.date)}{" "}
-                            {app.statusDetails.time ? `• ${app.statusDetails.time}` : ""}
-                          </p>
-                        ) : null}
-                        {app.statusDetails?.round || app.statusDetails?.mode ? (
-                          <p className="text-[10px] opacity-60">
-                            {app.statusDetails.round || "Round"}{" "}
-                            {app.statusDetails.mode ? `• ${app.statusDetails.mode}` : ""}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase bg-blue-500/10 text-blue-500 px-2 py-1 rounded">
-                      Tomorrow
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-6 opacity-40 text-xs uppercase font-bold tracking-widest">
-                  No upcoming interviews
-                </div>
-              )}
-            </div>
-          </Card>
-
+        <div className="grid grid-cols-1 gap-4 mt-2">
           <Card className="p-5 rounded-2xl shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-sm tracking-wide flex items-center">

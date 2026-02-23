@@ -136,6 +136,7 @@ const Planning = () => {
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="applied">Applied</option>
+            <option value="bounced">Bounced</option>
           </select>
           <select 
             className="bg-white dark:bg-zinc-900 px-4 py-4 rounded-2xl border border-slate-200 dark:border-neutral-800 outline-none dark:text-white font-bold text-xs uppercase tracking-widest cursor-pointer"
@@ -174,6 +175,8 @@ const Planning = () => {
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                       plan.status === "applied" 
                       ? "bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900/30" 
+                      : plan.status === "bounced"
+                      ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/30"
                       : "bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-900/30"
                     }`}>
                       {plan.status}
