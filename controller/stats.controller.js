@@ -10,10 +10,16 @@ export const getCounts = asyncErrorHandler(async (req, res) => {
     models.Application.countDocuments({ user: userId, statusFlag: 0, status: "offer" }),
   ]);
 
-  return new Response("Counts fetched", {
-    totalApps: totalApps || 0,
-    bouncedApps: bouncedApps || 0,
-    pendingApps: pendingPlans || 0,
-    offerApps: offerApps || 0,
-  }, 200);
+  return new Response(
+    "Counts fetched",
+    {
+      data: {
+        totalApps: totalApps || 0,
+        bouncedApps: bouncedApps || 0,
+        pendingApps: pendingPlans || 0,
+        offerApps: offerApps || 0,
+      },
+    },
+    200,
+  );
 });

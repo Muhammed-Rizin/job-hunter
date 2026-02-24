@@ -3,14 +3,7 @@ import { sendMailService, markPlanAsApplied } from "../services/mail.service.js"
 import { markdownToHtml } from "../utils/email.js";
 
 export const list = asyncErrorHandler(async (req, res) => {
-  const {
-    search,
-    status,
-    source,
-    sort = "newest",
-    page = 1,
-    limit = 20,
-  } = req.query;
+  const { search, status, source, sort = "newest", page = 1, limit = 20 } = req.query;
 
   const filter = {
     user: req.user._id,
@@ -38,21 +31,28 @@ export const list = asyncErrorHandler(async (req, res) => {
   const sortField = sort === "oldest" ? 1 : -1;
 
   const [data, total] = await Promise.all([
-    models.Application.find(filter).sort({ appliedDate: sortField, createdAt: sortField }).skip(skip).limit(resolvedLimit),
+    models.Application.find(filter)
+      .sort({ appliedDate: sortField, createdAt: sortField })
+      .skip(skip)
+      .limit(resolvedLimit),
     models.Application.countDocuments(filter),
   ]);
 
   const pages = Math.ceil(total / resolvedLimit) || 1;
 
-  return new Response("Applications fetched", {
-    data,
-    meta: {
-      total,
-      page: resolvedPage,
-      limit: resolvedLimit,
-      pages,
+  return new Response(
+    "Applications fetched",
+    {
+      data,
+      meta: {
+        total,
+        page: resolvedPage,
+        limit: resolvedLimit,
+        pages,
+      },
     },
-  }, 200);
+    200,
+  );
 });
 
 export const create = asyncErrorHandler(async (req, res) => {
@@ -104,7 +104,7 @@ export const listBounced = asyncErrorHandler(async (req, res) => {
     statusFlag: 0,
   }).sort({ createdAt: -1 });
 
-  return new Response("Bounced applications fetched", data, 200);
+  return new Response("Bounced applications fetched", { data }, 200);
 });
 
 export const manual = asyncErrorHandler(async (req, res) => {

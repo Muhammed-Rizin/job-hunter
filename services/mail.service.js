@@ -1,6 +1,7 @@
 import { transporter } from "../utils/mailer.js";
 import models from "../model/index.js";
 import { fetchResumeBuffer } from "../utils/resume.js";
+import { MAIL_USER } from "../config/index.js";
 
 /**
  * Send mail with optional resume attachment
@@ -37,19 +38,18 @@ export const sendMailService = async ({
     });
   }
 
-
   // 1️⃣ Send mail
   console.log(`📡 Attempting to send mail to ${to}...`);
   const mailOptions = {
-    from: `"${company || 'Job Application'}" <${process.env.MAIL_USER}>`,
+    from: `"${company || "Job Application"}" <${MAIL_USER}>`,
     to,
     subject,
     text: text || "Please open this mail in an HTML-compatible client.",
     html,
-    attachments: attachments.map(att => ({
+    attachments: attachments.map((att) => ({
       filename: att.filename,
       content: att.buffer || att.content,
-      contentType: 'application/pdf'
+      contentType: "application/pdf",
     })),
   };
 

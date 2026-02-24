@@ -15,7 +15,7 @@ export const list = asyncErrorHandler(async (req, res) => {
 
   const data = await models.Plan.find(filter).sort({ createdAt: -1 });
 
-  return new Response("Plans fetched successfully", data, 200);
+  return new Response("Plans fetched successfully", { data }, 200);
 });
 
 /**
@@ -23,18 +23,18 @@ export const list = asyncErrorHandler(async (req, res) => {
  * @route   POST /plans
  */
 export const create = asyncErrorHandler(async (req, res) => {
-  const { 
-    companyName, 
-    jobLink, 
-    email, 
-    details, 
-    package: pkg, 
-    location, 
-    visaSupport, 
-    priority, 
+  const {
+    companyName,
+    jobLink,
+    email,
+    details,
+    package: pkg,
+    location,
+    visaSupport,
+    priority,
     techStack,
     winningMove,
-    theHook
+    theHook,
   } = req.body;
 
   if (isNull(companyName)) throw new Error("Company name is required", 400);
@@ -68,7 +68,7 @@ export const update = asyncErrorHandler(async (req, res) => {
   const updated = await models.Plan.findOneAndUpdate(
     { _id: id, user: req.user._id, statusFlag: 0 },
     updateData,
-    { new: true }
+    { new: true },
   );
 
   if (!updated) throw new Error("Plan not found or unauthorized", 404);
@@ -85,7 +85,7 @@ export const del = asyncErrorHandler(async (req, res) => {
 
   const deleted = await models.Plan.findOneAndUpdate(
     { _id: id, user: req.user._id, statusFlag: 0 },
-    { statusFlag: 1 }
+    { statusFlag: 1 },
   );
 
   if (!deleted) throw new Error("Plan not found", 404);

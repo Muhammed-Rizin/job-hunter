@@ -5,6 +5,9 @@ export const IS_DEVELOPMENT = NODE_ENV === "development";
 export const PORT = process.env.PORT || 4000;
 export const DATABASE_URL = process.env.DATABASE_URL;
 
+export const MAIL_USER = process.env.MAIL_USER;
+export const MAIL_PASS = process.env.MAIL_PASS;
+
 export const ORIGINS = process.env.ORIGINS?.split(",").map((origin) => origin.trim());
 export const CLIENT_URL = process.env.CLIENT_URL || ORIGINS?.[0] || "http://localhost:5173";
 export const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
