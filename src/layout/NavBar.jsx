@@ -8,16 +8,14 @@ const NavIcon = ({ to, icon: Icon, label }) => {
   const active = pathname === to;
 
   return (
-    <Tooltip content={label}>
-      <NavLink
-        to={to}
-        className={`p-3 rounded-full transition-all active:scale-90
-          ${active ? "bg-zinc-800 text-white dark:bg-zinc-700 shadow-sm" : "text-gray-400 dark:text-zinc-500"}
-        `}
-      >
-        <Icon size={22} />
-      </NavLink>
-    </Tooltip>
+    <NavLink
+      to={to}
+      className={`p-3 rounded-full transition-all active:scale-90
+        ${active ? "bg-zinc-800 text-white dark:bg-zinc-700 shadow-sm" : "text-gray-400 dark:text-zinc-500"}
+      `}
+    >
+      <Icon size={22} />
+    </NavLink>
   );
 };
 
@@ -45,14 +43,12 @@ const NavBar = () => {
         </div>
 
         <div className="relative -top-8">
-          <Tooltip content="Mail Wizard">
-            <NavLink
-              to="/mail"
-              className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transform transition-transform active:scale-90 bg-black text-white ring-[12px] ring-gray-50/50 dark:bg-red-600 dark:text-white dark:ring-8 dark:ring-black/60"
-            >
-              <Plus size={32} />
-            </NavLink>
-          </Tooltip>
+          <NavLink
+            to="/mail"
+            className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transform transition-transform active:scale-90 bg-black text-white ring-[12px] ring-gray-50/50 dark:bg-red-600 dark:text-white dark:ring-8 dark:ring-black/60"
+          >
+            <Plus size={32} />
+          </NavLink>
         </div>
 
         <div className="flex items-center gap-1">

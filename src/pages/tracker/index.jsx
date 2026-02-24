@@ -43,7 +43,7 @@ const Tracker = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
-  const [listTransitioning, setListTransitioning] = useState(false);
+  const [queryPending, setQueryPending] = useState(false);
   const hasMountedPageRef = useRef(false);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -98,12 +98,6 @@ const Tracker = () => {
   }, [filter, statusFilter, sourceFilter, sortOrder, activeTab]);
 
   useEffect(() => {
-    setListTransitioning(true);
-    const timeoutId = setTimeout(() => setListTransitioning(false), 220);
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, filter, statusFilter, sourceFilter, sortOrder, currentPage]);
-
-  useEffect(() => {
     if (activeTab !== "bounced") return;
     if (statusFilter !== "all" && statusFilter !== "bounced") {
       setStatusFilter("all");
@@ -111,7 +105,13 @@ const Tracker = () => {
   }, [activeTab, statusFilter]);
 
   useEffect(() => {
-    if (activeTab !== "all") return;
+    if (activeTab !== "all") {
+      setQueryPending(false);
+      return;
+    }
+
+    let cancelled = false;
+    setQueryPending(true);
 
     const timeoutId = setTimeout(() => {
       fetchApplications({
@@ -121,10 +121,17 @@ const Tracker = () => {
         sort: sortOrder,
         page: currentPage,
         limit: ITEMS_PER_PAGE,
+      }).finally(() => {
+        if (!cancelled) {
+          setQueryPending(false);
+        }
       });
     }, 250);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [activeTab, currentPage, fetchApplications, filter, sortOrder, sourceFilter, statusFilter]);
 
   useEffect(() => {
@@ -212,7 +219,7 @@ const Tracker = () => {
   const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(
     detailsStatus,
   );
-  const showListSkeleton = listTransitioning || (activeTab === "all" && applicationsLoading);
+  const showListSkeleton = activeTab === "all" && (queryPending || applicationsLoading);
 
   return (
     <motion.div

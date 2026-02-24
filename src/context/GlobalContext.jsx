@@ -54,7 +54,6 @@ export const GlobalProvider = ({ children }) => {
     pages: 1,
     limit: 20,
   });
-  const applicationsLoadedRef = useRef(false);
   const applicationsQueryRef = useRef({
     search: "",
     status: "all",
@@ -263,16 +262,6 @@ export const GlobalProvider = ({ children }) => {
 
     loadGoal();
   }, [user]);
-
-  useEffect(() => {
-    if (!user) {
-      applicationsLoadedRef.current = false;
-      return;
-    }
-    if (applicationsLoadedRef.current) return;
-    applicationsLoadedRef.current = true;
-    fetchApplications();
-  }, [user, fetchApplications]);
 
   const normalizedProfile = useMemo(() => normalizeProfile(profile), [profile]);
 

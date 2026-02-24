@@ -2,11 +2,10 @@ import React from "react";
 import { useGlobal } from "../../context";
 
 import { motion } from "framer-motion";
-import { containerVariants, itemVariants } from "../../utils/animations";
-import { colors } from "../../utils/theme";
+import { containerVariants } from "../../utils/animations";
 import { formatDateDisplay } from "../../utils/date";
 
-import { Activity, Calendar, Check, Clock, User, AlertCircle } from "lucide-react";
+import { Activity, Calendar, Check, Clock, AlertCircle } from "lucide-react";
 import StatWidget from "../../components/cards/StatWidget";
 import Card from "../../components/common/Card";
 import { useNavigate } from "react-router-dom";
@@ -19,21 +18,18 @@ const Dashboard = () => {
   const daysLeft = hasTargetDate
     ? Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
-  
+
   // Safe access for stats to prevent production crashes
   const totalSuccessful = stats?.totalApps || 0;
   const bouncedCount = stats?.bouncedApps || 0;
   const pendingPlans = stats?.pendingApps || 0;
   const offerCount = stats?.offerApps || 0;
+  const appsToday = stats?.appsToday || 0;
 
-  const progress = goal.targetCount > 0 ? Math.min(100, (totalSuccessful / goal.targetCount) * 100) : 0;
+  const progress =
+    goal.targetCount > 0 ? Math.min(100, (totalSuccessful / goal.targetCount) * 100) : 0;
   const circumference = 351;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
-  
-  const todayStr = new Date().toISOString().split("T")[0];
-  const appsToday = (applications || []).filter(
-    (a) => a.appliedDate === todayStr,
-  ).length;
 
   return (
     <motion.div
@@ -91,13 +87,13 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="flex flex-col">
-                   <div className="flex items-baseline gap-1">
-                      <p className="text-3xl font-mono font-bold tracking-tighter">
-                        {totalSuccessful}
-                      </p>
-                      <p className="text-xs opacity-30 font-bold">/ {goal.targetCount || 0}</p>
-                   </div>
-                   <p className={`text-[10px] uppercase tracking-widest opacity-50 font-bold mt-1`}>
+                  <div className="flex items-baseline gap-1">
+                    <p className="text-3xl font-mono font-bold tracking-tighter">
+                      {totalSuccessful}
+                    </p>
+                    <p className="text-xs opacity-30 font-bold">/ {goal.targetCount || 0}</p>
+                  </div>
+                  <p className={`text-[10px] uppercase tracking-widest opacity-50 font-bold mt-1`}>
                     Successful Apps
                   </p>
                 </div>
@@ -107,11 +103,11 @@ const Dashboard = () => {
 
           <div className="lg:col-span-2 grid grid-cols-2 gap-3 md:gap-4">
             <StatWidget title="Applied Today" value={appsToday} icon={Calendar} />
-            <StatWidget 
-              title="Failed/Bounced" 
-              value={bouncedCount} 
-              icon={AlertCircle} 
-              onClick={() => navigate("/tracker", { state: { activeTab: 'bounced' } })}
+            <StatWidget
+              title="Failed/Bounced"
+              value={bouncedCount}
+              icon={AlertCircle}
+              onClick={() => navigate("/tracker", { state: { activeTab: "bounced" } })}
             />
             <StatWidget
               title="Planning"
@@ -119,12 +115,7 @@ const Dashboard = () => {
               icon={Clock}
               onClick={() => navigate("/planning")}
             />
-            <StatWidget
-              title="Offers"
-              value={offerCount}
-              icon={Check}
-              accent
-            />
+            <StatWidget title="Offers" value={offerCount} icon={Check} accent />
           </div>
         </div>
 
