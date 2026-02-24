@@ -15,11 +15,13 @@ export const getCounts = asyncErrorHandler(async (req, res) => {
   return new Response(
     "Counts fetched",
     {
-      totalApps: totalApps || 0,
-      bouncedApps: bouncedApps || 0,
-      pendingApps: pendingPlans || 0,
-      offerApps: offerApps || 0,
-      appsToday: appsToday || 0,
+      data: {
+        totalApps: totalApps || 0,
+        bouncedApps: bouncedApps || 0,
+        pendingApps: pendingPlans || 0,
+        offerApps: offerApps || 0,
+        appsToday: appsToday || 0,
+      },
     },
     200,
   );
