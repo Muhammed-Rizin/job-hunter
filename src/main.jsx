@@ -1,14 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-
-import { ThemeProvider } from "./context/ThemeContext";
-import { AuthProvider } from "./context/AuthContext";
-
-import App from "./App";
+import AppProviders from "@/app/providers/AppProviders";
+import App from "@/app/App";
 
 import "./index.css";
-import { GlobalProvider } from "./context/GlobalContext";
 
 // PWA registration
 import { registerSW } from "virtual:pwa-register";
@@ -17,13 +13,9 @@ registerSW({ immediate: true });
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <GlobalProvider>
-            <App />
-          </GlobalProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <AppProviders>
+        <App />
+      </AppProviders>
     </BrowserRouter>
   </React.StrictMode>,
 );
