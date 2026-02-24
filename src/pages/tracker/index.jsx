@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { Edit3, Globe, Search, SortDesc, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { useLocation } from "react-router-dom";
 
 import { useGlobal } from "../../context";
 import { APPLICATION_STATUSES, PLATFORMS } from "../../config/job.constants";
@@ -13,18 +14,27 @@ import StatusSelect from "../../components/tracker/StatusSelect";
 import LabeledInput from "../../components/common/LabeledInput";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
+import Tooltip from "../../components/common/Tooltip";
+import ListSkeleton from "../../components/common/ListSkeleton";
+import { toTop } from "../../utils/helper";
 
 const Tracker = () => {
   const {
     applications,
     bouncedApps,
     setApplications,
+    applicationsMeta,
+    applicationsLoading,
+    fetchApplications,
     createApplication,
     updateApplicationStatus,
     deleteApplication,
   } = useGlobal();
 
-  const [activeTab, setActiveTab] = useState("all"); // all, bounced
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(
+    location.state?.activeTab === "bounced" ? "bounced" : "all",
+  ); // all, bounced
 
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -33,6 +43,8 @@ const Tracker = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
+  const [listTransitioning, setListTransitioning] = useState(false);
+  const hasMountedPageRef = useRef(false);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsApp, setDetailsApp] = useState(null);
@@ -49,13 +61,12 @@ const Tracker = () => {
     notes: "",
   });
 
-  const filtered = useMemo(() => {
-    const list = activeTab === "bounced" ? bouncedApps : applications;
-    return list
+  const bouncedFiltered = useMemo(() => {
+    return bouncedApps
       .filter((app) => {
         const matchesText =
-          app.company.toLowerCase().includes(filter.toLowerCase()) ||
-          app.role.toLowerCase().includes(filter.toLowerCase());
+          (app.company || "").toLowerCase().includes(filter.toLowerCase()) ||
+          (app.role || "").toLowerCase().includes(filter.toLowerCase());
         const matchesStatus = statusFilter === "all" || app.status === statusFilter;
         const matchesSource = sourceFilter === "all" || app.source === sourceFilter;
         return matchesText && matchesStatus && matchesSource;
@@ -65,17 +76,84 @@ const Tracker = () => {
           ? new Date(b.appliedDate) - new Date(a.appliedDate)
           : new Date(a.appliedDate) - new Date(b.appliedDate);
       });
-  }, [applications, filter, sortOrder, sourceFilter, statusFilter]);
+  }, [bouncedApps, filter, sortOrder, sourceFilter, statusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const paginatedApps = filtered.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  const bouncedTotalPages = Math.max(1, Math.ceil(bouncedFiltered.length / ITEMS_PER_PAGE));
+  const displayedApps =
+    activeTab === "bounced"
+      ? bouncedFiltered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+      : applications;
+  const totalPages =
+    activeTab === "bounced" ? bouncedTotalPages : Math.max(1, applicationsMeta?.pages || 1);
+
+  useEffect(() => {
+    const nextTab = location.state?.activeTab;
+    if (nextTab === "all" || nextTab === "bounced") {
+      setActiveTab(nextTab);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [filter, statusFilter, sourceFilter, sortOrder, activeTab]);
+
+  useEffect(() => {
+    setListTransitioning(true);
+    const timeoutId = setTimeout(() => setListTransitioning(false), 220);
+    return () => clearTimeout(timeoutId);
+  }, [activeTab, filter, statusFilter, sourceFilter, sortOrder, currentPage]);
+
+  useEffect(() => {
+    if (activeTab !== "bounced") return;
+    if (statusFilter !== "all" && statusFilter !== "bounced") {
+      setStatusFilter("all");
+    }
+  }, [activeTab, statusFilter]);
+
+  useEffect(() => {
+    if (activeTab !== "all") return;
+
+    const timeoutId = setTimeout(() => {
+      fetchApplications({
+        search: filter.trim(),
+        status: statusFilter,
+        source: sourceFilter,
+        sort: sortOrder,
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      });
+    }, 250);
+
+    return () => clearTimeout(timeoutId);
+  }, [activeTab, currentPage, fetchApplications, filter, sortOrder, sourceFilter, statusFilter]);
+
+  useEffect(() => {
+    if (activeTab !== "bounced") return;
+    if (currentPage > bouncedTotalPages) {
+      setCurrentPage(bouncedTotalPages);
+    }
+  }, [activeTab, bouncedTotalPages, currentPage]);
+
+  useEffect(() => {
+    if (activeTab !== "all") return;
+    const serverPages = Math.max(1, Number(applicationsMeta?.pages) || 1);
+    if (currentPage > serverPages) {
+      setCurrentPage(serverPages);
+    }
+  }, [activeTab, applicationsMeta?.pages, currentPage]);
+
+  useEffect(() => {
+    if (!hasMountedPageRef.current) {
+      hasMountedPageRef.current = true;
+      return;
+    }
+
+    const scrollContainer = document.getElementById("app-scroll-container");
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, [currentPage]);
 
   const openDetails = (app, statusOverride) => {
     setDetailsApp(app);
@@ -134,37 +212,50 @@ const Tracker = () => {
   const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(
     detailsStatus,
   );
+  const showListSkeleton = listTransitioning || (activeTab === "all" && applicationsLoading);
 
   return (
-    <motion.div initial="hidden" animate="visible" variants={containerVariants} className="h-full">
-      <div className="space-y-4 p-4 md:px-0 h-full flex flex-col no-scrollbar">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="h-full min-h-0"
+    >
+      <div className="space-y-4 h-full min-h-0 flex flex-col no-scrollbar">
         <motion.div
           variants={itemVariants}
           className={`p-4 rounded-2xl border mb-4 ${colors.card}`}
         >
           <div className="flex items-center justify-between">
             <div className="flex gap-2 p-1 bg-gray-100 dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-neutral-800">
-              <button 
+              <button
                 onClick={() => setActiveTab("all")}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'all' ? 'bg-white dark:bg-zinc-800 shadow-sm text-black dark:text-white' : 'text-slate-400'}`}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === "all" ? "bg-white dark:bg-zinc-800 shadow-sm text-black dark:text-white" : "text-slate-400"}`}
               >
                 Applications
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab("bounced")}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'bounced' ? 'bg-white dark:bg-zinc-800 shadow-sm text-black dark:text-white' : 'text-slate-400'}`}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === "bounced" ? "bg-white dark:bg-zinc-800 shadow-sm text-black dark:text-white" : "text-slate-400"}`}
               >
-                Bounced {bouncedApps.length > 0 && <span className="ml-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">{bouncedApps.length}</span>}
+                Bounced{" "}
+                {bouncedApps.length > 0 && (
+                  <span className="ml-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                    {bouncedApps.length}
+                  </span>
+                )}
               </button>
             </div>
-            <button
-              onClick={() => setCreating((prev) => !prev)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${colors.secondary}`}
-            >
-              {creating ? "Close" : "New"}
-            </button>
+            <Tooltip content={creating ? "Close Form" : "Create Application"}>
+              <button
+                onClick={() => setCreating((prev) => !prev)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${colors.secondary}`}
+              >
+                {creating ? "Close" : "New"}
+              </button>
+            </Tooltip>
           </div>
-          
+
           {creating && (
             <div className="grid md:grid-cols-2 gap-3 animate-slide-up mt-4">
               <LabeledInput
@@ -237,33 +328,41 @@ const Tracker = () => {
                   placeholder="Source"
                 />
               </div>
-              <button
-                onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
-                className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${colors.card}`}
-              >
-                <SortDesc
-                  size={18}
-                  className={sortOrder === "newest" ? "" : "transform rotate-180"}
-                />
-              </button>
+              <Tooltip content={sortOrder === "newest" ? "Sort Oldest First" : "Sort Newest First"}>
+                <button
+                  onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
+                  className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${colors.card}`}
+                >
+                  <SortDesc
+                    size={18}
+                    className={sortOrder === "newest" ? "" : "transform rotate-180"}
+                  />
+                </button>
+              </Tooltip>
             </div>
           </div>
         </motion.div>
 
-        <div className="md:hidden space-y-4 pb-4 no-scrollbar">
-          {filtered.map((app) => (
+        {showListSkeleton && <ListSkeleton entries={6} />}
+
+        <div
+          className={`md:hidden space-y-4 pb-4 no-scrollbar ${showListSkeleton ? "hidden" : ""}`}
+        >
+          {displayedApps.map((app) => (
             <TrackerCard
               key={app.id}
               app={app}
               colors={colors}
-              onDelete={() => deleteApplication(app.id)}
-              onStatusChange={(item, status) => handleStatusChange(item, status)}
+              onDelete={handleDelete}
+              onStatusChange={(item, status) => openDetails(item, status)}
               onDetails={(item) => openDetails(item)}
             />
           ))}
         </div>
 
-        <div className="hidden md:block flex-1 overflow-x-auto">
+        <div
+          className={`hidden md:block flex-1 min-h-0 overflow-hidden no-scrollbar ${showListSkeleton ? "md:hidden" : ""}`}
+        >
           <div className="min-w-200 md:min-w-0 space-y-2">
             <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50">
               <div className="col-span-4">Company</div>
@@ -272,24 +371,25 @@ const Tracker = () => {
               <div className="col-span-2">Date</div>
               <div className="col-span-1 text-right">Action</div>
             </div>
-            {paginatedApps.map((app) => (
-              <motion.div
-                variants={itemVariants}
+            {displayedApps.map((app) => (
+              <div
                 key={app.id}
                 className="grid grid-cols-12 gap-4 items-center p-3 rounded-xl border transition-all hover:shadow-md bg-white border-gray-100 hover:border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700"
               >
                 <div className="col-span-4 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-gray-50 border-gray-200 dark:bg-black dark:border-zinc-800">
-                    <span className="font-bold text-xs">{app.company.charAt(0)}</span>
+                    <span className="font-bold text-xs">{(app.company || "?").charAt(0)}</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm">{app.company}</h4>
-                    <p className="text-[10px] uppercase tracking-wider opacity-60">{app.role}</p>
+                    <h4 className="font-bold text-sm">{app.company || "Unknown Company"}</h4>
+                    <p className="text-[10px] uppercase tracking-wider opacity-60">
+                      {app.role || "-"}
+                    </p>
                     {app.statusDetails?.date || app.statusDetails?.round ? (
                       <p className="text-[10px] opacity-60 mt-0.5 text-blue-500">
                         {app.statusDetails.round}{" "}
                         {app.statusDetails.date
-                          ? `• ${formatDateDisplay(app.statusDetails.date)}`
+                          ? `- ${formatDateDisplay(app.statusDetails.date)}`
                           : ""}
                       </p>
                     ) : null}
@@ -307,56 +407,70 @@ const Tracker = () => {
                 </div>
                 <div className="col-span-3 flex items-center gap-2">
                   <StatusSelect status={app.status} onChange={(v) => openDetails(app, v)} />
-                  <button
-                    onClick={() => openDetails(app)}
-                    className="p-1 hover:bg-gray-100 rounded"
-                  >
-                    <Edit3 size={12} className="opacity-50" />
-                  </button>
+                  <Tooltip content="Edit Status Details">
+                    <button
+                      onClick={() => openDetails(app)}
+                      className="p-1 hover:bg-gray-100 rounded"
+                    >
+                      <Edit3 size={12} className="opacity-50" />
+                    </button>
+                  </Tooltip>
                 </div>
                 <div className="col-span-2 text-xs font-mono opacity-60">
                   {formatDateDisplay(app.appliedDate)}
                 </div>
                 <div className="col-span-1 flex justify-end">
-                  <button
-                    onClick={() => handleDelete(app)}
-                    className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-gray-400"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <Tooltip content="Delete Application">
+                    <button
+                      onClick={() => handleDelete(app)}
+                      className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-gray-400"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </Tooltip>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
 
-        {totalPages > 1 && (
+        {!showListSkeleton && displayedApps.length === 0 && (
+          <div className={`text-sm p-6 rounded-xl border text-center ${colors.card}`}>
+            No applications found.
+          </div>
+        )}
+
+        {!showListSkeleton && totalPages > 1 && (
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-dashed border-gray-500/20">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
-                currentPage === 1
-                  ? "opacity-30 cursor-not-allowed"
-                  : "hover:bg-gray-50 dark:hover:bg-zinc-800"
-              } ${colors.secondary}`}
-            >
-              Previous
-            </button>
+            <Tooltip content="Previous Page" disabled={currentPage === 1}>
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
+                  currentPage === 1
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+                } ${colors.secondary}`}
+              >
+                Previous
+              </button>
+            </Tooltip>
             <span className="text-xs font-mono opacity-50">
               Page {currentPage} of {totalPages}
             </span>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
-                currentPage === totalPages
-                  ? "opacity-30 cursor-not-allowed"
-                  : "hover:bg-gray-50 dark:hover:bg-zinc-800"
-              } ${colors.secondary}`}
-            >
-              Next
-            </button>
+            <Tooltip content="Next Page" disabled={currentPage === totalPages}>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
+                  currentPage === totalPages
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+                } ${colors.secondary}`}
+              >
+                Next
+              </button>
+            </Tooltip>
           </div>
         )}
       </div>

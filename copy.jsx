@@ -764,7 +764,7 @@ const DashboardView = ({ applications, goal, colors, isDark, setActive, profile 
     .slice(0, 2);
 
   return (
-    <div className="space-y-4 px-4 md:px-0 pb-10">
+    <div className="space-y-4 md:px-0 pb-10">
       {/* Mobile-Only Header Area */}
       <div className="md:hidden flex flex-col justify-between items-start gap-4 mb-2">
         <div>

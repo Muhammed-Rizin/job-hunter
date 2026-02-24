@@ -164,14 +164,16 @@ export const GlobalProvider = ({ children }) => {
       try {
         setApplicationsLoading(true);
         fetchStats();
-        
+
         // Fetch bounced separately
-        get("applications/bounced").then(res => {
-          const list = res?.data || res || [];
-          if (Array.isArray(list)) {
-            setBouncedApps(list.map(normalizeApplication));
-          }
-        }).catch(() => {});
+        get("applications/bounced")
+          .then((res) => {
+            const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+            if (Array.isArray(list)) {
+              setBouncedApps(list.map(normalizeApplication));
+            }
+          })
+          .catch(() => {});
 
         const mergedQuery = { ...applicationsQueryRef.current, ...query };
         applicationsQueryRef.current = mergedQuery;
@@ -185,8 +187,14 @@ export const GlobalProvider = ({ children }) => {
         const queryString = params.toString();
 
         const response = await get(queryString ? `applications?${queryString}` : "applications");
-        const payload = response?.data || response;
-        const data = payload?.data || payload?.applications || payload;
+        const payload = response || {};
+        const data = Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.applications)
+            ? payload.applications
+            : Array.isArray(payload)
+              ? payload
+              : [];
         const meta = payload?.meta || payload?.pagination;
         if (Array.isArray(data)) {
           setApplications(data.map(normalizeApplication));

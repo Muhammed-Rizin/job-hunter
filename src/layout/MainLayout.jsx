@@ -1,4 +1,4 @@
-import { Outlet, Navigate, useLocation } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 
@@ -24,10 +24,13 @@ const MainLayout = () => {
       <div className="h-dvh bg-gray-50 text-gray-900 dark:bg-black dark:text-white flex flex-col md:flex-row transition-colors duration-500 overflow-hidden">
         {!isMobile && <SideBar />}
 
-        <main className="flex-1 h-full overflow-y-auto no-scrollbar pt-20 pb-32 md:pt-0 md:pr-4 md:pb-4 scroll-smooth">
+        <main
+          id="app-scroll-container"
+          className="flex-1 h-full overflow-y-auto no-scrollbar pt-20 pb-32 md:pt-0 md:pr-4 md:pb-4 scroll-smooth"
+        >
+          <Header />
           <div className="max-w-6xl mx-auto min-h-full flex flex-col p-4 md:p-6 lg:p-8">
-            <Header />
-            <div className="mt-6 md:mt-8 flex-1">
+            <div className="mt-0 flex-1 min-h-0">
               <AnimatePresence mode="wait">
                 <Outlet />
               </AnimatePresence>

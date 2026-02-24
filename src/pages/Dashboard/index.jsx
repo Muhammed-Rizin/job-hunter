@@ -43,7 +43,7 @@ const Dashboard = () => {
       variants={containerVariants}
       className="h-full"
     >
-      <div className="space-y-4 p-4 md:px-0">
+      <div className="space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card
             hover={false}
@@ -114,7 +114,7 @@ const Dashboard = () => {
               onClick={() => navigate("/tracker", { state: { activeTab: 'bounced' } })}
             />
             <StatWidget
-              title="Awaiting Response"
+              title="Planning"
               value={pendingPlans}
               icon={Clock}
               onClick={() => navigate("/planning")}

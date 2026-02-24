@@ -12,6 +12,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import Card from "../components/common/Card";
 import NavItem from "../components/navigation/NavItem";
+import Tooltip from "../components/common/Tooltip";
 
 const ITEMS = [
   { to: "/", icon: LayoutGrid, label: "Dashboard" },
@@ -50,28 +51,32 @@ const SideBar = () => {
       </nav>
 
       <div className="p-4 flex flex-col items-center lg:items-stretch mt-auto">
-        <button
-          onClick={toggleTheme}
-          className="w-full p-3 mb-2 rounded-xl flex items-center justify-center lg:justify-start transition-all
-            bg-gray-100 hover:bg-gray-200 text-gray-900
-            dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300
-            "
-        >
-          <Sun className="block dark:hidden" size={18} />
-          <Moon className="hidden dark:block" size={18} />
-          <span className="ml-3 hidden lg:block text-xs font-bold uppercase tracking-wider">
-            Switch Theme
-          </span>
-        </button>
-        <button
-          onClick={logout}
-          className={`w-full p-3 rounded-xl flex items-center justify-center lg:justify-start transition-all border text-red-500 border-red-500/20 hover:bg-red-500/10`}
-        >
-          <LogOut size={18} />
-          <span className="ml-3 hidden lg:block text-xs font-bold uppercase tracking-wider">
-            Log Out
-          </span>
-        </button>
+        <Tooltip content="Switch Theme" position="right">
+          <button
+            onClick={toggleTheme}
+            className="w-full p-3 mb-2 rounded-xl flex items-center justify-center lg:justify-start transition-all
+              bg-gray-100 hover:bg-gray-200 text-gray-900
+              dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-300
+              "
+          >
+            <Sun className="block dark:hidden" size={18} />
+            <Moon className="hidden dark:block" size={18} />
+            <span className="ml-3 hidden lg:block text-xs font-bold uppercase tracking-wider">
+              Switch Theme
+            </span>
+          </button>
+        </Tooltip>
+        <Tooltip content="Log Out" position="right">
+          <button
+            onClick={logout}
+            className={`w-full p-3 rounded-xl flex items-center justify-center lg:justify-start transition-all border text-red-500 border-red-500/20 hover:bg-red-500/10`}
+          >
+            <LogOut size={18} />
+            <span className="ml-3 hidden lg:block text-xs font-bold uppercase tracking-wider">
+              Log Out
+            </span>
+          </button>
+        </Tooltip>
       </div>
     </Card>
   );

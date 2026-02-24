@@ -7,6 +7,7 @@ export const APPLICATION_STATUSES = [
   { id: "interview", label: "Interview", color: "bg-blue-50 text-blue-700 border-blue-200" },
   { id: "technical", label: "Tech", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
   { id: "rejected", label: "Rejected", color: "bg-red-50 text-red-700 border-red-200" },
+  { id: "bounced", label: "Bounced", color: "bg-rose-50 text-rose-700 border-rose-200" },
   { id: "offer", label: "Offer", color: "bg-green-50 text-green-700 border-green-200" },
 ];
 

@@ -3,9 +3,9 @@ import { colors } from "../../utils/theme";
 import Card from "../common/Card";
 
 const StatWidget = ({ title, value, icon: Icon, accent, onClick }) => (
-  <Card 
-    variants={itemVariants} 
-    className={`p-4 flex flex-col justify-between shadow-sm h-full ${onClick ? 'cursor-pointer hover:border-red-500/50 active:scale-95' : ''} transition-all`}
+  <Card
+    variants={itemVariants}
+    className={`p-4 flex flex-col justify-between shadow-sm h-full ${onClick ? "cursor-pointer hover:border-red-500/50 active:scale-95" : ""} transition-all`}
     onClick={onClick}
   >
     <div className="flex justify-between items-start mb-2">
