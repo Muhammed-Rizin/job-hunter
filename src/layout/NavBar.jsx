@@ -19,6 +19,11 @@ const NavIcon = ({ to, icon: Icon }) => {
 };
 
 const NavBar = () => {
+  const location = useLocation();
+  const hideNavBar = location.pathname === "/login";
+
+  if (hideNavBar) return null;
+
   return (
     <Card
       glass
@@ -39,7 +44,7 @@ const NavBar = () => {
         <div className="relative -top-8">
           <NavLink
             to="/mail"
-            className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transform transition-transform active:scale-90 bg-black text-white ring-[12px] ring-gray-50/50 dark:bg-red-600 dark:text-white dark:ring-black/60"
+            className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transform transition-transform active:scale-90 bg-black text-white ring-[12px] ring-gray-50/50 dark:bg-red-600 dark:text-white dark:ring-8 dark:ring-black/60"
           >
             <Plus size={32} />
           </NavLink>

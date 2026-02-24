@@ -43,6 +43,9 @@ const Header = () => {
     day: "numeric",
   });
 
+  const isLoginPage = location.pathname === "/login";
+  if (isLoginPage) return null;
+
   return (
     <>
       <motion.div
