@@ -116,8 +116,11 @@ export const AuthProvider = ({ children }) => {
           }
           setServerReady(true);
         } catch (err) {
+          // If 401 or network error but we have tokens, try to refresh or just fail gracefully
           setServerReady(false);
-          logout();
+          if (err?.status === 401 || err?.status === 403) {
+             logout();
+          }
         }
       } catch (err) {
         logout();
