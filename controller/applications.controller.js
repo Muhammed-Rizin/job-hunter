@@ -1,4 +1,6 @@
 import models from "../model/index.js";
+import { sendMailService, markPlanAsApplied } from "../services/mail.service.js";
+import { markdownToHtml } from "../utils/email.js";
 
 export const list = asyncErrorHandler(async (req, res) => {
   const {
@@ -103,4 +105,37 @@ export const listBounced = asyncErrorHandler(async (req, res) => {
   }).sort({ createdAt: -1 });
 
   return new Response("Bounced applications fetched", data, 200);
+});
+
+export const manual = asyncErrorHandler(async (req, res) => {
+  const { to, subject, body, company, role, source, notes, appliedDate, planId } = req.body;
+
+  if (isNull(to)) throw new Error("Recipient email required", 400);
+  if (isNull(subject)) throw new Error("Mail subject required", 400);
+  if (isNull(body)) throw new Error("Mail body required", 400);
+
+  const userProfile = await models.User.findById(req.user._id, {
+    resumeLink: 1,
+    resumeName: 1,
+  });
+
+  const result = await sendMailService({
+    to,
+    subject,
+    html: markdownToHtml(body),
+    user: req.user._id,
+    company,
+    role,
+    source,
+    notes,
+    appliedDate,
+    resumeLink: userProfile?.resumeLink,
+    resumeName: userProfile?.resumeName,
+  });
+
+  if (planId) {
+    await markPlanAsApplied(planId, result.messageId);
+  }
+
+  return new Response("Application manually entered & mail sent", null, 200);
 });
