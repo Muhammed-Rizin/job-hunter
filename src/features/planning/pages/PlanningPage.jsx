@@ -12,6 +12,9 @@ import {
   Mail,
   MailCheck,
   SortDesc,
+  Copy,
+  Zap,
+  Trophy,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -57,6 +60,11 @@ const Planning = () => {
     }
   };
 
+  const copyPitch = (pitch) => {
+    navigator.clipboard.writeText(pitch);
+    toast.success("Pitch copied to clipboard!");
+  };
+
   const filteredPlans = useMemo(() => {
     const list = Array.isArray(plans) ? plans : [];
     return list
@@ -64,7 +72,8 @@ const Planning = () => {
         const matchesSearch =
           (plan.companyName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
           (plan.techStack || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (plan.location || "").toLowerCase().includes(searchQuery.toLowerCase());
+          (plan.location || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (plan.portalType || "").toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesStatus = filterStatus === "all" || plan.status === filterStatus;
         const matchesPriority = filterPriority === "all" || plan.priority === filterPriority;
@@ -118,7 +127,7 @@ const Planning = () => {
           className={`p-4 rounded-2xl border ${colors.card} shadow-sm flex flex-col justify-between`}
         >
           <p className="text-[10px] font-bold text-green-500 uppercase tracking-widest leading-tight">
-            Converted
+            Applied
           </p>
           <p className="text-2xl font-black dark:text-white mt-1">{stats.applied}</p>
         </div>
@@ -138,7 +147,7 @@ const Planning = () => {
             <Search className="absolute left-3 top-3 opacity-30" size={16} />
             <input
               type="text"
-              placeholder="Search leads..."
+              placeholder="Search leads, stacks or portals..."
               className={`pl-9 pr-3 py-2.5 rounded-xl w-full outline-none transition-all font-medium text-sm ${colors.input}`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -220,9 +229,16 @@ const Planning = () => {
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight mb-3 truncate leading-tight">
-                    {plan.companyName}
-                  </h3>
+                  <div className="mb-3">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
+                      {plan.companyName}
+                    </h3>
+                    {plan.portalType && (
+                      <p className="text-[9px] text-red-500 font-black uppercase tracking-widest mt-1">
+                        Portal: {plan.portalType}
+                      </p>
+                    )}
+                  </div>
 
                   <div className="space-y-2 mb-4">
                     {plan.location && (
@@ -257,10 +273,30 @@ const Planning = () => {
                     )}
                   </div>
 
+                  {plan.customPitch && (
+                    <div className="mb-4 p-3 bg-red-500/5 rounded-xl border border-red-500/10 group-hover:border-red-500/30 transition-colors">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em]">
+                          Elevator Pitch
+                        </p>
+                        <button 
+                          onClick={() => copyPitch(plan.customPitch)}
+                          className="p-1 hover:bg-red-500/10 rounded transition-colors text-red-500"
+                          title="Copy Pitch"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic line-clamp-3">
+                        "{plan.customPitch}"
+                      </p>
+                    </div>
+                  )}
+
                   {plan.theHook && (
                     <div className="mb-3 p-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
-                      <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">
-                        Target Strategy
+                      <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1">
+                        <Zap size={10} /> Strategy
                       </p>
                       <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">
                         {plan.theHook}
@@ -270,8 +306,8 @@ const Planning = () => {
 
                   {plan.winningMove && (
                     <div className="mb-4 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
-                      <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">
-                        Execution Advice
+                      <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1">
+                        <Trophy size={10} /> Advice
                       </p>
                       <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">
                         {plan.winningMove}
@@ -280,7 +316,7 @@ const Planning = () => {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-neutral-800 mt-2">
                   <div className="flex gap-2.5">
                     {plan.status === "pending" && (
                       <button

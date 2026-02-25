@@ -112,7 +112,7 @@ const Profile = () => {
     >
       <motion.div
         variants={itemVariants}
-        className="max-w-4xl mx-auto space-y-4 px-4 md:px-0 pb-4 pt-4"
+        className="max-w-4xl mx-auto space-y-4"
       >
         <div className={`p-5 md:p-8 rounded-3xl border shadow-sm ${colors.card}`}>
           <ProfileHeader
