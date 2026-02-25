@@ -1,24 +1,24 @@
-# 🤖 AI Agent Integration Guide - Job Hunter v2.2
+# 🤖 AI Agent Integration Guide - Job Hunter v2.5 (Unified CLI)
 
 This system allows AI agents to automatically apply for jobs and manage leads on behalf of Rizin.
 
-## 🚀 Recommended Method: JSON Input
-Programmatic agents should use the `--json` flag to avoid shell escaping issues.
+## 🚀 Recommended Method: Unified CLI (`agent.js`)
+Programmatic agents should use the `node agent.js` command located at the root of the server directory. Use the `--json` flag to avoid shell escaping issues.
 
 ### 1. 🚀 Apply for Job
-Automatically attaches Rizin's latest Resume PDF. Use `planId` to sync status.
+Automatically attaches Rizin's latest Resume PDF. If `planId` is provided, it automatically marks the plan as `applied` and links the email record.
 **Command:**
 ```bash
-node D:\development\projects\2026\job-hunter\server\scripts\agent-apply.js --json '{
+node agent.js apply --json '{
   "to": "hr@company.com",
   "company": "Company Name",
   "role": "MERN Stack Developer",
   "subject": "Application - Muhammed Rizin",
   "body": "Your custom email content...",
-  "planId": "<optional_plan_id>",
-  "appliedDate": "YYYY-MM-DD"
+  "planId": "<optional_plan_id>"
 }'
 ```
+*Note: You can also use `--plan <planId>` to auto-fill company/email from an existing plan.*
 
 ---
 
@@ -28,7 +28,7 @@ node D:\development\projects\2026\job-hunter\server\scripts\agent-apply.js --jso
 Use this to maintain a list of target companies before sending the mail.
 **Command:**
 ```bash
-node D:\development\projects\2026\job-hunter\server\scripts\agent-plan.js --add --json '{
+node agent.js plan --add --json '{
   "companyName": "Google",
   "jobLink": "https://careers.google.com/jobs/123",
   "email": "hr@google.com",
@@ -44,31 +44,35 @@ node D:\development\projects\2026\job-hunter\server\scripts\agent-plan.js --add 
 ### 3. Update Plan Details
 **Command:**
 ```bash
-node D:\development\projects\2026\job-hunter\server\scripts\agent-plan.js --update "<plan_id>" --json '{
+node agent.js plan --update "<plan_id>" --json '{
   "status": "applied",
-  "details": { "notes": "Followed up on LinkedIn" }
+  "priority": "Low"
 }'
 ```
 
 ---
 
-## 🔄 Status Sync (Bounces & External)
+## 🔄 Status Sync (Bounces)
 
 ### 4. Sync Bounce Status
-If a mail bounce-back is detected.
+If a mail bounce-back is detected in the logs.
 **Command:**
 ```bash
-node D:\development\projects\2026\job-hunter\server\scripts\agent-status-sync.js --bounced --email "hr-contact@company.com"
+node agent.js sync --bounced --email "failed@company.com"
 ```
 
-### 5. Sync External Send
-If you send a mail via an external tool and need to update the plan.
+---
+
+## 🧹 Maintenance
+
+### 5. Cleanup Duplicates
+Scans for applications with the same company and email and keeps only the most recent.
 **Command:**
 ```bash
-node D:\development\projects\2026\job-hunter\server\scripts\agent-status-sync.js --sent --id "<plan_id>" --msgid "<external_message_id>"
+node agent.js cleanup --duplicates
 ```
 
 ## 🛠️ Internal Logic
-1.  **Resume:** Fetched and attached automatically by `agent-apply.js`.
+1.  **Resume:** Fetched and attached automatically from Rizin's profile.
 2.  **HTML:** Markdown in `body` is converted to professional HTML.
-3.  **Metrics:** Every script instantly logs to the centralized Stats API.
+3.  **Single Entry Point:** All operations go through `agent.js` to ensure consistent database connections and error handling.
