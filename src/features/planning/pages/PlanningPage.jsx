@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { get, post, put, del } from "@/shared/services/api";
 import {
   Search,
   ExternalLink,
@@ -27,6 +26,7 @@ import { usePlanning } from "@/features/planning/context/PlanningContext";
 import PlanningSkeleton from "@/features/planning/components/PlanningSkeleton";
 import Card from "@/shared/components/common/Card";
 import Button from "@/shared/components/common/Button";
+import Input from "@/shared/components/common/Input";
 
 const getTopDownAnimation = (index) => ({
   initial: { opacity: 0, y: 10 },
@@ -199,8 +199,8 @@ const Planning = () => {
       {/* Unified Filter Bar */}
       <motion.div variants={itemVariants} className="flex flex-col gap-3">
         <div className="flex flex-col md:flex-row gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 opacity-30" size={16} />
+          <div className="relative flex-1 group">
+            <Search className="absolute left-3 top-3 opacity-30 group-focus-within:opacity-100 transition-opacity" size={16} />
             <input
               type="text"
               placeholder="Search leads, stacks or portals..."
@@ -318,6 +318,17 @@ const Planning = () => {
                         {plan.email}
                       </div>
                     )}
+                    {plan.jobLink && (
+                      <a
+                        href={plan.jobLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-blue-500 text-[11px] font-bold uppercase tracking-wider hover:underline pt-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Globe size={12} /> Open Lead <ExternalLink size={10} />
+                      </a>
+                    )}
                   </div>
 
                   <div className="line-clamp-2">
@@ -364,16 +375,17 @@ const Planning = () => {
       {/* DETAIL MODAL */}
       <AnimatePresence>
         {selectedPlan && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedPlan(null)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
               className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
             >
               <button 
                 onClick={() => setSelectedPlan(null)}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -422,7 +434,7 @@ const Planning = () => {
                   <div className="p-6 bg-red-600/5 rounded-3xl border border-red-500/10">
                     <div className="flex justify-between items-center mb-3">
                        <h4 className="text-xs font-black uppercase tracking-widest text-red-500">Elevator Pitch</h4>
-                       <button onClick={(e) => copyPitch(selectedPlan.customPitch, e)} className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-800 border border-red-500/20 rounded-full text-[10px] font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                       <button onClick={(e) => copyPitch(selectedPlan.customPitch, e)} className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-800 border border-red-500/20 rounded-full text-[10px] font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm cursor-pointer">
                           <Copy size={12} /> Copy
                        </button>
                     </div>
@@ -454,9 +466,9 @@ const Planning = () => {
                     Added: {new Date(selectedPlan.createdAt).toLocaleString()}
                  </div>
                  <div className="flex gap-3">
-                   <Button variant="secondary" onClick={() => setSelectedPlan(null)}>Close</Button>
+                   <Button variant="secondary" onClick={() => setSelectedPlan(null)} className="w-auto">Close</Button>
                    {selectedPlan.status === 'pending' && (
-                     <Button onClick={(e) => handleMarkApplied(selectedPlan._id, e)}>Apply Completed</Button>
+                     <Button onClick={(e) => handleMarkApplied(selectedPlan._id, e)} className="w-auto">Mark as Applied</Button>
                    )}
                  </div>
               </div>
@@ -468,11 +480,12 @@ const Planning = () => {
       {/* CREATE MODAL */}
       <AnimatePresence>
         {isCreateModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsCreateModalOpen(false)}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
               className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
             >
               <h2 className="text-3xl font-black mb-8 tracking-tighter">New Opportunity</h2>
@@ -481,47 +494,47 @@ const Planning = () => {
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Company Name</label>
-                      <input 
+                      <Input 
                         required
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                        placeholder="Company Name"
                         value={newLead.companyName} 
-                        onChange={(e) => setNewLead({...newLead, companyName: e.target.value})}
+                        onChange={(val) => setNewLead({...newLead, companyName: val})}
                       />
                   </div>
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Job URL</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      <Input 
+                        placeholder="https://..."
                         value={newLead.jobLink} 
-                        onChange={(e) => setNewLead({...newLead, jobLink: e.target.value})}
+                        onChange={(val) => setNewLead({...newLead, jobLink: val})}
                       />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Contact Email</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      <Input 
+                        placeholder="hr@..."
                         value={newLead.email} 
-                        onChange={(e) => setNewLead({...newLead, email: e.target.value})}
+                        onChange={(val) => setNewLead({...newLead, email: val})}
                       />
                   </div>
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Location</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      <Input 
+                        placeholder="e.g. Dubai, Remote"
                         value={newLead.location} 
-                        onChange={(e) => setNewLead({...newLead, location: e.target.value})}
+                        onChange={(val) => setNewLead({...newLead, location: val})}
                       />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Package / Salary</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      <Input 
+                        placeholder="e.g. 120k / AED 15k"
                         value={newLead.package} 
-                        onChange={(e) => setNewLead({...newLead, package: e.target.value})}
+                        onChange={(val) => setNewLead({...newLead, package: val})}
                       />
                   </div>
                    <div className="space-y-1">
@@ -541,20 +554,18 @@ const Planning = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Tech Stack</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      <Input 
                         placeholder="e.g. MERN, Angular"
                         value={newLead.techStack} 
-                        onChange={(e) => setNewLead({...newLead, techStack: e.target.value})}
+                        onChange={(val) => setNewLead({...newLead, techStack: val})}
                       />
                   </div>
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Portal Type</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      <Input 
                         placeholder="e.g. Workday, Greenhouse"
                         value={newLead.portalType} 
-                        onChange={(e) => setNewLead({...newLead, portalType: e.target.value})}
+                        onChange={(val) => setNewLead({...newLead, portalType: val})}
                       />
                   </div>
                 </div>
@@ -579,8 +590,8 @@ const Planning = () => {
                 </div>
 
                 <div className="flex justify-end gap-3 pt-6">
-                  <Button variant="secondary" type="button" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
-                  <Button type="submit">Ingest Lead</Button>
+                  <Button variant="secondary" type="button" onClick={() => setIsCreateModalOpen(false)} className="w-auto">Cancel</Button>
+                  <Button type="submit" className="w-auto">Ingest Lead</Button>
                 </div>
               </form>
             </motion.div>
