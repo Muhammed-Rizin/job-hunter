@@ -13,7 +13,6 @@ import MailTemplateCreatePage from "@/features/mail/pages/MailTemplateCreatePage
 import MailTemplateEditPage from "@/features/mail/pages/MailTemplateEditPage";
 import MailTemplateFillPage from "@/features/mail/pages/MailTemplateFillPage";
 import MailTemplatePreviewPage from "@/features/mail/pages/MailTemplatePreviewPage";
-import NotesPage from "@/features/notes/pages/NotesPage";
 import ProfilePage from "@/features/profile/pages/ProfilePage";
 import NotFoundPage from "@/features/not-found/pages/NotFoundPage";
 import MainLayout from "@/shared/layout/MainLayout";
@@ -54,7 +53,6 @@ const AppRoutes = () => {
           <Route path="templates/:templateId" element={<MailTemplateFillPage />} />
           <Route path="templates/:templateId/preview" element={<MailTemplatePreviewPage />} />
         </Route>
-        <Route path="notes" element={<NotesPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
