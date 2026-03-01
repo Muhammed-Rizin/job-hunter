@@ -4,7 +4,7 @@ import Card from "@/shared/components/common/Card";
 
 const NavIcon = ({ to, icon: Icon, label }) => {
   const { pathname } = useLocation();
-  const active = pathname === to;
+  const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
 
   return (
     <NavLink
