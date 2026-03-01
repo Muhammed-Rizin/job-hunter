@@ -16,8 +16,8 @@ import Tooltip from "@/shared/components/common/Tooltip";
 
 const ITEMS = [
   { to: "/", icon: LayoutGrid, label: "Dashboard" },
-  { to: "/planning", icon: ClipboardList, label: "Planning" },
   { to: "/tracker", icon: Briefcase, label: "Applications" },
+  { to: "/planning", icon: ClipboardList, label: "Planning" },
   { to: "/mail", icon: LayoutTemplate, label: "Mail Wizard" },
   { to: "/profile", icon: User, label: "Profile", divider: true },
 ];

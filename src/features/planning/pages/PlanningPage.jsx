@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { get, put, del } from "@/shared/services/api";
 import {
   Search,
   ExternalLink,
@@ -15,6 +16,7 @@ import {
   Copy,
   Zap,
   Trophy,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -23,6 +25,9 @@ import { colors } from "@/shared/utils/theme";
 import Select from "@/shared/components/common/Select";
 import { usePlanning } from "@/features/planning/hooks/usePlanning";
 import PlanningSkeleton from "@/features/planning/components/PlanningSkeleton";
+import Card from "@/shared/components/common/Card";
+import Button from "@/shared/components/common/Button";
+import Input from "@/shared/components/common/Input";
 
 const getTopDownAnimation = (index) => ({
   initial: { opacity: 0, y: 10 },
@@ -31,17 +36,37 @@ const getTopDownAnimation = (index) => ({
 });
 
 const Planning = () => {
-  const { plans, loading, error, markApplied, deletePlan } = usePlanning();
+  const { plans, loading, error, markApplied, deletePlan, createPlan } = usePlanning();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
 
+  // Modal State
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // New Lead Form State
+  const [newLead, setNewLead] = useState({
+    companyName: "",
+    jobLink: "",
+    email: "",
+    location: "",
+    package: "",
+    priority: "Medium",
+    techStack: "",
+    theHook: "",
+    winningMove: "",
+    portalType: "",
+    customPitch: "",
+  });
+
   useEffect(() => {
     if (error) toast.error("Failed to fetch plans");
   }, [error]);
 
-  const handleMarkApplied = async (id) => {
+  const handleMarkApplied = async (id, e) => {
+    e?.stopPropagation();
     try {
       await markApplied(id);
       toast.success("Marked as applied");
@@ -50,7 +75,8 @@ const Planning = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, e) => {
+    e?.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this plan?")) return;
     try {
       await deletePlan(id);
@@ -60,7 +86,33 @@ const Planning = () => {
     }
   };
 
-  const copyPitch = (pitch) => {
+  const handleCreateLead = async (e) => {
+    e.preventDefault();
+    if (!newLead.companyName) return toast.error("Company Name is required");
+    try {
+      await createPlan(newLead);
+      toast.success("Lead created successfully");
+      setIsCreateModalOpen(false);
+      setNewLead({
+        companyName: "",
+        jobLink: "",
+        email: "",
+        location: "",
+        package: "",
+        priority: "Medium",
+        techStack: "",
+        theHook: "",
+        winningMove: "",
+        portalType: "",
+        customPitch: "",
+      });
+    } catch (error) {
+      toast.error("Failed to create lead");
+    }
+  };
+
+  const copyPitch = (pitch, e) => {
+    e?.stopPropagation();
     navigator.clipboard.writeText(pitch);
     toast.success("Pitch copied to clipboard!");
   };
@@ -132,6 +184,7 @@ const Planning = () => {
           <p className="text-2xl font-black dark:text-white mt-1">{stats.applied}</p>
         </div>
         <button
+          onClick={() => setIsCreateModalOpen(true)}
           className={`p-4 rounded-2xl border ${colors.card} shadow-sm flex items-center justify-center hover:border-red-500/50 transition-colors group cursor-pointer`}
         >
           <span className="flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-red-500 group-hover:scale-105 transition-transform">
@@ -140,7 +193,7 @@ const Planning = () => {
         </button>
       </div>
 
-      {/* Unified Filter Bar - Matching Applications Style */}
+      {/* Unified Filter Bar */}
       <motion.div variants={itemVariants} className="flex flex-col gap-3">
         <div className="flex flex-col md:flex-row gap-2">
           <div className="relative flex-1">
@@ -191,7 +244,7 @@ const Planning = () => {
         </div>
       </motion.div>
 
-      {/* Plans List - Optimized for mobile */}
+      {/* Plans List */}
       {showPlannerSkeleton ? (
         <PlanningSkeleton entries={6} />
       ) : (
@@ -202,7 +255,8 @@ const Planning = () => {
                 layout
                 key={plan._id}
                 {...getTopDownAnimation(index)}
-                className={`rounded-2xl border ${colors.card} p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between`}
+                onClick={() => setSelectedPlan(plan)}
+                className={`rounded-2xl border ${colors.card} p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between cursor-pointer`}
               >
                 <div>
                   <div className="flex justify-between items-start mb-4">
@@ -261,73 +315,29 @@ const Planning = () => {
                         {plan.email}
                       </div>
                     )}
-                    {plan.jobLink && (
-                      <a
-                        href={plan.jobLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-blue-500 text-[11px] font-bold uppercase tracking-wider hover:underline pt-1"
-                      >
-                        <Globe size={12} /> Open Lead <ExternalLink size={10} />
-                      </a>
-                    )}
                   </div>
 
-                  {plan.customPitch && (
-                    <div className="mb-4 p-3 bg-red-500/5 rounded-xl border border-red-500/10 group-hover:border-red-500/30 transition-colors">
-                      <div className="flex justify-between items-center mb-2">
-                        <p className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em]">
-                          Elevator Pitch
+                  <div className="line-clamp-2">
+                    {plan.customPitch && (
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic mb-2">
+                          "{plan.customPitch}"
                         </p>
-                        <button 
-                          onClick={() => copyPitch(plan.customPitch)}
-                          className="p-1 hover:bg-red-500/10 rounded transition-colors text-red-500"
-                          title="Copy Pitch"
-                        >
-                          <Copy size={12} />
-                        </button>
-                      </div>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic line-clamp-3">
-                        "{plan.customPitch}"
-                      </p>
-                    </div>
-                  )}
-
-                  {plan.theHook && (
-                    <div className="mb-3 p-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
-                      <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1">
-                        <Zap size={10} /> Strategy
-                      </p>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">
-                        {plan.theHook}
-                      </p>
-                    </div>
-                  )}
-
-                  {plan.winningMove && (
-                    <div className="mb-4 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
-                      <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1">
-                        <Trophy size={10} /> Advice
-                      </p>
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">
-                        {plan.winningMove}
-                      </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-neutral-800 mt-2">
                   <div className="flex gap-2.5">
                     {plan.status === "pending" && (
                       <button
-                        onClick={() => handleMarkApplied(plan._id)}
+                        onClick={(e) => handleMarkApplied(plan._id, e)}
                         className="p-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all shadow-md active:scale-95"
                       >
                         <CheckCircle size={16} />
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(plan._id)}
+                      onClick={(e) => handleDelete(plan._id, e)}
                       className="p-2 bg-gray-50 dark:bg-zinc-800 text-gray-400 hover:text-red-500 rounded-xl transition-all active:scale-95"
                     >
                       <Trash2 size={16} />
@@ -347,6 +357,212 @@ const Planning = () => {
           </AnimatePresence>
         </div>
       )}
+
+      {/* DETAIL MODAL */}
+      <AnimatePresence>
+        {selectedPlan && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
+            >
+              <button 
+                onClick={() => setSelectedPlan(null)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/20">
+                  <Briefcase size={28} />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{selectedPlan.companyName}</h2>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">{selectedPlan.portalType || 'General'} Lead</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                 <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                      <MapPin size={18} className="text-slate-400" />
+                      <span className="text-sm font-bold uppercase tracking-wide">{selectedPlan.location || 'Location Not Specified'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                      <DollarSign size={18} className="text-slate-400" />
+                      <span className="text-sm font-bold uppercase tracking-wide">{selectedPlan.package || 'Budget Not Specified'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                      <Zap size={18} className="text-slate-400" />
+                      <span className="text-sm font-bold uppercase tracking-wide">{selectedPlan.techStack || 'Stack Not Specified'}</span>
+                    </div>
+                 </div>
+                 <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                      <Mail size={18} className="text-slate-400" />
+                      <span className="text-sm font-mono">{selectedPlan.email || 'No email provided'}</span>
+                    </div>
+                    {selectedPlan.jobLink && (
+                       <a href={selectedPlan.jobLink} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-blue-500 hover:underline">
+                         <Globe size={18} />
+                         <span className="text-sm font-black uppercase tracking-widest">Visit Job Portal <ExternalLink size={12} className="inline ml-1"/></span>
+                       </a>
+                    )}
+                 </div>
+              </div>
+
+              <div className="space-y-6">
+                {selectedPlan.customPitch && (
+                  <div className="p-6 bg-red-600/5 rounded-3xl border border-red-500/10">
+                    <div className="flex justify-between items-center mb-3">
+                       <h4 className="text-xs font-black uppercase tracking-widest text-red-500">Elevator Pitch</h4>
+                       <button onClick={(e) => copyPitch(selectedPlan.customPitch, e)} className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-800 border border-red-500/20 rounded-full text-[10px] font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                          <Copy size={12} /> Copy
+                       </button>
+                    </div>
+                    <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed italic font-medium">"{selectedPlan.customPitch}"</p>
+                  </div>
+                )}
+
+                {selectedPlan.theHook && (
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2 flex items-center gap-2">
+                       <Zap size={14} /> Strategic Hook
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{selectedPlan.theHook}</p>
+                  </div>
+                )}
+
+                {selectedPlan.winningMove && (
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2 flex items-center gap-2">
+                       <Trophy size={14} /> Execution Advice
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{selectedPlan.winningMove}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-10 pt-6 border-t border-slate-100 dark:border-zinc-800 flex justify-between items-center">
+                 <div className="text-slate-400 text-[10px] font-mono uppercase">
+                    Added: {new Date(selectedPlan.createdAt).toLocaleString()}
+                 </div>
+                 <div className="flex gap-3">
+                   <Button variant="secondary" onClick={() => setSelectedPlan(null)}>Close</Button>
+                   {selectedPlan.status === 'pending' && (
+                     <Button onClick={() => handleMarkApplied(selectedPlan._id)}>Apply Completed</Button>
+                   )}
+                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* CREATE MODAL */}
+      <AnimatePresence>
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
+            >
+              <h2 className="text-3xl font-black mb-8 tracking-tighter">New Opportunity</h2>
+              
+              <form onSubmit={handleCreateLead} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Input 
+                    label="Company Name" 
+                    required 
+                    value={newLead.companyName} 
+                    onChange={(val) => setNewLead({...newLead, companyName: val})}
+                  />
+                  <Input 
+                    label="Job URL" 
+                    value={newLead.jobLink} 
+                    onChange={(val) => setNewLead({...newLead, jobLink: val})}
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                   <Input 
+                    label="Contact Email" 
+                    value={newLead.email} 
+                    onChange={(val) => setNewLead({...newLead, email: val})}
+                  />
+                   <Input 
+                    label="Location" 
+                    value={newLead.location} 
+                    onChange={(val) => setNewLead({...newLead, location: val})}
+                  />
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                   <Input 
+                    label="Package / Salary" 
+                    value={newLead.package} 
+                    onChange={(val) => setNewLead({...newLead, package: val})}
+                  />
+                   <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50">Priority Level</label>
+                      <Select 
+                        value={newLead.priority}
+                        onChange={(val) => setNewLead({...newLead, priority: val})}
+                        options={[
+                          { id: "High", label: "High Priority" },
+                          { id: "Medium", label: "Medium Priority" },
+                          { id: "Low", label: "Low Priority" }
+                        ]}
+                      />
+                   </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                   <Input 
+                    label="Tech Stack" 
+                    placeholder="e.g. MERN, Angular"
+                    value={newLead.techStack} 
+                    onChange={(val) => setNewLead({...newLead, techStack: val})}
+                  />
+                   <Input 
+                    label="Portal Type" 
+                    placeholder="e.g. Workday, Greenhouse"
+                    value={newLead.portalType} 
+                    onChange={(val) => setNewLead({...newLead, portalType: val})}
+                  />
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
+                   <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50">Strategic Hook</label>
+                      <textarea 
+                        className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 ${colors.input}`}
+                        value={newLead.theHook}
+                        onChange={(e) => setNewLead({...newLead, theHook: e.target.value})}
+                      />
+                   </div>
+                   <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50">Custom Pitch (Cover Letter summary)</label>
+                      <textarea 
+                        className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border-2 border-red-500/10 ${colors.input}`}
+                        value={newLead.customPitch}
+                        onChange={(e) => setNewLead({...newLead, customPitch: e.target.value})}
+                      />
+                   </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-6">
+                  <Button variant="secondary" type="button" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
+                  <Button type="submit">Ingest Lead</Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {!loading && filteredPlans.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center">
