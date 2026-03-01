@@ -3,6 +3,7 @@ import {
   deletePlan as deletePlanRecord,
   listPlans,
   markPlanAsApplied,
+  createPlanRecord,
 } from "@/features/planning/services/planning.service";
 
 export const usePlanning = () => {
@@ -27,6 +28,15 @@ export const usePlanning = () => {
     fetchPlans();
   }, [fetchPlans]);
 
+  const createPlan = useCallback(
+    async (payload) => {
+      const data = await createPlanRecord(payload);
+      await fetchPlans();
+      return data;
+    },
+    [fetchPlans],
+  );
+
   const markApplied = useCallback(
     async (id) => {
       await markPlanAsApplied(id);
@@ -43,5 +53,5 @@ export const usePlanning = () => {
     [fetchPlans],
   );
 
-  return { plans, loading, error, fetchPlans, markApplied, deletePlan };
+  return { plans, loading, error, fetchPlans, markApplied, deletePlan, createPlan };
 };
