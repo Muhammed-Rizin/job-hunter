@@ -7,7 +7,7 @@ const NavItem = ({ to, icon: Icon, label, showLabel = true, divider = false }) =
         <div className="h-px w-full my-4 bg-gray-100 dark:bg-zinc-800"></div>
       )}
 
-      <NavLink to={to} end>
+      <NavLink to={to} end={to === "/"}>
         {({ isActive }) => (
           <div
             className={`
