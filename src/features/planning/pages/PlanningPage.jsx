@@ -318,17 +318,6 @@ const Planning = () => {
                         {plan.email}
                       </div>
                     )}
-                    {plan.jobLink && (
-                      <a
-                        href={plan.jobLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-blue-500 text-[11px] font-bold uppercase tracking-wider hover:underline pt-1"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Globe size={12} /> Open Lead <ExternalLink size={10} />
-                      </a>
-                    )}
                   </div>
 
                   <div className="line-clamp-2">
@@ -494,47 +483,47 @@ const Planning = () => {
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Company Name</label>
-                      <Input 
+                      <input 
                         required
-                        placeholder="Company Name"
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.companyName} 
-                        onChange={(val) => setNewLead({...newLead, companyName: val})}
+                        onChange={(e) => setNewLead({...newLead, companyName: e.target.value})}
                       />
                   </div>
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Job URL</label>
-                      <Input 
-                        placeholder="https://..."
+                      <input 
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.jobLink} 
-                        onChange={(val) => setNewLead({...newLead, jobLink: val})}
+                        onChange={(e) => setNewLead({...newLead, jobLink: e.target.value})}
                       />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Contact Email</label>
-                      <Input 
-                        placeholder="hr@..."
+                      <input 
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.email} 
-                        onChange={(val) => setNewLead({...newLead, email: val})}
+                        onChange={(e) => setNewLead({...newLead, email: e.target.value})}
                       />
                   </div>
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Location</label>
-                      <Input 
-                        placeholder="e.g. Dubai, Remote"
+                      <input 
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.location} 
-                        onChange={(val) => setNewLead({...newLead, location: val})}
+                        onChange={(e) => setNewLead({...newLead, location: e.target.value})}
                       />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Package / Salary</label>
-                      <Input 
-                        placeholder="e.g. 120k / AED 15k"
+                      <input 
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.package} 
-                        onChange={(val) => setNewLead({...newLead, package: val})}
+                        onChange={(e) => setNewLead({...newLead, package: e.target.value})}
                       />
                   </div>
                    <div className="space-y-1">
@@ -554,18 +543,20 @@ const Planning = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Tech Stack</label>
-                      <Input 
+                      <input 
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         placeholder="e.g. MERN, Angular"
                         value={newLead.techStack} 
-                        onChange={(val) => setNewLead({...newLead, techStack: val})}
+                        onChange={(e) => setNewLead({...newLead, techStack: e.target.value})}
                       />
                   </div>
                   <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Portal Type</label>
-                      <Input 
+                      <input 
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         placeholder="e.g. Workday, Greenhouse"
                         value={newLead.portalType} 
-                        onChange={(val) => setNewLead({...newLead, portalType: val})}
+                        onChange={(e) => setNewLead({...newLead, portalType: e.target.value})}
                       />
                   </div>
                 </div>
