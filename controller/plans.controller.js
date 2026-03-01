@@ -15,7 +15,7 @@ export const list = asyncErrorHandler(async (req, res) => {
 
   const data = await models.Plan.find(filter).sort({ createdAt: -1 });
 
-  return new Response("Plans fetched successfully", { data }, 200);
+  return new Response("Plans fetched successfully", data, 200);
 });
 
 /**
