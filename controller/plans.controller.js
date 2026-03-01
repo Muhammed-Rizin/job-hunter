@@ -35,6 +35,8 @@ export const create = asyncErrorHandler(async (req, res) => {
     techStack,
     winningMove,
     theHook,
+    portalType,
+    customPitch,
   } = req.body;
 
   if (isNull(companyName)) throw new Error("Company name is required", 400);
@@ -50,6 +52,8 @@ export const create = asyncErrorHandler(async (req, res) => {
     techStack,
     winningMove,
     theHook,
+    portalType,
+    customPitch,
     details,
     user: req.user._id,
   });
