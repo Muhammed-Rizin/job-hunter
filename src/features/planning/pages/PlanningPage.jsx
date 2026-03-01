@@ -1,5 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
-import { get, post, put, del } from "@/shared/services/api";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   ExternalLink,
@@ -23,7 +22,7 @@ import toast from "react-hot-toast";
 import { containerVariants, itemVariants } from "@/shared/utils/animations";
 import { colors } from "@/shared/utils/theme";
 import Select from "@/shared/components/common/Select";
-import { usePlanning } from "@/features/planning/hooks/usePlanning";
+import { usePlanning } from "@/features/planning/context/PlanningContext";
 import PlanningSkeleton from "@/features/planning/components/PlanningSkeleton";
 import Card from "@/shared/components/common/Card";
 import Button from "@/shared/components/common/Button";
@@ -561,7 +560,7 @@ const Planning = () => {
 
                 <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Strategic Hook</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest ml-1">Strategic Hook</label>
                       <textarea 
                         className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.theHook}
@@ -569,7 +568,7 @@ const Planning = () => {
                       />
                    </div>
                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Custom Pitch (Cover Letter summary)</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest ml-1">Custom Pitch (Cover Letter summary)</label>
                       <textarea 
                         className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border-2 border-red-500/10 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.customPitch}

@@ -1,17 +1,22 @@
-import { useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
   deletePlan as deletePlanRecord,
   listPlans,
   markPlanAsApplied,
   createPlanRecord,
 } from "@/features/planning/services/planning.service";
+import { useAuth } from "@/features/auth/context/AuthContext";
 
-export const usePlanning = () => {
+const PlanningContext = createContext();
+
+export const PlanningProvider = ({ children }) => {
+  const { user } = useAuth();
   const [plans, setPlans] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchPlans = useCallback(async () => {
+    if (!user) return;
     try {
       setLoading(true);
       setError(null);
@@ -22,7 +27,7 @@ export const usePlanning = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchPlans();
@@ -53,5 +58,21 @@ export const usePlanning = () => {
     [fetchPlans],
   );
 
-  return { plans, loading, error, fetchPlans, markApplied, deletePlan, createPlan };
+  return (
+    <PlanningContext.Provider
+      value={{
+        plans,
+        loading,
+        error,
+        fetchPlans,
+        markApplied,
+        deletePlan,
+        createPlan,
+      }}
+    >
+      {children}
+    </PlanningContext.Provider>
+  );
 };
+
+export const usePlanning = () => useContext(PlanningContext);
