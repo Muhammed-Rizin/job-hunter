@@ -15,7 +15,7 @@ const NavItem = ({ to, icon: Icon, label, showLabel = true, divider = false }) =
           className={`
               flex items-center gap-3
               px-3 py-2.5 rounded-xl
-              text-xs font-bold tracking-wide
+              text-[10px] font-black uppercase tracking-widest
               transition-all
               group
               ${
@@ -29,7 +29,7 @@ const NavItem = ({ to, icon: Icon, label, showLabel = true, divider = false }) =
             size={18}
             className={`transition-transform group-hover:scale-110 ${isActive ? "" : "opacity-70"}`}
           />
-          {showLabel && <span className="font-bold text-xs tracking-wide">{label}</span>}
+          {showLabel && <span className="font-black text-[10px] tracking-widest">{label}</span>}
         </div>
       </NavLink>
     </>
