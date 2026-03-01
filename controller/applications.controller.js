@@ -104,7 +104,7 @@ export const listBounced = asyncErrorHandler(async (req, res) => {
     statusFlag: 0,
   }).sort({ createdAt: -1 });
 
-  return new Response("Bounced applications fetched", { data }, 200);
+  return new Response("Bounced applications fetched", data, 200);
 });
 
 export const manual = asyncErrorHandler(async (req, res) => {

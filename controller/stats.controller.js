@@ -4,22 +4,25 @@ export const getCounts = asyncErrorHandler(async (req, res) => {
   const userId = req.user._id;
   const todayStr = new Date().toISOString().split("T")[0];
 
-  const [totalApps, bouncedApps, pendingPlans, offerApps, appsToday] = await Promise.all([
-    models.Application.countDocuments({ user: userId, statusFlag: 0, status: { $ne: "bounced" } }),
-    models.Application.countDocuments({ user: userId, statusFlag: 0, status: "bounced" }),
+  // We fetch all records and filter in JS to avoid Mongoose $ne issues in production environments
+  const [allApps, pendingPlans] = await Promise.all([
+    models.Application.find({ user: userId, statusFlag: 0 }),
     models.Plan.countDocuments({ user: userId, statusFlag: 0, status: "pending" }),
-    models.Application.countDocuments({ user: userId, statusFlag: 0, status: "offer" }),
-    models.Application.countDocuments({ user: userId, statusFlag: 0, appliedDate: todayStr }),
   ]);
+
+  const bouncedApps = allApps.filter(a => a.status === "bounced").length;
+  const totalApps = allApps.length - bouncedApps;
+  const offerApps = allApps.filter(a => a.status === "offer").length;
+  const appsToday = allApps.filter(a => a.appliedDate === todayStr).length;
 
   return new Response(
     "Counts fetched",
     {
-      totalApps: totalApps || 0,
-      bouncedApps: bouncedApps || 0,
+      totalApps,
+      bouncedApps,
       pendingApps: pendingPlans || 0,
-      offerApps: offerApps || 0,
-      appsToday: appsToday || 0,
+      offerApps,
+      appsToday,
     },
     200,
   );
