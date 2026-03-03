@@ -17,7 +17,9 @@ const parseApplicationsPayload = (payload = {}) => {
       ? payload.applications
       : Array.isArray(payload)
         ? payload
-        : [];
+        : payload?.data && Array.isArray(payload.data) // Extra check for wrapped objects
+          ? payload.data
+          : [];
   const meta = payload?.meta || payload?.pagination;
 
   return {

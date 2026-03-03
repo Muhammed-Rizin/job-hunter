@@ -22,7 +22,8 @@ const AuthScreen = () => {
     password: "",
   });
 
-  const handleValueChange = ({ name, value }) => {
+  const handleValueChange = (e) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -34,7 +35,8 @@ const AuthScreen = () => {
       if (isSignUp) {
         await register(formData);
       } else {
-        await login(formData);
+        // Map 'mobile' field to 'username' for the backend login expected format
+        await login({ ...formData, username: formData.mobile });
       }
     } finally {
       setLoading(false);
@@ -105,7 +107,7 @@ const AuthScreen = () => {
                 name="name"
                 required
                 value={formData.name || ""}
-                onChange={(e) => handleValueChange({ name: "name", value: e.target.value })}
+                onChange={handleValueChange}
               />
 
               <Input
@@ -115,7 +117,7 @@ const AuthScreen = () => {
                 name="email"
                 required
                 value={formData.email || ""}
-                onChange={(e) => handleValueChange({ name: "email", value: e.target.value })}
+                onChange={handleValueChange}
               />
             </>
           )}
@@ -127,7 +129,7 @@ const AuthScreen = () => {
             name="mobile"
             required
             value={formData.mobile || ""}
-            onChange={(e) => handleValueChange({ name: "mobile", value: e.target.value })}
+            onChange={handleValueChange}
           />
 
           <Input
@@ -137,7 +139,7 @@ const AuthScreen = () => {
             name="password"
             required
             value={formData.password || ""}
-            onChange={(e) => handleValueChange({ name: "password", value: e.target.value })}
+            onChange={handleValueChange}
           />
 
           <Button loading={loading} type="submit">

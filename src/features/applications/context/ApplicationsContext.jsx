@@ -51,7 +51,7 @@ export const ApplicationsProvider = ({ children }) => {
         const mergedQuery = { ...queryRef.current, ...query };
         queryRef.current = mergedQuery;
         const { applications: records, meta } = await listApplications(mergedQuery);
-        setApplications(records);
+        setApplications(Array.isArray(records) ? records : []);
         if (meta) {
           setApplicationsMeta((prev) => ({ ...prev, ...meta }));
         }
