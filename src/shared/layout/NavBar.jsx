@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutGrid, Briefcase, User, Mail, ClipboardList } from "lucide-react";
+import { LayoutGrid, Briefcase, User, Plus, ClipboardList } from "lucide-react";
 import Card from "@/shared/components/common/Card";
 
 const NavIcon = ({ to, icon: Icon, label }) => {
@@ -10,7 +10,7 @@ const NavIcon = ({ to, icon: Icon, label }) => {
     <NavLink
       to={to}
       className={`p-3 rounded-full transition-all active:scale-90
-        ${active ? "bg-black text-white dark:bg-red-600 shadow-sm" : "text-gray-400 dark:text-zinc-500"}
+        ${active ? "bg-zinc-800 text-white dark:bg-zinc-700 shadow-sm" : "text-gray-400 dark:text-zinc-500"}
       `}
     >
       <Icon size={22} />
@@ -43,15 +43,15 @@ const NavBar = () => {
 
         <div className="relative -top-8">
           <NavLink
-            to="/planning"
+            to="/mail"
             className="w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transform transition-transform active:scale-90 bg-black text-white ring-[12px] ring-gray-50/50 dark:bg-red-600 dark:text-white dark:ring-8 dark:ring-black/60"
           >
-            <ClipboardList size={30} />
+            <Plus size={32} />
           </NavLink>
         </div>
 
         <div className="flex items-center gap-1">
-          <NavIcon to="/mail" icon={Mail} label="Mail" />
+          <NavIcon to="/planning" icon={ClipboardList} label="Planning" />
           <NavIcon to="/profile" icon={User} label="Profile" />
         </div>
       </div>
