@@ -1,24 +1,42 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/features/auth/context/AuthContext";
+import { fetchCurrentProfile } from "@/features/profile/services/profile.service";
 import Card from "@/shared/components/common/Card";
-import { setTokens } from "@/shared/utils/session";
+import { clearSession, setStoredUser, setTokens } from "@/shared/utils/session";
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { updateUser } = useAuth();
 
   useEffect(() => {
-    const accessToken = params.get("accessToken");
-    const refreshToken = params.get("refreshToken");
+    const finalizeOAuth = async () => {
+      const accessToken = params.get("accessToken");
+      const refreshToken = params.get("refreshToken");
 
-    if (!accessToken || !refreshToken) {
-      navigate("/login");
-      return;
-    }
+      if (!accessToken || !refreshToken) {
+        navigate("/login?oauth=failed", { replace: true });
+        return;
+      }
 
-    setTokens({ accessToken, refreshToken });
-    window.location.href = "/";
-  }, [navigate, params]);
+      setTokens({ accessToken, refreshToken });
+
+      try {
+        const profile = await fetchCurrentProfile();
+        if (profile) {
+          setStoredUser(profile);
+          updateUser(profile);
+        }
+        navigate("/", { replace: true });
+      } catch (error) {
+        clearSession();
+        navigate("/login?oauth=failed", { replace: true });
+      }
+    };
+
+    finalizeOAuth();
+  }, [navigate, params, updateUser]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50 text-gray-900 dark:bg-black dark:text-white">
