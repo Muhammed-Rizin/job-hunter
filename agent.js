@@ -91,16 +91,23 @@ const run = async () => {
 
         if (!payload.to || !payload.company) throw new Error("Target email and company required.");
 
-        // Duplicate Check Prevention
+        // Strict Duplicate Prevention (Company + Email + Role)
         const duplicate = await models.Application.findOne({
           user: user._id,
-          company: payload.company.trim(),
           statusFlag: 0,
-          $or: [{ role: payload.role?.trim() }, { "mail.to": payload.to?.trim() }]
+          $or: [
+            // Don't apply to the same company + role combination
+            { company: payload.company.trim(), role: payload.role?.trim() },
+            // NEVER send to the same email address twice via the agent
+            { "mail.to": payload.to?.trim() }
+          ]
         });
         
         if (duplicate) {
-           log.warn(`Skipping application to ${payload.company}. Record already exists.`);
+           const reason = duplicate.mail?.to === payload.to?.trim() 
+            ? `Email ${payload.to} has already been contacted.` 
+            : `Application to ${payload.company} for ${payload.role} already exists.`;
+           log.warn(`[BLOCKED] ${reason}`);
            break;
         }
 
