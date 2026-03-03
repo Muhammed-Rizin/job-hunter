@@ -15,7 +15,7 @@ export const list = asyncErrorHandler(async (req, res) => {
 
   const data = await models.Plan.find(filter).sort({ createdAt: -1 });
 
-  return new Response("Plans fetched successfully", data, 200);
+  return new Response("Plans fetched successfully", { data }, 200);
 });
 
 /**
@@ -58,7 +58,7 @@ export const create = asyncErrorHandler(async (req, res) => {
     user: req.user._id,
   });
 
-  return new Response("Plan created successfully", data, 201);
+  return new Response("Plan created successfully", null, 201);
 });
 
 /**
@@ -77,7 +77,7 @@ export const update = asyncErrorHandler(async (req, res) => {
 
   if (!updated) throw new Error("Plan not found or unauthorized", 404);
 
-  return new Response("Plan updated successfully", updated, 200);
+  return new Response("Plan updated successfully", null, 200);
 });
 
 /**

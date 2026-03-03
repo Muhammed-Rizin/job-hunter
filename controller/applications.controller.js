@@ -61,7 +61,7 @@ export const create = asyncErrorHandler(async (req, res) => {
     })
     .save();
 
-  return new Response("Application created", data, 201);
+  return new Response("Application created", null, 201);
 });
 
 export const updateStatus = asyncErrorHandler(async (req, res) => {
@@ -102,7 +102,7 @@ export const listBounced = asyncErrorHandler(async (req, res) => {
     statusFlag: 0,
   }).sort({ createdAt: -1 });
 
-  return new Response("Bounced applications fetched", data, 200);
+  return new Response("Bounced applications fetched", { data }, 200);
 });
 
 export const manual = asyncErrorHandler(async (req, res) => {
