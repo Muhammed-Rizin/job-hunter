@@ -87,6 +87,19 @@ const run = async () => {
 
         if (!payload.to || !payload.company) throw new Error("Target email and company required.");
 
+        // Duplicate Check Prevention
+        const duplicate = await models.Application.findOne({
+          user: user._id,
+          company: payload.company.trim(),
+          statusFlag: 0,
+          $or: [{ role: payload.role?.trim() }, { "mail.to": payload.to?.trim() }]
+        });
+        
+        if (duplicate) {
+           log.warn(`Skipping application to ${payload.company}. Record already exists.`);
+           break;
+        }
+
         log.info(`Sending application to ${payload.company}...`);
         const result = await sendMailService({
           to: payload.to,
@@ -112,6 +125,17 @@ const run = async () => {
         const payload = jsonArg !== -1 ? JSON.parse(args[jsonArg + 1]) : null;
 
         if (action === "--add" && payload) {
+          const duplicate = await models.Plan.findOne({
+            user: user._id,
+            companyName: payload.companyName.trim(),
+            statusFlag: 0
+          });
+
+          if (duplicate) {
+             log.warn(`Lead ${payload.companyName} already exists in Planning.`);
+             break;
+          }
+
           const data = await models.Plan.create({ ...payload, user: user._id });
           log.success(`Lead added: ${data.companyName} (${data._id})`);
         } else if (action === "--update" && payload) {
@@ -139,7 +163,7 @@ const run = async () => {
           const seen = new Set();
           const toDelete = [];
           apps.forEach(app => {
-            const key = `${app.company?.trim()}_${app.mail?.to?.trim()}`.toLowerCase();
+            const key = `${app.company?.trim()}_${app.role?.trim()}_${app.source?.trim()}`.toLowerCase();
             if (seen.has(key)) toDelete.push(app._id);
             else seen.add(key);
           });
