@@ -10,7 +10,7 @@ const Input = React.forwardRef(
         <input
           ref={ref}
           {...props}
-          className={`w-full pl-${Icon ? "10" : "3"} p-3 rounded-lg text-sm font-medium
+          className={`w-full ${Icon ? "pl-10" : "pl-3"} p-3 rounded-lg text-sm font-medium
             outline-none transition-all
             bg-white dark:bg-black
             border border-gray-200 dark:border-zinc-800
