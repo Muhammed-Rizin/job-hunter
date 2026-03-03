@@ -14,8 +14,8 @@ import {
   SortDesc,
   Copy,
   Zap,
-  Trophy, X, ShieldCheck,
-  
+  Trophy,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -24,9 +24,7 @@ import { colors } from "@/shared/utils/theme";
 import Select from "@/shared/components/common/Select";
 import { usePlanning } from "@/features/planning/context/PlanningContext";
 import PlanningSkeleton from "@/features/planning/components/PlanningSkeleton";
-import Card from "@/shared/components/common/Card";
 import Button from "@/shared/components/common/Button";
-import Input from "@/shared/components/common/Input";
 
 const getTopDownAnimation = (index) => ({
   initial: { opacity: 0, y: 10 },
@@ -318,15 +316,60 @@ const Planning = () => {
                         {plan.email}
                       </div>
                     )}
-                  </div>
-
-                  <div className="line-clamp-2">
-                    {plan.customPitch && (
-                        <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic mb-2">
-                          "{plan.customPitch}"
-                        </p>
+                    {plan.jobLink && (
+                      <a
+                        href={plan.jobLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1.5 text-blue-500 text-[11px] font-bold uppercase tracking-wider hover:underline pt-1"
+                      >
+                        <Globe size={12} /> Open Lead <ExternalLink size={10} />
+                      </a>
                     )}
                   </div>
+
+                  {plan.customPitch && (
+                    <div className="mb-4 p-3 bg-red-500/5 rounded-xl border border-red-500/10 group-hover:border-red-500/30 transition-colors">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em]">
+                          Elevator Pitch
+                        </p>
+                        <button
+                          onClick={(e) => copyPitch(plan.customPitch, e)}
+                          className="p-1 hover:bg-red-500/10 rounded transition-colors text-red-500"
+                          title="Copy Pitch"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic line-clamp-3">
+                        "{plan.customPitch}"
+                      </p>
+                    </div>
+                  )}
+
+                  {plan.theHook && (
+                    <div className="mb-3 p-3 bg-blue-500/5 rounded-xl border border-blue-500/10">
+                      <p className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1">
+                        <Zap size={10} /> The Hook
+                      </p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">
+                        {plan.theHook}
+                      </p>
+                    </div>
+                  )}
+
+                  {plan.winningMove && (
+                    <div className="mb-4 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                      <p className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1 flex items-center gap-1">
+                        <Trophy size={10} /> Winning Move
+                      </p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">
+                        {plan.winningMove}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-neutral-800 mt-2">
@@ -434,7 +477,7 @@ const Planning = () => {
                 {selectedPlan.theHook && (
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2 flex items-center gap-2">
-                       <Zap size={14} /> Strategic Hook
+                       <Zap size={14} /> The Hook
                     </h4>
                     <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{selectedPlan.theHook}</p>
                   </div>
@@ -443,7 +486,7 @@ const Planning = () => {
                 {selectedPlan.winningMove && (
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2 flex items-center gap-2">
-                       <Trophy size={14} /> Execution Advice
+                       <Trophy size={14} /> Winning Move
                     </h4>
                     <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{selectedPlan.winningMove}</p>
                   </div>
@@ -562,8 +605,10 @@ const Planning = () => {
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest ml-1">Strategic Hook</label>
+                  <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1">
+                        <Zap size={12} /> The Hook
+                      </label>
                       <textarea 
                         className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.theHook}
@@ -571,7 +616,9 @@ const Planning = () => {
                       />
                    </div>
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest ml-1 opacity-50">Winning Move</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest ml-1 opacity-50 flex items-center gap-1">
+                        <Trophy size={12} /> Winning Move
+                      </label>
                       <textarea 
                         className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
                         value={newLead.winningMove}
@@ -609,261 +656,3 @@ const Planning = () => {
 };
 
 export default Planning;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

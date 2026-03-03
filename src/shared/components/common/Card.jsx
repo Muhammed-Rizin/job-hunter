@@ -20,7 +20,7 @@ const Card = ({
   variants = itemVariants,
   ...rest
 }) => {
-  const base = `transition-colors duration-300 bg-white border border-gray-100 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 rounded-3xl`;
+  const base = `rounded-2xl transition-colors duration-300 bg-white border border-gray-100 shadow-sm dark:bg-zinc-900 dark:border-zinc-800`;
   const hoverStyle = hover ? "hover:shadow-md dark:hover:shadow-black/40" : "";
   const glassStyle = glass ? "bg-white/90 dark:bg-black/80 backdrop-blur-md" : "";
 
