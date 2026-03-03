@@ -3,6 +3,7 @@
 /node_modules
 
 yarn.lock
+/scripts/legacy/
 scripts/*.json
 scripts/apply-*.js
 scripts/read-*.js
