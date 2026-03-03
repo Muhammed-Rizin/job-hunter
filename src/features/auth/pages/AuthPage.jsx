@@ -130,6 +130,7 @@ const AuthScreen = () => {
             required
             value={formData.mobile || ""}
             onChange={handleValueChange}
+            autoComplete="username"
           />
 
           <Input
@@ -140,6 +141,7 @@ const AuthScreen = () => {
             required
             value={formData.password || ""}
             onChange={handleValueChange}
+            autoComplete="current-password"
           />
 
           <Button loading={loading} type="submit">
