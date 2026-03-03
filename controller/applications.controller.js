@@ -10,11 +10,9 @@ export const list = asyncErrorHandler(async (req, res) => {
     statusFlag: 0,
   };
 
-  // If status is provided, use it. If 'all', explicitly allow all statuses EXCEPT bounced.
+  // If status is provided, use it.
   if (!isNull(status) && status !== "all") {
     filter.status = status;
-  } else {
-    filter.status = { $ne: "bounced" };
   }
 
   if (!isNull(source) && source !== "all") filter.source = source;
