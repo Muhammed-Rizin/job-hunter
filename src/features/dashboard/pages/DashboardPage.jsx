@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { containerVariants } from "@/shared/utils/animations";
 import { formatDateDisplay } from "@/shared/utils/date";
 
-import { Activity, Calendar, Check, Clock, AlertCircle } from "lucide-react";
+import { Activity, Calendar, Check, Clock, AlertCircle, Briefcase } from "lucide-react";
 import StatWidget from "@/features/dashboard/components/StatWidget";
 import Card from "@/shared/components/common/Card";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +27,7 @@ const Dashboard = () => {
   const pendingPlans = stats?.pendingApps || 0;
   const offerCount = stats?.offerApps || 0;
   const appsToday = stats?.appsToday || 0;
+  const totalApplied = stats?.appliedApps || 0; // Added for applied count card
 
   const progress =
     goal.targetCount > 0 ? Math.min(100, (totalSuccessful / goal.targetCount) * 100) : 0;
@@ -106,10 +107,10 @@ const Dashboard = () => {
           <div className="lg:col-span-2 grid grid-cols-2 gap-3 md:gap-4">
             <StatWidget title="Applied Today" value={appsToday} icon={Calendar} />
             <StatWidget
-              title="Failed/Bounced"
-              value={bouncedCount}
-              icon={AlertCircle}
-              onClick={() => navigate("/tracker", { state: { activeTab: "bounced" } })}
+              title="Applied"
+              value={totalApplied}
+              icon={Briefcase}
+              onClick={() => navigate("/tracker")}
             />
             <StatWidget
               title="Planning"

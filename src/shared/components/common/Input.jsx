@@ -5,12 +5,12 @@ const Input = React.forwardRef(
     return (
       <div className={`relative ${containerClass}`}>
         {Icon && (
-          <Icon size={18} className="absolute left-3 top-3.5 text-gray-400 dark:text-zinc-500" />
+          <Icon size={18} className="absolute left-3.5 top-3 text-gray-400 dark:text-zinc-500" />
         )}
         <input
           ref={ref}
           {...props}
-          className={`w-full pl-${Icon ? "10" : "3"} p-3 rounded-lg text-sm font-medium
+          className={`w-full pl-${Icon ? "11" : "3"} p-3 rounded-xl text-sm font-medium
             outline-none transition-all
             bg-white dark:bg-black
             border border-gray-200 dark:border-zinc-800

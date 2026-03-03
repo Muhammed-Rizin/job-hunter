@@ -105,7 +105,7 @@ const AuthScreen = () => {
                 name="name"
                 required
                 value={formData.name || ""}
-                onChange={(e) => handleValueChange(e.target)}
+                onChange={(e) => handleValueChange({ name: "name", value: e.target.value })}
               />
 
               <Input
@@ -115,7 +115,7 @@ const AuthScreen = () => {
                 name="email"
                 required
                 value={formData.email || ""}
-                onChange={(e) => handleValueChange(e.target)}
+                onChange={(e) => handleValueChange({ name: "email", value: e.target.value })}
               />
             </>
           )}
@@ -127,7 +127,7 @@ const AuthScreen = () => {
             name="mobile"
             required
             value={formData.mobile || ""}
-            onChange={(e) => handleValueChange(e.target)}
+            onChange={(e) => handleValueChange({ name: "mobile", value: e.target.value })}
           />
 
           <Input
@@ -137,7 +137,7 @@ const AuthScreen = () => {
             name="password"
             required
             value={formData.password || ""}
-            onChange={(e) => handleValueChange(e.target)}
+            onChange={(e) => handleValueChange({ name: "password", value: e.target.value })}
           />
 
           <Button loading={loading} type="submit">
