@@ -72,6 +72,16 @@ Scans for applications with the same company and email and keeps only the most r
 node agent.js cleanup --duplicates
 ```
 
+---
+
+## 🏛️ Legacy Utilities
+Access specialized internal scripts for batch uploads or legacy processing.
+**Command:**
+```bash
+node agent.js legacy --list
+node agent.js legacy --run <script_name.js>
+```
+
 ## 🛠️ Internal Logic
 1.  **Resume:** Fetched and attached automatically from Rizin's profile.
 2.  **HTML:** Markdown in `body` is converted to professional HTML.
