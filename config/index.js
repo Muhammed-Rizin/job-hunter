@@ -8,11 +8,17 @@ export const DATABASE_URL = process.env.DATABASE_URL;
 export const MAIL_USER = process.env.MAIL_USER;
 export const MAIL_PASS = process.env.MAIL_PASS;
 
-export const ORIGINS = process.env.ORIGINS?.split(",").map((origin) => origin.trim());
+export const ORIGINS =
+  process.env.ORIGINS?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean) || [];
 export const CLIENT_URL = process.env.CLIENT_URL || ORIGINS?.[0] || "http://localhost:5173";
 export const SERVER_URL = process.env.SERVER_URL || `http://localhost:${PORT}`;
-const IS_LOCALHOST =
-  CLIENT_URL?.includes("localhost") || CLIENT_URL?.includes("127.0.0.1") || SERVER_URL.includes("localhost");
+export const ALLOWED_ORIGINS = ORIGINS.length ? ORIGINS : [CLIENT_URL];
+
+const isClientLocalhost = CLIENT_URL?.includes("localhost") || CLIENT_URL?.includes("127.0.0.1");
+const isServerLocalhost = SERVER_URL?.includes("localhost") || SERVER_URL?.includes("127.0.0.1");
+const IS_LOCALHOST = isClientLocalhost && isServerLocalhost;
 const COOKIE_SECURE = IS_PRODUCTION && !IS_LOCALHOST;
 const COOKIE_SAMESITE = COOKIE_SECURE ? "none" : "lax";
 

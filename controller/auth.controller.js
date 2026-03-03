@@ -34,6 +34,17 @@ const clearOAuthCookies = (res) => {
   res.clearCookie("oauth_device", COOKIE_OPTIONS.ACCESS);
 };
 
+const resolveTokens = (tokens) => {
+  const accessToken = tokens?.accessToken;
+  const refreshToken = tokens?.refreshToken;
+
+  if (!accessToken || !refreshToken || accessToken === "undefined" || refreshToken === "undefined") {
+    throw new Error("Token generation failed", 500);
+  }
+
+  return { accessToken, refreshToken };
+};
+
 const pickUsername = (email, provider, providerId) => {
   if (email) return email;
   return `${provider}_${providerId}`;
@@ -121,7 +132,7 @@ export const login = asyncErrorHandler(async (req, res) => {
   const passValid = user.validatePassword(password, user.password);
   if (!passValid) throw new Error("Password is incorrect", 401);
 
-  const { accessToken, refreshToken } = await generateTokens(user?._id, deviceId);
+  const { accessToken, refreshToken } = resolveTokens(await generateTokens(user?._id, deviceId));
 
   res.cookie("accessToken", accessToken, accessCookieOptions);
   res.cookie("refreshToken", refreshToken, refreshCookieOptions);
@@ -209,8 +220,9 @@ export const googleAuth = asyncErrorHandler(async (req, res) => {
 export const googleCallback = asyncErrorHandler(async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies?.oauth_state;
+  const storedProvider = req.cookies?.oauth_provider;
 
-  if (!code || !state || !storedState || state !== storedState) {
+  if (!code || !state || !storedState || state !== storedState || storedProvider !== "google") {
     clearOAuthCookies(res);
     return res.redirect(`${CLIENT_URL}/login?oauth=failed`);
   }
@@ -245,7 +257,7 @@ export const googleCallback = asyncErrorHandler(async (req, res) => {
     });
 
     const deviceId = req.cookies?.oauth_device || null;
-    const { accessToken, refreshToken } = await generateTokens(user._id, deviceId);
+    const { accessToken, refreshToken } = resolveTokens(await generateTokens(user._id, deviceId));
 
     res.cookie("accessToken", accessToken, accessCookieOptions);
     res.cookie("refreshToken", refreshToken, refreshCookieOptions);
@@ -285,8 +297,9 @@ export const githubAuth = asyncErrorHandler(async (req, res) => {
 export const githubCallback = asyncErrorHandler(async (req, res) => {
   const { code, state } = req.query;
   const storedState = req.cookies?.oauth_state;
+  const storedProvider = req.cookies?.oauth_provider;
 
-  if (!code || !state || !storedState || state !== storedState) {
+  if (!code || !state || !storedState || state !== storedState || storedProvider !== "github") {
     clearOAuthCookies(res);
     return res.redirect(`${CLIENT_URL}/login?oauth=failed`);
   }
@@ -332,7 +345,7 @@ export const githubCallback = asyncErrorHandler(async (req, res) => {
     });
 
     const deviceId = req.cookies?.oauth_device || null;
-    const { accessToken, refreshToken } = await generateTokens(user._id, deviceId);
+    const { accessToken, refreshToken } = resolveTokens(await generateTokens(user._id, deviceId));
 
     res.cookie("accessToken", accessToken, accessCookieOptions);
     res.cookie("refreshToken", refreshToken, refreshCookieOptions);

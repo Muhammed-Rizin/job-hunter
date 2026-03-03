@@ -16,7 +16,7 @@ export const generateTokens = async (id, deviceId = null) => {
 
     return { accessToken, refreshToken };
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 

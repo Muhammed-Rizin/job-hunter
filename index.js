@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 import "./helper/global.js";
 
-import { PORT, ORIGINS } from "./config/index.js";
+import { PORT, ALLOWED_ORIGINS } from "./config/index.js";
 import connectDB from "./database/index.js";
 import notFound from "./middleware/notFound.js";
 import error from "./middleware/error.js";
@@ -22,7 +22,7 @@ app.use(logger("dev"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: ORIGINS, credentials: true }));
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
