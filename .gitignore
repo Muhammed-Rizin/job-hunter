@@ -4,14 +4,5 @@
 
 yarn.lock
 /scripts/legacy/
-scripts/*.json
-scripts/apply-*.js
-scripts/read-*.js
-scripts/check-*.js
-scripts/fix-*.js
-scripts/extract-*.js
-scripts/ingest-*.js
-scripts/update-*.js
-scripts/audit-*.js
-scripts/revert-*.js
-scripts/sync-*.js
+
+STANDARD_COVER_LETTER.md

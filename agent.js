@@ -82,12 +82,18 @@ const run = async () => {
             break;
           }
           
+          const template = fs.readFileSync("STANDARD_COVER_LETTER.md", "utf8");
+          const role = plan.techStack || "Developer";
+          const body = template
+            .replace(/{{role}}/g, role)
+            .replace(/{{company}}/g, plan.companyName);
+
           payload = {
             to: plan.email,
             company: plan.companyName,
-            role: plan.techStack || "Developer",
-            subject: `Application for ${plan.techStack || 'Developer'} role - Muhammed Rizin`,
-            body: `Hi Team,\n\nI am interested in ${plan.companyName}...`, // Default fallback
+            role: role,
+            subject: `Application for ${role} role - Muhammed Rizin`,
+            body: body,
             planId: plan._id
           };
         }
