@@ -41,10 +41,6 @@ ${chalk.bold("Commands:")}
 
   ${chalk.cyan("cleanup")}     Perform database maintenance.
                --duplicates (Soft-deletes duplicate apps)
-
-  ${chalk.cyan("legacy")}      Access legacy utility scripts.
-               --list (List available legacy scripts)
-               --run <filename> (Run a script from legacy folder)
   `);
 };
 
@@ -184,21 +180,6 @@ const run = async () => {
           } else {
             log.info("Database is already clean.");
           }
-        }
-        break;
-      }
-
-      case "legacy": {
-        const path = "./scripts/legacy";
-        if (args.includes("--list")) {
-          const files = fs.readdirSync(path).filter(f => f.endsWith(".js"));
-          log.info("Available legacy scripts:");
-          files.forEach(f => console.log(` - ${f}`));
-        } else if (args.includes("--run")) {
-          const file = args[args.indexOf("--run") + 1];
-          log.info(`Executing legacy script: ${file}`);
-          const { execSync } = await import("child_process");
-          execSync(`node ${path}/${file}`, { stdio: "inherit" });
         }
         break;
       }
