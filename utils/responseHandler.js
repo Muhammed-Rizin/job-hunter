@@ -1,8 +1,9 @@
 class Response {
-  constructor(status, data, statusCode) {
-    this.status = status;
+  constructor(message, data, statusCode = 200) {
+    this.success = statusCode >= 200 && statusCode < 300;
+    this.code = statusCode;
+    this.message = message;
     this.data = data;
-    this.statusCode = statusCode;
   }
 }
 

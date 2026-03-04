@@ -21,16 +21,16 @@ export const sendMailService = async ({
   appliedDate = null,
   logApplication = true,
 }) => {
-  if (isNull(to)) throw new Error("Recipient email is required", 400);
-  if (isNull(subject)) throw new Error("Mail subject is required", 400);
-  if (isNull(text) && isNull(html)) throw new Error("Mail content is required", 400);
+  if (!to) throw new Error("Recipient email is required", 400);
+  if (!subject) throw new Error("Mail subject is required", 400);
+  if (!text && !html) throw new Error("Mail content is required", 400);
 
   const attachments = [];
 
   /**
    * 🔗 Attach resume from URL
    */
-  if (!isNull(resumeLink)) {
+  if (resumeLink) {
     const resume = await fetchResumeBuffer(resumeLink, resumeName);
     attachments.push({
       filename: resume?.filename || "Resume.pdf",
@@ -62,7 +62,7 @@ export const sendMailService = async ({
       company: company || "",
       role: role || "",
       source: source || "mail",
-      appliedDate: appliedDate || moment().format("YYYY-MM-DD"),
+      appliedDate: appliedDate || new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
       notes: notes || "",
       mail: {
         to,

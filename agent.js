@@ -19,6 +19,11 @@ const log = {
   warn: (m) => console.log(chalk.yellow("⚠ ") + m),
 };
 
+const getCurrentLocalDate = () => {
+  // Returns YYYY-MM-DD for Asia/Calcutta
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+};
+
 const printUsage = () => {
   console.log(`
 ${chalk.bold.red("🛸 Job Hunter Unified CLI")}
@@ -38,6 +43,7 @@ ${chalk.bold("Commands:")}
   ${chalk.cyan("sync")}        Sync status from external data.
                --bounced --email <email>
                --sent --id <id> --msgid <msgid>
+               --plans (Auto-syncs 'pending' plans to 'applied' if application exists)
 
   ${chalk.cyan("cleanup")}     Perform database maintenance.
                --duplicates (Soft-deletes duplicate apps)
@@ -69,6 +75,12 @@ const run = async () => {
           log.info(`Fetching details from Plan: ${planId}`);
           const plan = await models.Plan.findById(planId);
           if (!plan) throw new Error("Plan not found.");
+
+          // BLOCK if already applied
+          if (plan.status === "applied") {
+            log.warn(`[BLOCKED] Plan for ${plan.companyName} is already marked as 'applied'.`);
+            break;
+          }
           
           payload = {
             to: plan.email,
@@ -119,6 +131,7 @@ const run = async () => {
           source: payload.source || "agent-cli",
           resumeLink: user.resumeLink,
           resumeName: user.resumeName,
+          appliedDate: getCurrentLocalDate() // Force local date (Asia/Calcutta)
         });
 
         if (payload.planId) await markPlanAsApplied(payload.planId, result.messageId);
@@ -159,6 +172,33 @@ const run = async () => {
           await models.Application.updateMany({ "mail.to": email }, { status: "bounced" });
           await models.Plan.updateMany({ email }, { status: "bounced" });
           log.success(`Status synced: ${email} marked as bounced.`);
+        } else if (args.includes("--plans")) {
+          log.info("Syncing planning status with application history...");
+          const pendingPlans = await models.Plan.find({ 
+            user: user._id, 
+            status: "pending", 
+            statusFlag: 0 
+          });
+
+          let syncCount = 0;
+          for (const plan of pendingPlans) {
+            const hasApp = await models.Application.findOne({
+              user: user._id,
+              company: plan.companyName.trim(),
+              statusFlag: 0
+            });
+
+            if (hasApp) {
+              await models.Plan.findByIdAndUpdate(plan._id, { 
+                status: "applied",
+                "mail.sent": true,
+                "mail.messageId": hasApp.mail?.messageId || "legacy-sync"
+              });
+              syncCount++;
+              log.info(`Plan Synced: ${plan.companyName} -> Applied`);
+            }
+          }
+          log.success(`Completed! Synced ${syncCount} plans to 'applied' status.`);
         }
         break;
       }
