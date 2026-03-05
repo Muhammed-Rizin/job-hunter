@@ -17,6 +17,8 @@ import Button from "@/shared/components/common/Button";
 import Tooltip from "@/shared/components/common/Tooltip";
 import ListSkeleton from "@/shared/components/common/ListSkeleton";
 
+const DEFAULT_STATUS_DETAILS = { round: "", mode: "online", date: "", time: "" };
+
 const getTopDownAnimation = (index) => ({
   initial: { opacity: 0, y: -14 },
   animate: { opacity: 1, y: 0 },
@@ -27,6 +29,11 @@ const getTopDownAnimation = (index) => ({
     delay: Math.min(index * 0.03, 0.24),
   },
 });
+
+const statusLabel = (statusId = "") => {
+  const match = APPLICATION_STATUSES.find((item) => item.id === statusId);
+  return match?.label || String(statusId).replace(/_/g, " ");
+};
 
 const Tracker = () => {
   const {
@@ -52,7 +59,7 @@ const Tracker = () => {
   const [sortOrder, setSortOrder] = useState("newest");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 20;
+  const itemsPerPage = 20;
   const [queryPending, setQueryPending] = useState(true);
   const hasMountedPageRef = useRef(false);
 
@@ -66,9 +73,10 @@ const Tracker = () => {
     notes: "",
   });
 
-  const [selectedApp, setSelectedApp] = useState(null);
+  const [selectedAppId, setSelectedAppId] = useState(null);
+  const [statusIntent, setStatusIntent] = useState(null);
   const [detailsStatus, setDetailsStatus] = useState("applied");
-  const [detailsForm, setDetailsForm] = useState({ round: "", mode: "online", date: "", time: "" });
+  const [detailsForm, setDetailsForm] = useState(DEFAULT_STATUS_DETAILS);
   const [isDetailsSaving, setIsDetailsSaving] = useState(false);
 
   const bouncedFiltered = useMemo(() => {
@@ -88,13 +96,52 @@ const Tracker = () => {
       });
   }, [bouncedApps, filter, sortOrder, sourceFilter, statusFilter]);
 
-  const bouncedTotalPages = Math.max(1, Math.ceil(bouncedFiltered.length / ITEMS_PER_PAGE));
+  const bouncedTotalPages = Math.max(1, Math.ceil(bouncedFiltered.length / itemsPerPage));
+
   const displayedApps =
     activeTab === "bounced"
-      ? bouncedFiltered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+      ? bouncedFiltered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
       : applications;
+
   const totalPages =
     activeTab === "bounced" ? bouncedTotalPages : Math.max(1, applicationsMeta?.pages || 1);
+
+  const allKnownApps = useMemo(() => {
+    const merged = [...(applications || []), ...(bouncedApps || [])];
+    const map = new Map();
+    merged.forEach((app) => {
+      const key = app.id || app._id;
+      if (key) map.set(String(key), app);
+    });
+    return Array.from(map.values());
+  }, [applications, bouncedApps]);
+
+  const selectedApp = useMemo(() => {
+    if (!selectedAppId) return null;
+    return allKnownApps.find((app) => String(app.id || app._id) === String(selectedAppId)) || null;
+  }, [allKnownApps, selectedAppId]);
+
+  const historyEntries = useMemo(() => {
+    const entries = Array.isArray(selectedApp?.statusHistory) ? selectedApp.statusHistory : [];
+    return [...entries].sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+  }, [selectedApp]);
+
+  const closeModal = () => {
+    setSelectedAppId(null);
+    setStatusIntent(null);
+  };
+
+  const openDetails = (app) => {
+    if (!app) return;
+    setStatusIntent(null);
+    setSelectedAppId(app.id || app._id);
+  };
+
+  const openStatusModal = (app, nextStatus) => {
+    if (!app) return;
+    setStatusIntent(nextStatus || null);
+    setSelectedAppId(app.id || app._id);
+  };
 
   useEffect(() => {
     const nextTab = location.state?.activeTab;
@@ -130,7 +177,7 @@ const Tracker = () => {
         source: sourceFilter,
         sort: sortOrder,
         page: currentPage,
-        limit: ITEMS_PER_PAGE,
+        limit: itemsPerPage,
       }).finally(() => {
         if (!cancelled) {
           setQueryPending(false);
@@ -173,10 +220,15 @@ const Tracker = () => {
   }, [currentPage]);
 
   useEffect(() => {
-    if (!selectedApp) return;
-    setDetailsStatus(selectedApp.status || "applied");
-    setDetailsForm(selectedApp.statusDetails || { round: "", mode: "online", date: "", time: "" });
-  }, [selectedApp]);
+    if (!selectedAppId) return;
+    if (!selectedApp) {
+      closeModal();
+      return;
+    }
+
+    setDetailsStatus(statusIntent || selectedApp.status || "applied");
+    setDetailsForm(selectedApp.statusDetails || DEFAULT_STATUS_DETAILS);
+  }, [selectedAppId, selectedApp, statusIntent]);
 
   useEffect(() => {
     if (detailsStatus === "hr_contact" && !detailsForm.round) {
@@ -186,44 +238,19 @@ const Tracker = () => {
 
   const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(detailsStatus);
 
-  const handleStatusChange = async (app, newStatus) => {
-    if (updateApplicationStatus) {
-      await updateApplicationStatus(app.id, newStatus, app.statusDetails || {});
-    } else {
-      setApplications((prev) => prev.map((p) => (p.id === app.id ? { ...p, status: newStatus } : p)));
-    }
-  };
-
-  const openDetails = (app) => {
-    if (!app) return;
-    setSelectedApp(app);
-  };
-
-  const handleSaveDetails = async () => {
-    if (!selectedApp) return;
-    try {
-      setIsDetailsSaving(true);
-      await updateApplicationStatus(selectedApp.id || selectedApp._id, detailsStatus, detailsForm);
-      toast.success("Details updated");
-      setSelectedApp(null);
-    } catch (error) {
-      toast.error(error?.message || "Failed to update details");
-    } finally {
-      setIsDetailsSaving(false);
-    }
-  };
-
   const handleCreate = async () => {
     if (!createForm.company || !createForm.role) {
       toast.error("Company & Role required");
       return;
     }
+
     const payload = { ...createForm, id: Date.now() };
     if (createApplication) {
       await createApplication(payload);
     } else {
       setApplications((prev) => [payload, ...prev]);
     }
+
     setCreating(false);
     setCreateForm({
       company: "",
@@ -238,10 +265,30 @@ const Tracker = () => {
 
   const handleDelete = async (app) => {
     if (!confirm("Delete?")) return;
+
     if (deleteApplication) {
-      await deleteApplication(app.id);
+      await deleteApplication(app.id || app._id);
     } else {
       setApplications((prev) => prev.filter((p) => p.id !== app.id));
+    }
+
+    if (selectedAppId && String(selectedAppId) === String(app.id || app._id)) {
+      closeModal();
+    }
+  };
+
+  const handleSaveDetails = async () => {
+    if (!selectedApp) return;
+
+    try {
+      setIsDetailsSaving(true);
+      await updateApplicationStatus(selectedApp.id || selectedApp._id, detailsStatus, detailsForm);
+      setStatusIntent(null);
+      toast.success("Status updated and logged");
+    } catch (error) {
+      toast.error(error?.message || "Failed to update details");
+    } finally {
+      setIsDetailsSaving(false);
     }
   };
 
@@ -357,12 +404,12 @@ const Tracker = () => {
 
         <div className={`md:hidden space-y-4 pb-4 no-scrollbar ${showListSkeleton ? "hidden" : ""}`}>
           {displayedApps.map((app, index) => (
-            <motion.div key={app.id} {...getTopDownAnimation(index)}>
+            <motion.div key={app.id || app._id} {...getTopDownAnimation(index)}>
               <TrackerCard
                 app={app}
                 colors={colors}
                 onDelete={handleDelete}
-                onStatusChange={(item, status) => handleStatusChange(item, status)}
+                onStatusChange={(item, status) => openStatusModal(item, status)}
                 onDetails={(item) => openDetails(item)}
               />
             </motion.div>
@@ -380,7 +427,7 @@ const Tracker = () => {
             </div>
             {displayedApps.map((app, index) => (
               <motion.div
-                key={app.id}
+                key={app.id || app._id}
                 {...getTopDownAnimation(index)}
                 onClick={() => openDetails(app)}
                 className="grid grid-cols-12 gap-4 items-center p-3 rounded-xl border transition-all hover:shadow-md bg-white border-gray-100 hover:border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700 cursor-pointer"
@@ -408,7 +455,7 @@ const Tracker = () => {
                   <span className="text-xs font-medium">{PLATFORMS.find((p) => p.id === app.source)?.label}</span>
                 </div>
                 <div className="col-span-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                  <StatusSelect status={app.status} onChange={(v) => handleStatusChange(app, v)} />
+                  <StatusSelect status={app.status} onChange={(v) => openStatusModal(app, v)} />
                 </div>
                 <div className="col-span-2 text-xs font-mono opacity-60">{formatDateDisplay(app.appliedDate)}</div>
                 <div className="col-span-1 flex justify-end" onClick={(e) => e.stopPropagation()}>
@@ -443,9 +490,7 @@ const Tracker = () => {
                 Previous
               </button>
             </Tooltip>
-            <span className="text-xs font-mono opacity-50">
-              Page {currentPage} of {totalPages}
-            </span>
+            <span className="text-xs font-mono opacity-50">Page {currentPage} of {totalPages}</span>
             <Tooltip content="Next Page" disabled={currentPage === totalPages}>
               <button
                 disabled={currentPage === totalPages}
@@ -471,7 +516,7 @@ const Tracker = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setSelectedApp(null)}
+            onClick={closeModal}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -481,7 +526,7 @@ const Tracker = () => {
               className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
             >
               <button
-                onClick={() => setSelectedApp(null)}
+                onClick={closeModal}
                 className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 <X size={20} />
@@ -549,8 +594,37 @@ const Tracker = () => {
                 ) : null}
               </div>
 
+              <div className="mt-6 p-4 rounded-2xl border border-dashed border-gray-500/20">
+                <h4 className="text-[10px] uppercase tracking-widest opacity-60 font-bold mb-3">Status Change Log</h4>
+                {historyEntries.length === 0 ? (
+                  <p className="text-xs opacity-50">No status history yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {historyEntries.map((entry, idx) => (
+                      <div key={`${entry.changedAt || idx}-${idx}`} className="p-3 rounded-xl border border-gray-500/10">
+                        <p className="text-[10px] uppercase tracking-widest font-bold opacity-60">
+                          {entry.fromStatus ? statusLabel(entry.fromStatus) : "Initial"} to{" "}
+                          {statusLabel(entry.toStatus)}
+                        </p>
+                        <p className="text-[10px] font-mono opacity-50 mt-1">
+                          {entry.changedAt ? new Date(entry.changedAt).toLocaleString() : "Unknown time"}
+                        </p>
+                        {entry.statusDetails?.round || entry.statusDetails?.date || entry.statusDetails?.time ? (
+                          <p className="text-[10px] opacity-60 mt-1">
+                            {entry.statusDetails?.round ? `${entry.statusDetails.round}` : ""}
+                            {entry.statusDetails?.date ? ` | ${formatDateDisplay(entry.statusDetails.date)}` : ""}
+                            {entry.statusDetails?.time ? ` ${entry.statusDetails.time}` : ""}
+                            {entry.statusDetails?.mode ? ` | ${entry.statusDetails.mode}` : ""}
+                          </p>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-3 pt-6">
-                <Button variant="secondary" onClick={() => setSelectedApp(null)} className="w-auto">
+                <Button variant="secondary" onClick={closeModal} className="w-auto">
                   Close
                 </Button>
                 <Button onClick={handleSaveDetails} disabled={isDetailsSaving} className="w-auto">

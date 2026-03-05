@@ -3,7 +3,8 @@ import { APPLICATION_STATUSES } from "@/features/applications/constants/job.cons
 
 const StatusSelect = ({ status, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const active = APPLICATION_STATUSES.find((s) => s.id === status) || APPLICATION_STATUSES[0];
+  const options = APPLICATION_STATUSES.filter((s) => s.id !== "all");
+  const active = options.find((s) => s.id === status) || options[0];
   const ref = useRef(null);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const StatusSelect = ({ status, onChange }) => {
 
       {isOpen && (
         <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden animate-fade-in max-h-48 overflow-y-auto no-scrollbar">
-          {APPLICATION_STATUSES.map((s) => (
+          {options.map((s) => (
             <div
               key={s.id}
               onClick={() => {
