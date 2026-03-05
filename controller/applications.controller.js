@@ -68,20 +68,44 @@ export const updateStatus = asyncErrorHandler(async (req, res) => {
   const { id, status, statusDetails } = req.body;
 
   if (isNull(id)) throw new Error("ID required", 400);
+  if (isNull(status)) throw new Error("Status required", 400);
 
-  const updatePayload = { status };
-  if (statusDetails) {
-    updatePayload.statusDetails = statusDetails;
-  }
-
-  const updated = await models.Application.findOneAndUpdate(
+  const application = await models.Application.findOne(
     { _id: id, user: req.user._id },
-    updatePayload,
   );
 
-  if (!updated) throw new Error("Application not found", 404);
+  if (!application) throw new Error("Application not found", 404);
 
-  return new Response("Status updated", null, 200);
+  const previousStatus = application.status;
+  application.status = status;
+
+  if (statusDetails) {
+    application.statusDetails = statusDetails;
+  }
+
+  if (!Array.isArray(application.statusHistory) || application.statusHistory.length === 0) {
+    application.statusHistory = [
+      {
+        fromStatus: null,
+        toStatus: previousStatus,
+        statusDetails: application.statusDetails || {},
+        changedAt: application.createdAt || new Date(),
+        changedBy: req.user._id,
+      },
+    ];
+  }
+
+  application.statusHistory.push({
+    fromStatus: previousStatus,
+    toStatus: application.status,
+    statusDetails: application.statusDetails || {},
+    changedAt: new Date(),
+    changedBy: req.user._id,
+  });
+
+  await application.save();
+
+  return new Response("Status updated", { data: application }, 200);
 });
 
 export const del = asyncErrorHandler(async (req, res) => {
