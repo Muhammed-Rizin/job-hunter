@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Edit3, Globe, Search, SortDesc, Trash2, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Globe, Search, SortDesc, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import { useApplications } from "@/features/applications/context/ApplicationsContext";
 import { APPLICATION_STATUSES, PLATFORMS } from "@/features/applications/constants/job.constants";
@@ -44,7 +44,7 @@ const Tracker = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(
     location.state?.activeTab === "bounced" ? "bounced" : "all",
-  ); // all, bounced
+  );
 
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -56,8 +56,6 @@ const Tracker = () => {
   const [queryPending, setQueryPending] = useState(true);
   const hasMountedPageRef = useRef(false);
 
-  const navigate = useNavigate();
-
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     company: "",
@@ -67,6 +65,11 @@ const Tracker = () => {
     appliedDate: new Date().toISOString().split("T")[0],
     notes: "",
   });
+
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [detailsStatus, setDetailsStatus] = useState("applied");
+  const [detailsForm, setDetailsForm] = useState({ round: "", mode: "online", date: "", time: "" });
+  const [isDetailsSaving, setIsDetailsSaving] = useState(false);
 
   const bouncedFiltered = useMemo(() => {
     return bouncedApps
@@ -169,11 +172,44 @@ const Tracker = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [currentPage]);
 
+  useEffect(() => {
+    if (!selectedApp) return;
+    setDetailsStatus(selectedApp.status || "applied");
+    setDetailsForm(selectedApp.statusDetails || { round: "", mode: "online", date: "", time: "" });
+  }, [selectedApp]);
+
+  useEffect(() => {
+    if (detailsStatus === "hr_contact" && !detailsForm.round) {
+      setDetailsForm((prev) => ({ ...prev, round: "HR Call 1" }));
+    }
+  }, [detailsForm.round, detailsStatus]);
+
+  const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(detailsStatus);
+
   const handleStatusChange = async (app, newStatus) => {
     if (updateApplicationStatus) {
       await updateApplicationStatus(app.id, newStatus, app.statusDetails || {});
     } else {
-      setApplications(prev => prev.map(p => p.id === app.id ? { ...p, status: newStatus } : p));
+      setApplications((prev) => prev.map((p) => (p.id === app.id ? { ...p, status: newStatus } : p)));
+    }
+  };
+
+  const openDetails = (app) => {
+    if (!app) return;
+    setSelectedApp(app);
+  };
+
+  const handleSaveDetails = async () => {
+    if (!selectedApp) return;
+    try {
+      setIsDetailsSaving(true);
+      await updateApplicationStatus(selectedApp.id || selectedApp._id, detailsStatus, detailsForm);
+      toast.success("Details updated");
+      setSelectedApp(null);
+    } catch (error) {
+      toast.error(error?.message || "Failed to update details");
+    } finally {
+      setIsDetailsSaving(false);
     }
   };
 
@@ -209,22 +245,12 @@ const Tracker = () => {
     }
   };
 
-
-
   const showListSkeleton = activeTab === "all" && (queryPending || applicationsLoading);
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="h-full min-h-0 overflow-hidden"
-    >
+    <motion.div initial="hidden" animate="visible" variants={containerVariants} className="h-full min-h-0 overflow-hidden">
       <div className="space-y-4 h-full min-h-0 flex flex-col no-scrollbar">
-        <motion.div
-          variants={itemVariants}
-          className={`p-4 rounded-2xl border mb-4 ${colors.card}`}
-        >
+        <motion.div variants={itemVariants} className={`p-4 rounded-2xl border mb-4 ${colors.card}`}>
           <div className="flex items-center justify-between">
             <div className="flex gap-2 p-1 bg-gray-100 dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-neutral-800">
               <button
@@ -238,11 +264,9 @@ const Tracker = () => {
                 className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === "bounced" ? "bg-white dark:bg-zinc-800 shadow-sm text-black dark:text-white" : "text-slate-400"}`}
               >
                 Bounced{" "}
-                {bouncedApps.length > 0 && (
-                  <span className="ml-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">
-                    {bouncedApps.length}
-                  </span>
-                )}
+                {bouncedApps.length > 0 ? (
+                  <span className="ml-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">{bouncedApps.length}</span>
+                ) : null}
               </button>
             </div>
             <Tooltip content={creating ? "Close Form" : "Create Application"}>
@@ -255,7 +279,7 @@ const Tracker = () => {
             </Tooltip>
           </div>
 
-          {creating && (
+          {creating ? (
             <div className="grid md:grid-cols-2 gap-3 animate-slide-up mt-4">
               <LabeledInput
                 label="Company"
@@ -295,7 +319,7 @@ const Tracker = () => {
                 Save Application
               </Button>
             </div>
-          )}
+          ) : null}
         </motion.div>
 
         <motion.div variants={itemVariants} className="mb-4 flex flex-col gap-3">
@@ -312,57 +336,40 @@ const Tracker = () => {
             </div>
             <div className="flex gap-2 w-full md:w-auto">
               <div className="flex-1 md:w-40">
-                <Select
-                  value={statusFilter}
-                  onChange={setStatusFilter}
-                  options={APPLICATION_STATUSES}
-                  placeholder="Status"
-                />
+                <Select value={statusFilter} onChange={setStatusFilter} options={APPLICATION_STATUSES} placeholder="Status" />
               </div>
               <div className="flex-1 md:w-40">
-                <Select
-                  value={sourceFilter}
-                  onChange={setSourceFilter}
-                  options={PLATFORMS}
-                  placeholder="Source"
-                />
+                <Select value={sourceFilter} onChange={setSourceFilter} options={PLATFORMS} placeholder="Source" />
               </div>
               <Tooltip content={sortOrder === "newest" ? "Sort Oldest First" : "Sort Newest First"}>
                 <button
                   onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
                   className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${colors.card}`}
                 >
-                  <SortDesc
-                    size={18}
-                    className={sortOrder === "newest" ? "" : "transform rotate-180"}
-                  />
+                  <SortDesc size={18} className={sortOrder === "newest" ? "" : "transform rotate-180"} />
                 </button>
               </Tooltip>
             </div>
           </div>
         </motion.div>
 
-        {showListSkeleton && <ListSkeleton entries={6} />}
+        {showListSkeleton ? <ListSkeleton entries={6} /> : null}
 
-        <div
-          className={`md:hidden space-y-4 pb-4 no-scrollbar ${showListSkeleton ? "hidden" : ""}`}
-        >
+        <div className={`md:hidden space-y-4 pb-4 no-scrollbar ${showListSkeleton ? "hidden" : ""}`}>
           {displayedApps.map((app, index) => (
             <motion.div key={app.id} {...getTopDownAnimation(index)}>
               <TrackerCard
                 app={app}
                 colors={colors}
                 onDelete={handleDelete}
-                onStatusChange={(item, status) => openDetails(item, status)}
+                onStatusChange={(item, status) => handleStatusChange(item, status)}
                 onDetails={(item) => openDetails(item)}
               />
             </motion.div>
           ))}
         </div>
 
-        <div
-          className={`hidden md:block flex-1 min-h-0 overflow-hidden no-scrollbar ${showListSkeleton ? "md:hidden" : ""}`}
-        >
+        <div className={`hidden md:block flex-1 min-h-0 overflow-hidden no-scrollbar ${showListSkeleton ? "md:hidden" : ""}`}>
           <div className="min-w-200 md:min-w-0 space-y-2">
             <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50">
               <div className="col-span-4">Company</div>
@@ -375,7 +382,8 @@ const Tracker = () => {
               <motion.div
                 key={app.id}
                 {...getTopDownAnimation(index)}
-                className="grid grid-cols-12 gap-4 items-center p-3 rounded-xl border transition-all hover:shadow-md bg-white border-gray-100 hover:border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700"
+                onClick={() => openDetails(app)}
+                className="grid grid-cols-12 gap-4 items-center p-3 rounded-xl border transition-all hover:shadow-md bg-white border-gray-100 hover:border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700 cursor-pointer"
               >
                 <div className="col-span-4 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-gray-50 border-gray-200 dark:bg-black dark:border-zinc-800">
@@ -383,15 +391,10 @@ const Tracker = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">{app.company || "Unknown Company"}</h4>
-                    <p className="text-[10px] uppercase tracking-wider opacity-60">
-                      {app.role || "-"}
-                    </p>
+                    <p className="text-[10px] uppercase tracking-wider opacity-60">{app.role || "-"}</p>
                     {app.statusDetails?.date || app.statusDetails?.round ? (
                       <p className="text-[10px] opacity-60 mt-0.5 text-blue-500">
-                        {app.statusDetails.round}{" "}
-                        {app.statusDetails.date
-                          ? `- ${formatDateDisplay(app.statusDetails.date)}`
-                          : ""}
+                        {app.statusDetails.round} {app.statusDetails.date ? `- ${formatDateDisplay(app.statusDetails.date)}` : ""}
                       </p>
                     ) : null}
                   </div>
@@ -402,25 +405,13 @@ const Tracker = () => {
                     const Icon = match?.icon || Globe;
                     return <Icon size={14} />;
                   })()}
-                  <span className="text-xs font-medium">
-                    {PLATFORMS.find((p) => p.id === app.source)?.label}
-                  </span>
+                  <span className="text-xs font-medium">{PLATFORMS.find((p) => p.id === app.source)?.label}</span>
                 </div>
-                <div className="col-span-3 flex items-center gap-2">
+                <div className="col-span-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                   <StatusSelect status={app.status} onChange={(v) => handleStatusChange(app, v)} />
-                  <Tooltip content="Edit Status Details">
-                    <button
-                      onClick={() => navigate(`/tracker/${app.id || app._id}`)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                    >
-                      <Edit3 size={12} className="opacity-50" />
-                    </button>
-                  </Tooltip>
                 </div>
-                <div className="col-span-2 text-xs font-mono opacity-60">
-                  {formatDateDisplay(app.appliedDate)}
-                </div>
-                <div className="col-span-1 flex justify-end">
+                <div className="col-span-2 text-xs font-mono opacity-60">{formatDateDisplay(app.appliedDate)}</div>
+                <div className="col-span-1 flex justify-end" onClick={(e) => e.stopPropagation()}>
                   <Tooltip content="Delete Application">
                     <button
                       onClick={() => handleDelete(app)}
@@ -435,22 +426,18 @@ const Tracker = () => {
           </div>
         </div>
 
-        {!showListSkeleton && displayedApps.length === 0 && (
-          <div className={`text-sm p-6 rounded-xl border text-center ${colors.card}`}>
-            No applications found.
-          </div>
-        )}
+        {!showListSkeleton && displayedApps.length === 0 ? (
+          <div className={`text-sm p-6 rounded-xl border text-center ${colors.card}`}>No applications found.</div>
+        ) : null}
 
-        {!showListSkeleton && totalPages > 1 && (
+        {!showListSkeleton && totalPages > 1 ? (
           <div className="flex items-center justify-between mt-4 pb-8 md:pb-0 pt-4 border-t border-dashed border-gray-500/20">
             <Tooltip content="Previous Page" disabled={currentPage === 1}>
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  currentPage === 1
-                    ? "opacity-30 cursor-not-allowed"
-                    : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+                  currentPage === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-gray-50 dark:hover:bg-zinc-800"
                 } ${colors.secondary}`}
               >
                 Previous
@@ -473,10 +460,107 @@ const Tracker = () => {
               </button>
             </Tooltip>
           </div>
-        )}
+        ) : null}
       </div>
 
+      <AnimatePresence>
+        {selectedApp ? (
+          <motion.div
+            key="tracker-detail-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedApp(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
+            >
+              <button
+                onClick={() => setSelectedApp(null)}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
 
+              <div className="mb-6">
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight">{selectedApp.company || "Unknown Company"}</h2>
+                <p className="text-[10px] uppercase tracking-widest opacity-50 mt-1">{selectedApp.role || "Role Unspecified"}</p>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-dashed border-gray-500/20">
+                <label className="block">
+                  <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Status</span>
+                  <Select
+                    value={detailsStatus}
+                    onChange={setDetailsStatus}
+                    options={APPLICATION_STATUSES.filter((s) => s.id !== "all")}
+                    className="w-full"
+                  />
+                </label>
+
+                {showInterviewFields ? (
+                  <div className="space-y-4 pt-2">
+                    <LabeledInput
+                      label="Round"
+                      value={detailsForm.round}
+                      onChange={(e) => setDetailsForm({ ...detailsForm, round: e.target.value })}
+                      inputClassName={colors.input}
+                      placeholder="e.g. Technical, HR"
+                    />
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Date</label>
+                        <input
+                          type="date"
+                          value={detailsForm.date || ""}
+                          onChange={(e) => setDetailsForm({ ...detailsForm, date: e.target.value })}
+                          className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Time</label>
+                        <input
+                          type="time"
+                          value={detailsForm.time || ""}
+                          onChange={(e) => setDetailsForm({ ...detailsForm, time: e.target.value })}
+                          className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
+                        />
+                      </div>
+                    </div>
+
+                    <label className="block">
+                      <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Mode</span>
+                      <Select
+                        value={detailsForm.mode || "online"}
+                        onChange={(v) => setDetailsForm({ ...detailsForm, mode: v })}
+                        options={[
+                          { id: "online", label: "Online" },
+                          { id: "offline", label: "Offline" },
+                        ]}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-6">
+                <Button variant="secondary" onClick={() => setSelectedApp(null)} className="w-auto">
+                  Close
+                </Button>
+                <Button onClick={handleSaveDetails} disabled={isDetailsSaving} className="w-auto">
+                  {isDetailsSaving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </motion.div>
   );
 };

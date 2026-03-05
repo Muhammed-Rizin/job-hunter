@@ -50,6 +50,14 @@ const Profile = () => {
         toast.error("Please set a target count for the challenge");
         return;
       }
+      if (Number(tempGoal.targetCount) <= 0) {
+        toast.error("Target count must be greater than 0");
+        return;
+      }
+      if (tempGoal.startDate > tempGoal.targetDate) {
+        toast.error("Start date must be before or equal to target end date");
+        return;
+      }
 
       const goalTitle =
         tempGoal.title || tempGoal.targetRole || `Apply to ${tempGoal.targetCount} jobs`;
@@ -59,6 +67,7 @@ const Profile = () => {
 
       const profilePayload = {
         name: tempProfile.name,
+        image: tempProfile.image,
         title: tempProfile.title,
         email: tempProfile.email,
         mobile: tempProfile.mobile,
@@ -77,7 +86,7 @@ const Profile = () => {
         updateActiveGoal({
           title: goalTitle,
           targetRole: tempGoal.targetRole,
-          targetCount: tempGoal.targetCount,
+          targetCount: Number(tempGoal.targetCount),
           startDate: tempGoal.startDate,
           targetDate: tempGoal.targetDate,
         }),

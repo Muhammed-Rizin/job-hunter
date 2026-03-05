@@ -46,8 +46,11 @@ const ProfileSummary = ({ profile, goal, currentCount, bouncedCount, progress, s
               Goal: {goal.title || goal.targetRole || "Challenge"}
             </h3>
             <p className="text-[10px] uppercase tracking-widest opacity-50 mb-4">
-              Target: {goal.targetCount} jobs by{" "}
+              Window: {goal.startDate ? formatDateDisplay(goal.startDate) : "TBD"} to{" "}
               {goal.targetDate ? formatDateDisplay(goal.targetDate) : "TBD"}
+            </p>
+            <p className="text-[10px] uppercase tracking-widest opacity-50 mb-4">
+              Target: {goal.targetCount || 0} jobs
             </p>
 
             <div className="grid grid-cols-2 gap-4">
@@ -121,9 +124,17 @@ const ProfileSummary = ({ profile, goal, currentCount, bouncedCount, progress, s
                 PDF Document
               </p>
             </div>
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
-              <Download size={14} />
-            </button>
+            {profile.resumeLink ? (
+              <a
+                href={profile.resumeLink}
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                aria-label="Download resume"
+              >
+                <Download size={14} />
+              </a>
+            ) : null}
           </div>
         </div>
       </div>

@@ -38,6 +38,13 @@ const ProfileEditForm = ({
         onChange={(e) => setTempProfile({ ...tempProfile, title: e.target.value })}
         inputClassName={colors.input}
       />
+      <LabeledInput
+        label="Profile Image URL"
+        placeholder="https://..."
+        value={tempProfile.image || ""}
+        onChange={(e) => setTempProfile({ ...tempProfile, image: e.target.value })}
+        inputClassName={colors.input}
+      />
 
       <div className="md:col-span-2 mt-2">
         <h3 className="font-bold border-b pb-2 mb-2 opacity-50 text-[10px] uppercase tracking-widest">
@@ -106,7 +113,7 @@ const ProfileEditForm = ({
         inputClassName={colors.input}
       />
       <p className="md:col-span-2 text-[10px] uppercase tracking-widest opacity-50">
-        Link must be public and point to a PDF under 3 MB.
+        Resume link must be public and point to a PDF under 3 MB.
       </p>
       <LabeledInput
         label="Resume File Name"

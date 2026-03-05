@@ -26,6 +26,11 @@ export const ProfileProvider = ({ children }) => {
     pendingApps: 0,
     offerApps: 0,
     appsToday: 0,
+    mailSentTotal: 0,
+    mailSuccessfulTotal: 0,
+    goalWindowApplied: 0,
+    goalWindowStart: "",
+    goalWindowEnd: "",
   });
   const profileLoadedRef = useRef(false);
 

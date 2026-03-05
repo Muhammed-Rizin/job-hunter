@@ -6,7 +6,10 @@ import StatusSelect from "@/features/applications/components/StatusSelect";
 
 const TrackerCard = ({ app, colors, onDelete, onStatusChange, onDetails }) => {
   return (
-    <div className={`p-3 rounded-2xl border ${colors.card} shadow-sm transition-shadow hover:shadow-md`}>
+    <div
+      onClick={() => onDetails?.(app)}
+      className={`p-3 rounded-2xl border ${colors.card} shadow-sm transition-shadow hover:shadow-md cursor-pointer`}
+    >
       <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-3 overflow-hidden">
           <div
@@ -27,7 +30,10 @@ const TrackerCard = ({ app, colors, onDelete, onStatusChange, onDetails }) => {
         </div>
         <Tooltip content="Delete Application">
           <button
-            onClick={() => onDelete?.(app)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(app);
+            }}
             className="text-gray-400 hover:text-red-500 transition-colors p-1"
             aria-label="Delete application"
           >
@@ -45,14 +51,6 @@ const TrackerCard = ({ app, colors, onDelete, onStatusChange, onDetails }) => {
           <span className="mr-auto">
             {PLATFORMS.find((p) => p.id === app.source)?.label || app.source}
           </span>
-          <Tooltip content="Open Status Details">
-            <button
-              onClick={() => onDetails?.(app)}
-              className="text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100"
-            >
-              Details
-            </button>
-          </Tooltip>
         </div>
         {app.statusDetails?.date || app.statusDetails?.round || app.statusDetails?.mode ? (
           <div className="text-[10px] opacity-60">
@@ -67,7 +65,7 @@ const TrackerCard = ({ app, colors, onDelete, onStatusChange, onDetails }) => {
           </div>
         ) : null}
         <div className="flex items-center gap-3">
-          <div className="flex-1">
+          <div className="flex-1" onClick={(e) => e.stopPropagation()}>
             <StatusSelect
               status={app.status}
               onChange={(v) => onStatusChange?.(app, v)}
