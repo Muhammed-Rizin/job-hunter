@@ -41,7 +41,7 @@ export const list = asyncErrorHandler(async (req, res) => {
   return new Response(
     "Applications fetched",
     {
-      data,
+      applications: data,
       meta: {
         total,
         page: resolvedPage,

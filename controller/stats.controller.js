@@ -14,16 +14,20 @@ export const getCounts = asyncErrorHandler(async (req, res) => {
   const appliedApps = allApps.length - bouncedApps;
   const offerApps = allApps.filter((a) => a.status === "offer").length;
   const appsToday = allApps.filter((a) => a.appliedDate === todayStr).length;
+  const interviews = allApps.filter((a) =>
+    ["interview", "technical", "hr_contact"].includes(a.status),
+  ).length;
 
   return new Response(
     "Counts fetched",
     {
-      totalApps: appliedApps,
+      totalApps: allApps.length,
       appliedApps,
       bouncedApps,
       pendingApps,
       offerApps,
       appsToday,
+      interviews,
     },
     200,
   );
