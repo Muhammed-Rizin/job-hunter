@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Edit3, Globe, Search, SortDesc, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useApplications } from "@/features/applications/context/ApplicationsContext";
 import { APPLICATION_STATUSES, PLATFORMS } from "@/features/applications/constants/job.constants";
@@ -56,10 +56,7 @@ const Tracker = () => {
   const [queryPending, setQueryPending] = useState(true);
   const hasMountedPageRef = useRef(false);
 
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [detailsApp, setDetailsApp] = useState(null);
-  const [detailsStatus, setDetailsStatus] = useState("");
-  const [detailsForm, setDetailsForm] = useState({ round: "", mode: "online", date: "", time: "" });
+  const navigate = useNavigate();
 
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
@@ -172,26 +169,12 @@ const Tracker = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [currentPage]);
 
-  const openDetails = (app, statusOverride) => {
-    setDetailsApp(app);
-    setDetailsStatus(statusOverride || app.status);
-    setDetailsForm(app.statusDetails || { round: "", mode: "online", date: "", time: "" });
-    setDetailsOpen(true);
-  };
-
-  const saveDetails = async () => {
-    if (!detailsApp) return;
+  const handleStatusChange = async (app, newStatus) => {
     if (updateApplicationStatus) {
-      await updateApplicationStatus(detailsApp.id, detailsStatus, detailsForm);
+      await updateApplicationStatus(app.id, newStatus, app.statusDetails || {});
     } else {
-      setApplications((prev) =>
-        prev.map((p) =>
-          p.id === detailsApp.id ? { ...p, status: detailsStatus, statusDetails: detailsForm } : p,
-        ),
-      );
+      setApplications(prev => prev.map(p => p.id === app.id ? { ...p, status: newStatus } : p));
     }
-    setDetailsOpen(false);
-    toast.success("Details Updated");
   };
 
   const handleCreate = async () => {
@@ -226,9 +209,8 @@ const Tracker = () => {
     }
   };
 
-  const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(
-    detailsStatus,
-  );
+
+
   const showListSkeleton = activeTab === "all" && (queryPending || applicationsLoading);
 
   return (
@@ -425,10 +407,10 @@ const Tracker = () => {
                   </span>
                 </div>
                 <div className="col-span-3 flex items-center gap-2">
-                  <StatusSelect status={app.status} onChange={(v) => openDetails(app, v)} />
+                  <StatusSelect status={app.status} onChange={(v) => handleStatusChange(app, v)} />
                   <Tooltip content="Edit Status Details">
                     <button
-                      onClick={() => openDetails(app)}
+                      onClick={() => navigate(`/tracker/${app.id || app._id}`)}
                       className="p-1 hover:bg-gray-100 rounded"
                     >
                       <Edit3 size={12} className="opacity-50" />
@@ -460,7 +442,7 @@ const Tracker = () => {
         )}
 
         {!showListSkeleton && totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-dashed border-gray-500/20">
+          <div className="flex items-center justify-between mt-4 pb-8 md:pb-0 pt-4 border-t border-dashed border-gray-500/20">
             <Tooltip content="Previous Page" disabled={currentPage === 1}>
               <button
                 disabled={currentPage === 1}
@@ -494,106 +476,7 @@ const Tracker = () => {
         )}
       </div>
 
-      {detailsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`w-full max-w-md rounded-2xl border p-5 shadow-2xl ${colors.card}`}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-bold tracking-wide">Status Details</h3>
-              <button onClick={() => setDetailsOpen(false)}>
-                <X size={18} className="opacity-50 hover:opacity-100" />
-              </button>
-            </div>
 
-            <div className="space-y-4">
-              <label className="block">
-                <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
-                  Status
-                </span>
-                <Select
-                  value={detailsStatus}
-                  onChange={setDetailsStatus}
-                  options={APPLICATION_STATUSES.filter((s) => s.id !== "all")}
-                  className="w-full"
-                />
-              </label>
-
-              {showInterviewFields && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="space-y-4 pt-2 border-t border-dashed border-gray-500/20"
-                >
-                  <LabeledInput
-                    label="Round"
-                    value={detailsForm.round}
-                    onChange={(e) => setDetailsForm({ ...detailsForm, round: e.target.value })}
-                    inputClassName={colors.input}
-                    placeholder="e.g. Technical, HR"
-                  />
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
-                        Date
-                      </label>
-                      <input
-                        type="date"
-                        value={detailsForm.date}
-                        onChange={(e) => setDetailsForm({ ...detailsForm, date: e.target.value })}
-                        className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
-                        Time
-                      </label>
-                      <input
-                        type="time"
-                        value={detailsForm.time}
-                        onChange={(e) => setDetailsForm({ ...detailsForm, time: e.target.value })}
-                        className={`w-full p-3 rounded-xl text-sm font-medium outline-none ${colors.input}`}
-                      />
-                    </div>
-                  </div>
-
-                  <label className="block">
-                    <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
-                      Mode
-                    </span>
-                    <Select
-                      value={detailsForm.mode}
-                      onChange={(v) => setDetailsForm({ ...detailsForm, mode: v })}
-                      options={[
-                        { id: "online", label: "Online" },
-                        { id: "offline", label: "Offline" },
-                      ]}
-                    />
-                  </label>
-                </motion.div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-4">
-                <button
-                  onClick={() => setDetailsOpen(false)}
-                  className={`px-4 py-2 text-xs border rounded-lg ${colors.secondary}`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveDetails}
-                  className={`px-4 py-2 text-xs rounded-lg ${colors.primary}`}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </motion.div>
   );
 };

@@ -8,17 +8,18 @@ import { DEFAULT_PROFILE, normalizeProfile } from "@/features/profile/utils/prof
 
 const ProfileContext = createContext(null);
 
-const DEFAULT_GOAL = {
+const initGoal = {
+  title: "",
   targetDate: "",
+  startDate: "",
   targetRole: "",
   targetCount: 0,
-  title: "",
 };
 
 export const ProfileProvider = ({ children }) => {
   const { user } = useAuth();
   const [profile, setProfileState] = useLocalStorage("jh_profile_v6", DEFAULT_PROFILE);
-  const [goal, setGoalState] = useLocalStorage("jh_goal_v2", DEFAULT_GOAL);
+  const [goal, setGoalState] = useLocalStorage("jh_goal_v2", initGoal);
   const [stats, setStats] = useState({
     totalApps: 0,
     bouncedApps: 0,

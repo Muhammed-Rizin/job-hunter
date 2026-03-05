@@ -142,7 +142,14 @@ const ProfileEditForm = ({
         inputClassName={colors.input}
       />
       <LabeledInput
-        label="Target Date"
+        label="Target Start Date"
+        type="date"
+        value={tempGoal.startDate}
+        onChange={(e) => setTempGoal({ ...tempGoal, startDate: e.target.value })}
+        inputClassName={colors.input}
+      />
+      <LabeledInput
+        label="Target End Date"
         type="date"
         value={tempGoal.targetDate}
         onChange={(e) => setTempGoal({ ...tempGoal, targetDate: e.target.value })}

@@ -38,8 +38,12 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       if (isSaving) return;
+      if (!tempGoal?.startDate) {
+        toast.error("Please set a start date for the challenge");
+        return;
+      }
       if (!tempGoal?.targetDate) {
-        toast.error("Please set a target date for the challenge");
+        toast.error("Please set a target end date for the challenge");
         return;
       }
       if (!tempGoal?.targetCount) {
@@ -74,6 +78,7 @@ const Profile = () => {
           title: goalTitle,
           targetRole: tempGoal.targetRole,
           targetCount: tempGoal.targetCount,
+          startDate: tempGoal.startDate,
           targetDate: tempGoal.targetDate,
         }),
       ]);
@@ -84,8 +89,8 @@ const Profile = () => {
       }
 
       const profileData =
-        profileResponse?.data || profileResponse?.user || profileResponse?.profile;
-      const goalData = goalResponse?.data || goalResponse?.goal;
+        profileResponse?.data?.data || profileResponse?.data || profileResponse?.user || profileResponse?.profile;
+      const goalData = goalResponse?.data?.data || goalResponse?.data || goalResponse?.goal;
 
       if (profileData) {
         setProfile(profileData);

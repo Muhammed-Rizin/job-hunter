@@ -58,6 +58,8 @@ const Planning = () => {
     customPitch: "",
   });
 
+  const [createFormStatus, setCreateFormStatus] = useState("pending");
+
   useEffect(() => {
     if (error) toast.error("Failed to fetch plans");
   }, [error]);
@@ -77,7 +79,7 @@ const Planning = () => {
 
   const handleDelete = async (id, e) => {
     e?.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this plan?")) return;
+    if (!confirm("Delete?")) return;
     try {
       await deletePlan(id);
       toast.success("Plan deleted");
@@ -91,7 +93,7 @@ const Planning = () => {
     e.preventDefault();
     if (!newLead.companyName) return toast.error("Company Name is required");
     try {
-      await createPlan(newLead);
+      await createPlan({ ...newLead, status: createFormStatus });
       toast.success("Lead created successfully");
       setIsCreateModalOpen(false);
       setNewLead({
@@ -107,10 +109,25 @@ const Planning = () => {
         portalType: "",
         customPitch: "",
       });
+      setCreateFormStatus("pending");
     } catch (error) {
       toast.error("Failed to create lead");
     }
   };
+
+  const statusOptions = [
+    { id: "all", label: "All Status" },
+    { id: "pending", label: "Pending" },
+    { id: "applied", label: "Applied" },
+    { id: "bounced", label: "Bounced" },
+  ];
+
+  const priorityOptions = [
+    { id: "all", label: "All Priority" },
+    { id: "High", label: "High" },
+    { id: "Medium", label: "Medium" },
+    { id: "Low", label: "Low" },
+  ];
 
   const copyPitch = (pitch, e) => {
     e?.stopPropagation();
@@ -212,24 +229,14 @@ const Planning = () => {
               <Select
                 value={filterStatus}
                 onChange={setFilterStatus}
-                options={[
-                  { id: "all", label: "Status" },
-                  { id: "pending", label: "Pending" },
-                  { id: "applied", label: "Applied" },
-                  { id: "bounced", label: "Bounced" },
-                ]}
+                options={statusOptions}
               />
             </div>
             <div className="flex-1 md:w-40">
               <Select
                 value={filterPriority}
                 onChange={setFilterPriority}
-                options={[
-                  { id: "all", label: "Priority" },
-                  { id: "High", label: "High" },
-                  { id: "Medium", label: "Medium" },
-                  { id: "Low", label: "Low" },
-                ]}
+                options={priorityOptions}
               />
             </div>
             <button
@@ -407,13 +414,20 @@ const Planning = () => {
       {/* DETAIL MODAL */}
       <AnimatePresence>
         {selectedPlan && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedPlan(null)}>
+          <motion.div 
+            key="detail-modal"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" 
+            onClick={() => setSelectedPlan(null)}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
+              className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
             >
               <button 
                 onClick={() => setSelectedPlan(null)}
@@ -505,20 +519,27 @@ const Planning = () => {
                  </div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
       {/* CREATE MODAL */}
       <AnimatePresence>
         {isCreateModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsCreateModalOpen(false)}>
+          <motion.div 
+            key="create-modal"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" 
+            onClick={() => setIsCreateModalOpen(false)}
+          >
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
+              className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
             >
               <h2 className="text-3xl font-black mb-8 tracking-tighter">New Opportunity</h2>
               
@@ -585,12 +606,14 @@ const Planning = () => {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Tech Stack</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        placeholder="e.g. MERN, Angular"
-                        value={newLead.techStack} 
-                        onChange={(e) => setNewLead({...newLead, techStack: e.target.value})}
+                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Current Status</label>
+                      <Select 
+                        value={createFormStatus}
+                        onChange={setCreateFormStatus}
+                        options={[
+                          { id: "pending", label: "Pending" },
+                          { id: "applied", label: "Applied" }
+                        ]}
                       />
                   </div>
                   <div className="space-y-1">
@@ -600,6 +623,18 @@ const Planning = () => {
                         placeholder="e.g. Workday, Greenhouse"
                         value={newLead.portalType} 
                         onChange={(e) => setNewLead({...newLead, portalType: e.target.value})}
+                      />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-1 gap-4">
+                  <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Tech Stack</label>
+                      <input 
+                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                        placeholder="e.g. MERN, Angular"
+                        value={newLead.techStack} 
+                        onChange={(e) => setNewLead({...newLead, techStack: e.target.value})}
                       />
                   </div>
                 </div>
@@ -641,7 +676,7 @@ const Planning = () => {
                 </div>
               </form>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 

@@ -1,7 +1,8 @@
 import { Calendar, Trash2 } from "lucide-react";
-import { APPLICATION_STATUSES, PLATFORMS } from "@/features/applications/constants/job.constants";
+import { PLATFORMS } from "@/features/applications/constants/job.constants";
 import { formatDateDisplay } from "@/shared/utils/date";
 import Tooltip from "@/shared/components/common/Tooltip";
+import StatusSelect from "@/features/applications/components/StatusSelect";
 
 const TrackerCard = ({ app, colors, onDelete, onStatusChange, onDetails }) => {
   return (
@@ -66,17 +67,12 @@ const TrackerCard = ({ app, colors, onDelete, onStatusChange, onDetails }) => {
           </div>
         ) : null}
         <div className="flex items-center gap-3">
-          <select
-            className={`custom-select px-3 py-2 rounded-xl outline-none font-bold text-xs uppercase tracking-wide ${colors.input} flex-1`}
-            value={app.status}
-            onChange={(e) => onStatusChange?.(app, e.target.value)}
-          >
-            {APPLICATION_STATUSES.filter((s) => s.id !== "all").map((status) => (
-              <option key={status.id} value={status.id}>
-                {status.label}
-              </option>
-            ))}
-          </select>
+          <div className="flex-1">
+            <StatusSelect
+              status={app.status}
+              onChange={(v) => onStatusChange?.(app, v)}
+            />
+          </div>
           <div className="flex items-center gap-1 opacity-50 text-[10px] font-mono font-bold">
             <Calendar size={10} />
             <span>{formatDateDisplay(app.appliedDate)}</span>

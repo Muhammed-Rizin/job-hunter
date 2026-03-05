@@ -22,17 +22,28 @@ const Dashboard = () => {
     : 0;
 
   // Safe access for stats to prevent production crashes
-  const totalSuccessful = stats?.totalApps || 0;
+  const totalSuccessful = stats?.appliedApps || 0;
   const bouncedCount = stats?.bouncedApps || 0;
   const pendingPlans = stats?.pendingApps || 0;
   const offerCount = stats?.offerApps || 0;
   const appsToday = stats?.appsToday || 0;
-  const totalApplied = stats?.appliedApps || 0; // Added for applied count card
+  const totalApplied = stats?.totalApps || 0; // Added for applied count card
 
   const progress =
-    goal.targetCount > 0 ? Math.min(100, (totalSuccessful / goal.targetCount) * 100) : 0;
+    goal?.targetCount > 0 ? Math.min(100, (totalSuccessful / goal.targetCount) * 100) : (totalSuccessful > 0 ? 100 : 0);
   const circumference = 351;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "offer": return "bg-green-500";
+      case "rejected": return "bg-red-500";
+      case "interview":
+      case "technical":
+      case "hr_contact": return "bg-amber-500";
+      default: return "bg-blue-500";
+    }
+  };
 
   return (
     <motion.div
@@ -94,7 +105,7 @@ const Dashboard = () => {
                     <p className="text-3xl font-mono font-bold tracking-tighter">
                       {totalSuccessful}
                     </p>
-                    <p className="text-xs opacity-30 font-bold">/ {goal.targetCount || 0}</p>
+                    {goal?.targetCount > 0 && <p className="text-xs opacity-30 font-bold">/ {goal.targetCount}</p>}
                   </div>
                   <p className={`text-[10px] uppercase tracking-widest opacity-50 font-bold mt-1`}>
                     Successful Apps
@@ -104,10 +115,10 @@ const Dashboard = () => {
             </div>
           </Card>
 
-          <div className="lg:col-span-2 grid grid-cols-2 gap-3 md:gap-4">
+          <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             <StatWidget title="Applied Today" value={appsToday} icon={Calendar} />
             <StatWidget
-              title="Applied"
+              title="Applied Total"
               value={totalApplied}
               icon={Briefcase}
               onClick={() => navigate("/tracker")}
@@ -118,11 +129,28 @@ const Dashboard = () => {
               icon={Clock}
               onClick={() => navigate("/planning")}
             />
-            <StatWidget title="Offers" value={offerCount} icon={Check} accent />
+            <StatWidget
+              title="Offers"
+              value={offerCount}
+              icon={Check}
+              accent
+            />
+            <StatWidget
+              title="Bounced"
+              value={bouncedCount}
+              icon={AlertCircle}
+              onClick={() => navigate("/tracker", { state: { activeTab: "bounced" } })}
+            />
+            <StatWidget
+              title="Successful"
+              value={totalSuccessful}
+              icon={Activity}
+              onClick={() => navigate("/tracker")}
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 mt-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
           <Card className="p-5 rounded-2xl shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-sm tracking-wide flex items-center">
@@ -137,14 +165,16 @@ const Dashboard = () => {
             </div>
             <div className="space-y-3">
               {(applications || []).slice(0, 3).map((app) => (
-                <div key={app.id} className="flex items-center justify-between">
+                <div key={app.id || app._id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-2 h-2 rounded-full ${app.status === "offer" ? "bg-green-50" : app.status === "rejected" ? "bg-red-500" : "bg-blue-500"}`}
+                      className={`w-2 h-2 rounded-full ${getStatusColor(app.status)}`}
                     ></div>
                     <div>
                       <p className="font-bold text-xs">{app.company}</p>
-                      <p className="text-[10px] opacity-50">Applied via {app.source}</p>
+                      <p className="text-[10px] opacity-50 uppercase tracking-widest font-black">
+                        {app.status.replace('_', ' ')}
+                      </p>
                     </div>
                   </div>
                   <span className="text-[10px] font-mono opacity-50">
@@ -152,6 +182,49 @@ const Dashboard = () => {
                   </span>
                 </div>
               ))}
+              {(!applications || applications.length === 0) && (
+                <p className="text-xs opacity-50 py-4 text-center">No recent activity</p>
+              )}
+            </div>
+          </Card>
+
+          <Card className="p-5 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-sm tracking-wide flex items-center">
+                <Briefcase size={16} className="mr-2 opacity-50" /> Active Processes
+              </h3>
+              <button
+                className="text-[10px] font-bold uppercase opacity-50 hover:opacity-100"
+                onClick={() => navigate("/tracker")}
+              >
+                View Pipeline
+              </button>
+            </div>
+            <div className="space-y-3">
+              {applications
+                ?.filter((app) => ["interview", "technical", "hr_contact"].includes(app.status))
+                .slice(0, 3)
+                .map((app) => (
+                  <div key={app.id || app._id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-gray-50 dark:bg-black border-gray-200 dark:border-zinc-800">
+                        <span className="font-bold text-xs">{(app.company || "?").charAt(0)}</span>
+                      </div>
+                      <div>
+                        <p className="font-bold text-xs">{app.company}</p>
+                        <p className="text-[10px] text-amber-500 uppercase tracking-widest font-black">
+                          {app.statusDetails?.round || app.status.replace('_', ' ')}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-1 rounded-md">
+                      {app.statusDetails?.date ? formatDateDisplay(app.statusDetails.date) : "Pending"}
+                    </span>
+                  </div>
+                ))}
+              {applications?.filter((app) => ["interview", "technical", "hr_contact"].includes(app.status)).length === 0 && (
+                <p className="text-xs opacity-50 py-4 text-center">No active interviews</p>
+              )}
             </div>
           </Card>
         </div>

@@ -83,15 +83,30 @@ export async function post(url, data, config = {}) {
 }
 
 export async function put(url, data, config = {}) {
-  return axiosApi.put(url, { ...data }, { ...config }).then((response) => response.data?.data ?? response.data);
+  return axiosApi
+    .put(url, { ...data }, { ...config })
+    .then((response) => response.data?.data ?? response.data)
+    .catch((error) => {
+      throw error?.response?.data || error;
+    });
 }
 
 export async function patch(url, data, config = {}) {
-  return axiosApi.patch(url, { ...data }, { ...config }).then((response) => response.data?.data ?? response.data);
+  return axiosApi
+    .patch(url, { ...data }, { ...config })
+    .then((response) => response.data?.data ?? response.data)
+    .catch((error) => {
+      throw error?.response?.data || error;
+    });
 }
 
 export async function del(url, config = {}) {
-  return await axiosApi.delete(url, { ...config }).then((response) => response.data?.data ?? response.data);
+  return await axiosApi
+    .delete(url, { ...config })
+    .then((response) => response.data?.data ?? response.data)
+    .catch((error) => {
+      throw error?.response?.data || error;
+    });
 }
 
 export const refreshToken = async () => {

@@ -4,6 +4,7 @@ import AuthPage from "@/features/auth/pages/AuthPage";
 import OAuthCallbackPage from "@/features/auth/pages/OAuthCallbackPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import TrackerPage from "@/features/applications/pages/TrackerPage";
+import ApplicationDetailPage from "@/features/applications/pages/ApplicationDetailPage";
 import PlanningPage from "@/features/planning/pages/PlanningPage";
 import MailWizardPage from "@/features/mail/pages/MailWizardPage";
 import MailMenuPage from "@/features/mail/pages/MailMenuPage";
@@ -43,6 +44,7 @@ const AppRoutes = () => {
       <Route element={<MainLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="tracker" element={<TrackerPage />} />
+        <Route path="tracker/:id" element={<ApplicationDetailPage />} />
         <Route path="planning" element={<PlanningPage />} />
         <Route path="mail" element={<MailWizardPage />}>
           <Route index element={<MailMenuPage />} />
