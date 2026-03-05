@@ -7,6 +7,7 @@ router.use(auth);
 
 router.get("/", controller.list);
 router.post("/", controller.create);
+router.put("/", controller.update);
 router.delete("/:id", controller.del);
 
 export default router;

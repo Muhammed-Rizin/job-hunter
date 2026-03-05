@@ -9,6 +9,7 @@ const schema = new Schema(
     title: String,
     targetRole: String,
     targetCount: { type: Number, required: true },
+    startDate: { type: String, required: true },
     targetDate: { type: String, required: true },
 
     isActive: { type: Boolean, default: true },

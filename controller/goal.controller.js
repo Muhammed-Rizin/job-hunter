@@ -19,6 +19,13 @@ export const getActive = asyncErrorHandler(async (req, res) => {
     isActive: true,
   }).sort({ updatedAt: -1 });
 
+  if (data && isNull(data.startDate)) {
+    const fallbackStartDate = normalizeDate(data.createdAt) || normalizeDate(data.date);
+    if (fallbackStartDate) {
+      data.startDate = fallbackStartDate;
+    }
+  }
+
   return new Response("Active goal fetched", { data }, 200);
 });
 
@@ -27,20 +34,26 @@ export const getActive = asyncErrorHandler(async (req, res) => {
  * @route   PUT /goals/active
  */
 export const upsertActive = asyncErrorHandler(async (req, res) => {
-  const { id, title, targetRole, targetCount, targetDate } = req.body || {};
+  const { id, title, targetRole, targetCount, startDate, targetDate } = req.body || {};
 
   if (isNull(targetCount)) throw new Error("Target count required", 400);
   const numericTargetCount = Number(targetCount);
   if (Number.isNaN(numericTargetCount) || numericTargetCount <= 0) {
     throw new Error("Target count must be greater than 0", 400);
   }
+  if (isNull(startDate)) throw new Error("Start date required", 400);
   if (isNull(targetDate)) throw new Error("Target date required", 400);
   if (isNull(title) && isNull(targetRole)) {
     throw new Error("Goal title or target role required", 400);
   }
 
-  const normalizedDate = normalizeDate(targetDate);
-  if (!normalizedDate) throw new Error("Invalid target date", 400);
+  const normalizedStartDate = normalizeDate(startDate);
+  if (!normalizedStartDate) throw new Error("Invalid start date", 400);
+  const normalizedTargetDate = normalizeDate(targetDate);
+  if (!normalizedTargetDate) throw new Error("Invalid target date", 400);
+  if (normalizedStartDate > normalizedTargetDate) {
+    throw new Error("Start date must be before or equal to target date", 400);
+  }
 
   await models.Goal.updateMany(
     { user: req.user._id, status: 0, isActive: true },
@@ -51,7 +64,8 @@ export const upsertActive = asyncErrorHandler(async (req, res) => {
     title: title || targetRole,
     targetRole,
     targetCount: numericTargetCount,
-    targetDate: normalizedDate,
+    startDate: normalizedStartDate,
+    targetDate: normalizedTargetDate,
     isActive: true,
     upDate: getDate(),
     upTime: getTime(),
