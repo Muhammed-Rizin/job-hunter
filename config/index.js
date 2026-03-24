@@ -4,6 +4,8 @@ export const IS_DEVELOPMENT = NODE_ENV === "development";
 
 export const PORT = process.env.PORT || 4000;
 export const DATABASE_URL = process.env.DATABASE_URL;
+export const DEFAULT_USER_EMAIL = process.env.DEFAULT_USER_EMAIL;
+
 
 export const MAIL_USER = process.env.MAIL_USER;
 export const MAIL_PASS = process.env.MAIL_PASS;

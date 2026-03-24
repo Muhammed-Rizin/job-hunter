@@ -26,6 +26,11 @@ const schema = new Schema(
     portalType: String,  // e.g. "Workday", "Lever", "Greenhouse", "LinkedIn"
     customPitch: String, // Pre-generated 3-sentence elevator pitch
 
+    // Role Details (Enhanced Tracking)
+    isRemote: { type: Boolean, default: false },
+    isRecentlyPosted: { type: Boolean, default: true }, // Within 1 week
+    roleTitle: String, // Specific role title (Manager, Senior Dev, etc.)
+
     // For any additional data the agent or user wants to store
     details: { type: Schema.Types.Mixed, default: {} },
 

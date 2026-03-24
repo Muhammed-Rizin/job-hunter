@@ -6,3 +6,4 @@ yarn.lock
 /scripts/legacy/
 
 STANDARD_COVER_LETTER.md
+applications/

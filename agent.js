@@ -8,7 +8,10 @@ import fs from "fs";
 import path from "path";
 import chalk from "chalk";
 
-const DEFAULT_USER_EMAIL = "rizin7427@gmail.com";
+import { DEFAULT_USER_EMAIL as CONFIG_EMAIL } from "./config/index.js";
+
+const DEFAULT_USER_EMAIL = CONFIG_EMAIL;
+
 const DEFAULT_COVER_LETTER_FILE = "STANDARD_COVER_LETTER.md";
 
 const ALLOWED_SOURCES = new Set(["mail", "linkedin", "indeed", "naukri", "website"]);
@@ -56,7 +59,9 @@ const parseJsonFlag = (args, flag, fallback = null) => {
 };
 
 const toSafeSource = (source) => {
-  const normalized = String(source || "").trim().toLowerCase();
+  const normalized = String(source || "")
+    .trim()
+    .toLowerCase();
   return ALLOWED_SOURCES.has(normalized) ? normalized : "mail";
 };
 
@@ -80,9 +85,39 @@ const loadCoverLetterTemplate = () => {
   return fs.readFileSync(file, "utf8");
 };
 
-const renderDefaultCoverLetter = ({ company, role }) => {
-  const template = loadCoverLetterTemplate();
-  return template.replace(/{{company}}/g, company || "Company").replace(/{{role}}/g, role || "Developer");
+const renderDefaultCoverLetter = ({ company, role, customPitch, theHook }) => {
+  let body = loadCoverLetterTemplate();
+
+  body = body
+    .replace(/{{company}}/g, company || "Company")
+    .replace(/{{role}}/g, role || "Developer");
+
+  // Inject Custom Pitch or Winning Move (The Hook) dynamically
+  const pitch = customPitch || theHook;
+  const pitchMarker = "**Key Highlights of my Experience:**";
+
+  if (pitch && body.includes(pitchMarker)) {
+    const customizedSection = `**Why I am a Great Fit for ${company}:**\n${pitch}\n\n${pitchMarker}`;
+    body = body.replace(pitchMarker, customizedSection);
+  }
+
+  // Save each application as a new unique .md file in the /applications directory
+  const safeCompanyName = company.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+  const timestamp = new Date().getTime();
+  const filename = `${safeCompanyName}_${timestamp}.md`;
+  const appLogPath = path.join(process.cwd(), "applications", filename);
+
+  try {
+    if (!fs.existsSync(path.join(process.cwd(), "applications"))) {
+      fs.mkdirSync(path.join(process.cwd(), "applications"));
+    }
+    fs.writeFileSync(appLogPath, body, "utf8");
+    log.info(`Application letter saved to: /applications/${filename}`);
+  } catch (err) {
+    log.warn(`Could not save application file: ${err.message}`);
+  }
+
+  return body;
 };
 
 const resolveAgentUser = async (args) => {
@@ -103,7 +138,9 @@ const findDuplicateByRecipient = async ({ userId, to }) => {
 
 const validateApplicationStatus = (status) => {
   if (!ALLOWED_APP_STATUSES.has(status)) {
-    throw new Error(`Invalid status '${status}'. Allowed: ${Array.from(ALLOWED_APP_STATUSES).join(", ")}`);
+    throw new Error(
+      `Invalid status '${status}'. Allowed: ${Array.from(ALLOWED_APP_STATUSES).join(", ")}`,
+    );
   }
 };
 
@@ -167,6 +204,9 @@ const normalizePlanPayload = (raw = {}) => {
     theHook: String(raw.theHook || "").trim(),
     portalType: String(raw.portalType || "").trim(),
     customPitch: String(raw.customPitch || "").trim(),
+    isRemote: Boolean(raw.isRemote),
+    isRecentlyPosted: raw.isRecentlyPosted !== undefined ? Boolean(raw.isRecentlyPosted) : true,
+    roleTitle: String(raw.roleTitle || "").trim(),
     details: raw.details && typeof raw.details === "object" ? raw.details : {},
     status,
   };
@@ -193,7 +233,9 @@ const listPlans = async ({ user, status = "all", limit = 20 }) => {
   const query = { user: user._id, statusFlag: 0 };
   if (status && status !== "all") query.status = status;
 
-  const plans = await models.Plan.find(query).sort({ createdAt: -1 }).limit(Math.max(1, Math.min(limit, 200)));
+  const plans = await models.Plan.find(query)
+    .sort({ createdAt: -1 })
+    .limit(Math.max(1, Math.min(limit, 200)));
 
   if (plans.length === 0) {
     log.warn("No plans found.");
@@ -201,16 +243,27 @@ const listPlans = async ({ user, status = "all", limit = 20 }) => {
   }
 
   plans.forEach((plan, idx) => {
-    log.info(`${idx + 1}. ${plan.companyName} | ${plan.status} | ${plan.priority} | ${plan.email || "no-email"} | ${plan._id}`);
+    log.info(
+      `${idx + 1}. ${plan.companyName} | ${plan.status} | ${plan.priority} | ${plan.email || "no-email"} | ${plan._id}`,
+    );
   });
 };
 
 const buildApplyPayload = ({ plan, custom = {} }) => {
-  const role = String(custom.role || plan?.techStack || "Developer").trim() || "Developer";
+  const role =
+    String(custom.role || plan?.roleTitle || plan?.techStack || "Developer").trim() || "Developer";
   const company = String(custom.company || plan?.companyName || "").trim();
   const to = normalizeEmail(custom.to || plan?.email || "");
   const subject = custom.subject || `Application for ${role} role - Muhammed Rizin`;
-  const body = custom.body || renderDefaultCoverLetter({ company, role });
+
+  const body =
+    custom.body ||
+    renderDefaultCoverLetter({
+      company,
+      role,
+      customPitch: plan?.customPitch,
+      theHook: plan?.theHook,
+    });
 
   return {
     to,
@@ -248,6 +301,7 @@ const sendApplication = async ({ user, payload, dryRun = false }) => {
         company: payload.company,
         role: payload.role,
         subject: payload.subject,
+        body: payload.body,
       },
     };
   }
@@ -295,7 +349,8 @@ const processPendingPlans = async ({ args, user }) => {
   const ordered = pendingPlans
     .slice()
     .sort((a, b) => {
-      const priorityDiff = (PRIORITY_WEIGHT[a.priority] || 99) - (PRIORITY_WEIGHT[b.priority] || 99);
+      const priorityDiff =
+        (PRIORITY_WEIGHT[a.priority] || 99) - (PRIORITY_WEIGHT[b.priority] || 99);
       if (priorityDiff !== 0) return priorityDiff;
       return new Date(a.createdAt) - new Date(b.createdAt);
     })
@@ -434,7 +489,12 @@ const handleApplyCommand = async ({ args, user }) => {
   }
 
   if (result.dryRun) {
-    log.info(`Dry run preview: ${result.preview.company} -> ${result.preview.to} | ${result.preview.subject}`);
+    log.info(
+      `Dry run preview: ${result.preview.company} -> ${result.preview.to} | ${result.preview.subject}`,
+    );
+    console.log(chalk.gray("--- Body Start ---"));
+    console.log(result.preview.body);
+    console.log(chalk.gray("--- Body End ---"));
     return;
   }
 
@@ -481,7 +541,9 @@ const handleApplicationCommand = async ({ args, user }) => {
     }
 
     apps.forEach((app, idx) => {
-      log.info(`${idx + 1}. ${app.company} | ${app.role} | ${app.status} | ${app.mail?.to || "-"} | ${app._id}`);
+      log.info(
+        `${idx + 1}. ${app.company} | ${app.role} | ${app.status} | ${app.mail?.to || "-"} | ${app._id}`,
+      );
     });
     return;
   }
@@ -501,7 +563,10 @@ const handleApplicationCommand = async ({ args, user }) => {
       appliedDate: payload.appliedDate || getCurrentLocalDate(),
       notes: String(payload.notes || "").trim(),
       mail: payload.mail && typeof payload.mail === "object" ? payload.mail : {},
-      statusDetails: payload.statusDetails && typeof payload.statusDetails === "object" ? payload.statusDetails : {},
+      statusDetails:
+        payload.statusDetails && typeof payload.statusDetails === "object"
+          ? payload.statusDetails
+          : {},
       user: user._id,
     });
 
@@ -533,7 +598,8 @@ const handleApplicationCommand = async ({ args, user }) => {
     const email = normalizeEmail(getArgValue(args, "--update-by-email"));
     const payload = parseJsonFlag(args, "--json");
     if (!email) throw new Error("--update-by-email requires an email");
-    if (!payload || Array.isArray(payload)) throw new Error("--update-by-email expects a JSON object");
+    if (!payload || Array.isArray(payload))
+      throw new Error("--update-by-email expects a JSON object");
 
     const updatePayload = buildAppUpdatePayload(payload);
     const result = await models.Application.updateMany(
@@ -548,7 +614,9 @@ const handleApplicationCommand = async ({ args, user }) => {
       );
     }
 
-    log.success(`Applications updated by email (${email}). Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+    log.success(
+      `Applications updated by email (${email}). Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`,
+    );
     return;
   }
 
@@ -597,7 +665,11 @@ const handleSyncCommand = async ({ args, user }) => {
 
   if (hasFlag(args, "--plans")) {
     log.info("Syncing pending plans with existing application history...");
-    const pendingPlans = await models.Plan.find({ user: user._id, status: "pending", statusFlag: 0 });
+    const pendingPlans = await models.Plan.find({
+      user: user._id,
+      status: "pending",
+      statusFlag: 0,
+    });
 
     let synced = 0;
     for (const plan of pendingPlans) {
@@ -631,7 +703,9 @@ const handleCleanupCommand = async ({ args, user }) => {
   }
 
   log.info("Scanning for duplicate applications by company/role/source...");
-  const apps = await models.Application.find({ user: user._id, statusFlag: 0 }).sort({ createdAt: -1 });
+  const apps = await models.Application.find({ user: user._id, statusFlag: 0 }).sort({
+    createdAt: -1,
+  });
 
   const seen = new Set();
   const toDelete = [];
