@@ -9,6 +9,9 @@ import { orchestrateBatch } from "./services/automation.service.js";
 import { syncInbox } from "./services/inbox.service.js";
 import { log, getArgValue, parseJson, resolveUser } from "./helper/cli.js";
 import { setupErrorHandlers } from "./helper/error.js";
+import { readFileSync, writeFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 import chalk from "chalk";
 
 // Global Error Handling for CLI
@@ -23,6 +26,8 @@ const run = async () => {
     console.log("  apply --plan <id> [--json '{...}']");
     console.log("  apply --pending [--limit 10] [--target 5] [--proceed]");
     console.log("  sync --mails [--bounced]");
+    console.log("  status --today");
+    console.log("  user --profile");
     process.exit(0);
   }
 
@@ -34,16 +39,23 @@ const run = async () => {
       if (process.argv.includes("--add")) {
         const payload = parseJson("--json");
         const res = await createLead(user._id, payload);
-        res.skipped ? log.warn(res.reason) : log.success(`Lead added: ${res.plan.companyName}`);
+        res.skipped
+          ? log.warn(res.reason)
+          : log.success(`Lead added: ${res.plan.companyName} [ID: ${res.plan._id}]`);
       } else if (process.argv.includes("--bulk")) {
         const payload = parseJson("--json");
         let created = 0,
           skipped = 0;
         for (const item of payload) {
           const res = await createLead(user._id, item);
-          res.skipped ? skipped++ : created++;
+          if (!res.skipped) {
+            log.success(`Lead added: ${res.plan.companyName} [ID: ${res.plan._id}]`);
+            created++;
+          } else {
+            skipped++;
+          }
         }
-        log.success(`Bulk complete. Added: ${created}, Skipped: ${skipped}`);
+        log.info(`Bulk complete. Total Added: ${created}, Skipped: ${skipped}`);
       }
     } else if (command === "apply") {
       if (process.argv.includes("--pending")) {
@@ -101,6 +113,44 @@ const run = async () => {
       }
       if (res.bounced.length === 0 && res.replies.length === 0) {
         log.info("Inbox is clean. No new bounces or replies detected.");
+      }
+    } else if (command === "status") {
+      if (process.argv.includes("--today")) {
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const apps = await models.Application.find({
+          createdAt: { $gte: startOfToday, $lte: endOfToday },
+        });
+        const plans = await models.Plan.find({
+          createdAt: { $gte: startOfToday, $lte: endOfToday },
+        });
+
+        console.log(chalk.bold(`\nToday's Activity [${startOfToday.toDateString()}]:`));
+
+        log.success(`Applications Sent: ${apps.length}`);
+        apps.forEach((a) =>
+          console.log(`  - ${chalk.cyan(a.company)}: ${a.status} (${a.mail.to}) [ID: ${a._id}]`),
+        );
+
+        console.log("");
+        log.info(`New Leads Planned: ${plans.length}`);
+        plans.forEach((p) =>
+          console.log(
+            `  - ${chalk.yellow(p.companyName)}: ${p.status} (${p.email || "No Email"}) [ID: ${p._id}]`,
+          ),
+        );
+      }
+    } else if (command === "user") {
+      if (process.argv.includes("--profile")) {
+        console.log(chalk.cyan("\nUser Profile:"));
+        console.log(`  Name:    ${user.name}`);
+        console.log(`  Email:   ${user.email}`);
+        console.log(`  Title:   ${user.title}`);
+        console.log(`  Resume:  ${user.resumeName}`);
+        console.log(`  Link:    ${user.resumeLink}`);
       }
     }
 

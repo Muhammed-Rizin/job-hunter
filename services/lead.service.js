@@ -1,5 +1,7 @@
 import models from "../model/index.js";
 
+const isNull = (val) => val === undefined || val === null || val === "";
+
 /**
  * @desc    Check for duplicate leads by company name (case-insensitive)
  */
@@ -27,10 +29,12 @@ export const createLead = async (userId, payload) => {
   }
 
   const plan = await models.Plan.create({
+    role: "Fullstack", // Default role if missing
     ...payload,
     user: userId,
     companyName,
     status: payload.status || "pending",
+    statusFlag: 0,
   });
 
   return { skipped: false, plan };
@@ -39,13 +43,19 @@ export const createLead = async (userId, payload) => {
 /**
  * @desc    Fetch leads ready for application
  */
-export const getPendingLeads = async (userId, { limit = 10, hasEmail = true } = {}) => {
+export const getLeads = async (userId, { limit = 10, hasEmail = false, status = "all" } = {}) => {
   const query = {
     user: userId,
     statusFlag: 0,
-    status: "pending",
   };
-  if (hasEmail) query.email = { $nin: [null, "", "null"] };
+
+  if (status !== "all") {
+    query.status = status;
+  }
+
+  if (hasEmail) {
+    query.email = { $nin: [null, "", "null"] };
+  }
 
   return await models.Plan.find(query).sort({ createdAt: -1 }).limit(limit);
 };
@@ -61,4 +71,17 @@ export const updateLeadStatus = async (userId, leadId, update) => {
   );
   if (!updated) throw new Error("Lead not found", 404);
   return updated;
+};
+
+/**
+ * @desc    Soft delete a lead
+ */
+export const deleteLead = async (userId, leadId) => {
+  const deleted = await models.Plan.findOneAndUpdate(
+    { _id: leadId, user: userId, statusFlag: 0 },
+    { statusFlag: 1 },
+    { new: true },
+  );
+  if (!deleted) throw new Error("Lead not found", 404);
+  return deleted;
 };

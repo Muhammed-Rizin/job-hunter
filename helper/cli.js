@@ -13,7 +13,21 @@ export const getArgValue = (flag) => {
   return idx !== -1 ? process.argv[idx + 1] : null;
 };
 
+import { readFileSync } from "fs";
+
 export const parseJson = (flag) => {
+  const fileFlag = flag === "--json" ? "--file" : null;
+  const filePath = fileFlag ? getArgValue(fileFlag) : null;
+  
+  if (filePath) {
+    try {
+      const content = readFileSync(filePath, "utf-8");
+      return JSON.parse(content);
+    } catch (err) {
+      throw new Error(`Invalid JSON in file ${filePath}: ${err.message}`);
+    }
+  }
+
   const val = getArgValue(flag);
   try {
     return val ? JSON.parse(val) : null;
