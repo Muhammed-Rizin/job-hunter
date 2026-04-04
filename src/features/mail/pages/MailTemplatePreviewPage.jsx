@@ -31,7 +31,7 @@ const MailTemplatePreview = () => {
 
   const template = useMemo(
     () => templates.find((item) => String(item.id) === String(templateId)),
-    [templates, templateId],
+    [templates, templateId]
   );
 
   useEffect(() => {
@@ -92,7 +92,10 @@ const MailTemplatePreview = () => {
   return (
     <MailPageLayout className="pb-32">
       <MailBackButton to={`/mail/templates/${template.id}`} />
-      <motion.div variants={containerVariants} className="flex flex-col min-h-[60vh] md:min-h-[70vh]">
+      <motion.div
+        variants={containerVariants}
+        className="flex flex-col min-h-[60vh] md:min-h-[70vh]"
+      >
         <motion.div variants={itemVariants}>
           <GmailPreview
             content={content}

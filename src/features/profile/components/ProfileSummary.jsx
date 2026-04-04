@@ -1,7 +1,14 @@
 import { ArrowUpRight, Download, FileText } from "lucide-react";
 import { formatDateDisplay } from "@/shared/utils/date";
 
-const ProfileSummary = ({ profile, goal, currentCount, bouncedCount, progress, strokeDashoffset }) => {
+const ProfileSummary = ({
+  profile,
+  goal,
+  currentCount,
+  bouncedCount,
+  progress,
+  strokeDashoffset,
+}) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gray-500/10 pt-6 mt-4">
       <div className="space-y-6">

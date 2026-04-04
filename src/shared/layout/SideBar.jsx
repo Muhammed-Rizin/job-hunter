@@ -28,7 +28,7 @@ const SideBar = () => {
 
   return (
     <Card
-      className="hidden md:flex flex-col w-20 lg:w-64 m-4 h-[calc(100vh-2rem)]"
+      className="hidden md:flex flex-col w-20 lg:w-64 m-4 h-[calc(100vh-2rem)] z-40"
       variants={{
         initial: { x: -30, opacity: 0 },
         animate: { x: 0, opacity: 1 },

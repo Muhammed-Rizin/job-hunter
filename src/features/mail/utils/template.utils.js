@@ -1,13 +1,7 @@
 export const getTemplateVariables = (template) => {
   if (!template) return [];
   const text = `${template.body || ""} ${template.subject || ""}`;
-  return [
-    ...new Set(
-      [...text.matchAll(/{{(.*?)}}/g)]
-        .map((match) => match[1])
-        .filter(Boolean),
-    ),
-  ];
+  return [...new Set([...text.matchAll(/{{(.*?)}}/g)].map((match) => match[1]).filter(Boolean))];
 };
 
 export const compileTemplate = (template, vars = {}) => {

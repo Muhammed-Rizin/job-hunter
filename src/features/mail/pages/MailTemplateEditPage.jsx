@@ -13,7 +13,7 @@ const MailTemplateEdit = () => {
 
   const template = useMemo(
     () => templates.find((item) => String(item.id) === String(templateId)),
-    [templates, templateId],
+    [templates, templateId]
   );
 
   if (!template) {

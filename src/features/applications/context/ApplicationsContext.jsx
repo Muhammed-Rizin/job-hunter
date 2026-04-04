@@ -61,7 +61,7 @@ export const ApplicationsProvider = ({ children }) => {
         setApplicationsLoading(false);
       }
     },
-    [fetchStats, setApplications, user],
+    [fetchStats, setApplications, user]
   );
 
   const createApplication = useCallback(
@@ -72,7 +72,7 @@ export const ApplicationsProvider = ({ children }) => {
       }
       return record;
     },
-    [fetchApplications],
+    [fetchApplications]
   );
 
   const updateApplicationStatus = useCallback(
@@ -81,7 +81,7 @@ export const ApplicationsProvider = ({ children }) => {
       await updateApplicationRecordStatus(id, status, statusDetails);
       await fetchApplications(queryRef.current);
     },
-    [fetchApplications],
+    [fetchApplications]
   );
 
   const deleteApplication = useCallback(
@@ -90,7 +90,7 @@ export const ApplicationsProvider = ({ children }) => {
       await deleteApplicationRecord(id);
       await fetchApplications(queryRef.current);
     },
-    [fetchApplications],
+    [fetchApplications]
   );
 
   const value = useMemo(
@@ -115,7 +115,7 @@ export const ApplicationsProvider = ({ children }) => {
       fetchApplications,
       setApplications,
       updateApplicationStatus,
-    ],
+    ]
   );
 
   return <ApplicationsContext.Provider value={value}>{children}</ApplicationsContext.Provider>;

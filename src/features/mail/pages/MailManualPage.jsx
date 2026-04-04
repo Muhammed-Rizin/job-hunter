@@ -109,10 +109,7 @@ const MailManual = () => {
               placeholder="Optional notes (e.g., referral, follow-up, etc.)"
             />
           </label>
-          <Button
-            onClick={handleSave}
-            className="mt-4"
-          >
+          <Button onClick={handleSave} className="mt-4">
             Save Record
           </Button>
         </Card>

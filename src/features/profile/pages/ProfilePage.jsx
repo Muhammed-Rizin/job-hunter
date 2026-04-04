@@ -98,7 +98,10 @@ const Profile = () => {
       }
 
       const profileData =
-        profileResponse?.data?.data || profileResponse?.data || profileResponse?.user || profileResponse?.profile;
+        profileResponse?.data?.data ||
+        profileResponse?.data ||
+        profileResponse?.user ||
+        profileResponse?.profile;
       const goalData = goalResponse?.data?.data || goalResponse?.data || goalResponse?.goal;
 
       if (profileData) {
@@ -124,10 +127,7 @@ const Profile = () => {
       variants={containerVariants}
       className="h-full"
     >
-      <motion.div
-        variants={itemVariants}
-        className="max-w-4xl mx-auto space-y-4"
-      >
+      <motion.div variants={itemVariants} className="max-w-4xl mx-auto space-y-4">
         <div className={`p-5 md:p-8 rounded-3xl border shadow-sm ${colors.card}`}>
           <ProfileHeader
             isEditing={isEditing}

@@ -15,9 +15,7 @@ const CreateTemplateView = ({
   initialTemplate = null,
   submitLabel = "Save Template",
 }) => {
-  const [template, setTemplate] = useState(
-    initialTemplate || { name: "", subject: "", body: "" },
-  );
+  const [template, setTemplate] = useState(initialTemplate || { name: "", subject: "", body: "" });
 
   const handleSave = () => {
     if (!template.name || !template.body) {

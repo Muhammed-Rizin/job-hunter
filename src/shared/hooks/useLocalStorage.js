@@ -31,7 +31,7 @@ const useLocalStorage = (key, initialValue) => {
         // ignore write errors
       }
     },
-    [key],
+    [key]
   );
 
   // Sync across tabs/windows

@@ -28,14 +28,12 @@ const ApplicationDetailPage = () => {
     if (found) {
       setApp(found);
       setDetailsStatus(found.status || "applied");
-      setDetailsForm(
-        found.statusDetails || { round: "", mode: "online", date: "", time: "" }
-      );
+      setDetailsForm(found.statusDetails || { round: "", mode: "online", date: "", time: "" });
     }
   }, [id, applications, bouncedApps]);
 
   const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(
-    detailsStatus,
+    detailsStatus
   );
 
   useEffect(() => {

@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { useProfile } from "@/features/profile/context/ProfileContext";
 import { useApplications } from "@/features/applications/context/ApplicationsContext";
@@ -60,7 +68,7 @@ export const MailWizardProvider = ({ children }) => {
         setTemplateSaving(false);
       }
     },
-    [normalizeTemplate, setTemplates],
+    [normalizeTemplate, setTemplates]
   );
 
   const updateTemplate = useCallback(
@@ -76,7 +84,7 @@ export const MailWizardProvider = ({ children }) => {
         setTemplateSaving(false);
       }
     },
-    [normalizeTemplate, setTemplates],
+    [normalizeTemplate, setTemplates]
   );
 
   const deleteTemplate = useCallback(
@@ -85,7 +93,7 @@ export const MailWizardProvider = ({ children }) => {
       await deleteTemplateRecord(id);
       setTemplates((prev) => prev.filter((tpl) => tpl.id !== id));
     },
-    [setTemplates],
+    [setTemplates]
   );
 
   useEffect(() => {
@@ -106,14 +114,14 @@ export const MailWizardProvider = ({ children }) => {
 
       variables.forEach((variable) => {
         const profileKey = profileKeys.find(
-          (key) => key.toLowerCase() === variable.toLowerCase().replace(/\s/g, ""),
+          (key) => key.toLowerCase() === variable.toLowerCase().replace(/\s/g, "")
         );
         initialVars[variable] = profileKey ? profile[profileKey] : "";
       });
 
       return initialVars;
     },
-    [profile],
+    [profile]
   );
 
   const addApplication = useCallback(
@@ -121,7 +129,7 @@ export const MailWizardProvider = ({ children }) => {
       const appliedDate = payload.appliedDate || new Date().toISOString().split("T")[0];
       return createApplication({ ...payload, appliedDate });
     },
-    [createApplication],
+    [createApplication]
   );
 
   const value = useMemo(
@@ -158,7 +166,7 @@ export const MailWizardProvider = ({ children }) => {
       activeTemplateId,
       templateVars,
       buildTemplateVars,
-    ],
+    ]
   );
 
   return <MailWizardContext.Provider value={value}>{children}</MailWizardContext.Provider>;

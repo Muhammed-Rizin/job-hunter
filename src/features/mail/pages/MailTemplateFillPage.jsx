@@ -34,7 +34,7 @@ const MailTemplateFill = () => {
 
   const template = useMemo(
     () => templates.find((item) => String(item.id) === String(templateId)),
-    [templates, templateId],
+    [templates, templateId]
   );
 
   useEffect(() => {

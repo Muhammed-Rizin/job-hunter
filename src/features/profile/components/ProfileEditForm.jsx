@@ -1,12 +1,6 @@
 import LabeledInput from "@/shared/components/common/LabeledInput";
 
-const ProfileEditForm = ({
-  tempProfile,
-  setTempProfile,
-  tempGoal,
-  setTempGoal,
-  colors,
-}) => {
+const ProfileEditForm = ({ tempProfile, setTempProfile, tempGoal, setTempGoal, colors }) => {
   return (
     <div className="grid md:grid-cols-2 gap-4 animate-slide-up">
       <div className="md:col-span-2">

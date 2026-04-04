@@ -9,17 +9,11 @@ const GmailPreview = ({
   missingVars = [],
 }) => {
   return (
-    <div
-      className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-zinc-700 flex flex-col h-full max-h-[85vh] md:max-h-full"
-    >
-      <div
-        className="px-4 py-3 flex items-center justify-between shrink-0 bg-[#f2f2f2] text-gray-700 dark:bg-[#202124] dark:text-gray-200"
-      >
+    <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-zinc-700 flex flex-col h-full max-h-[85vh] md:max-h-full">
+      <div className="px-4 py-3 flex items-center justify-between shrink-0 bg-[#f2f2f2] text-gray-700 dark:bg-[#202124] dark:text-gray-200">
         <div className="text-sm font-bold tracking-tight">New Message</div>
       </div>
-      <div
-        className="p-5 flex-1 flex flex-col overflow-y-auto bg-white text-gray-800 dark:bg-[#1b1b1b] dark:text-gray-200"
-      >
+      <div className="p-5 flex-1 flex flex-col overflow-y-auto bg-white text-gray-800 dark:bg-[#1b1b1b] dark:text-gray-200">
         {missingVars.length > 0 ? (
           <div className="mb-4 p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 text-xs flex items-start gap-2">
             <AlertCircle size={14} className="mt-0.5" />
@@ -50,9 +44,7 @@ const GmailPreview = ({
         </div>
 
         {profile.resumeName ? (
-          <div
-            className="mt-auto mb-4 flex items-center gap-3 p-3 rounded-xl border w-full max-w-sm bg-gray-50 border-gray-200 dark:bg-zinc-800/50 dark:border-zinc-700"
-          >
+          <div className="mt-auto mb-4 flex items-center gap-3 p-3 rounded-xl border w-full max-w-sm bg-gray-50 border-gray-200 dark:bg-zinc-800/50 dark:border-zinc-700">
             <div className="p-2.5 bg-red-500/10 rounded-lg text-red-500">
               <FileText size={18} />
             </div>
@@ -66,9 +58,7 @@ const GmailPreview = ({
           </div>
         ) : null}
       </div>
-      <div
-        className="p-4 flex items-center justify-between border-t shrink-0 bg-white border-gray-100 dark:bg-[#1b1b1b] dark:border-zinc-800"
-      >
+      <div className="p-4 flex items-center justify-between border-t shrink-0 bg-white border-gray-100 dark:bg-[#1b1b1b] dark:border-zinc-800">
         <button
           onClick={handleSend}
           disabled={sending}

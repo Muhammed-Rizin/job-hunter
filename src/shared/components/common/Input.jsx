@@ -5,7 +5,10 @@ const Input = React.forwardRef(
     return (
       <div className={`relative ${containerClass}`}>
         {Icon && (
-          <Icon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+          <Icon
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500"
+          />
         )}
         <input
           ref={ref}
@@ -21,7 +24,7 @@ const Input = React.forwardRef(
         />
       </div>
     );
-  },
+  }
 );
 
 Input.displayName = "Input";

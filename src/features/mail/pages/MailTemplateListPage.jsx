@@ -52,9 +52,7 @@ const MailTemplateList = () => {
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <h4 className="font-bold text-sm tracking-wide mb-1 truncate">
-                    {template.name}
-                  </h4>
+                  <h4 className="font-bold text-sm tracking-wide mb-1 truncate">{template.name}</h4>
                   <p className="text-[10px] opacity-50 truncate">{template.subject}</p>
                 </div>
                 <div className="flex items-center gap-2">

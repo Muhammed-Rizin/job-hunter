@@ -13,9 +13,7 @@ const ProfileHeader = ({
   return (
     <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
       <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto">
-        <div
-          className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-gray-100 bg-gray-100 dark:border-zinc-800 dark:bg-zinc-800 flex items-center justify-center text-3xl font-bold shadow-sm overflow-hidden"
-        >
+        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-gray-100 bg-gray-100 dark:border-zinc-800 dark:bg-zinc-800 flex items-center justify-center text-3xl font-bold shadow-sm overflow-hidden">
           {profile.name ? profile.name.charAt(0) : <User />}
         </div>
         <div className="text-left w-full">

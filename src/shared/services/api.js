@@ -1,7 +1,12 @@
 import axios from "axios";
 import { API_URL } from "@/shared/config/app.config";
 import { getDeviceId } from "@/shared/utils/device";
-import { clearSession, getAccessToken, getRefreshToken, setAccessToken } from "@/shared/utils/session";
+import {
+  clearSession,
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+} from "@/shared/utils/session";
 
 axios.defaults.withCredentials = true;
 
@@ -44,7 +49,11 @@ axiosApi.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if ((status === 401 || status === 403) && !originalConfig._retry && !isRefreshEndpoint(requestUrl)) {
+    if (
+      (status === 401 || status === 403) &&
+      !originalConfig._retry &&
+      !isRefreshEndpoint(requestUrl)
+    ) {
       originalConfig._retry = true;
       try {
         if (!refreshPromise) {
@@ -63,13 +72,13 @@ axiosApi.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 export async function get(url, config = {}) {
   return await axiosApi.get(url, { ...config }).then((response) => {
-      // Direct data extraction to avoid nested production issues
-      return response.data?.data ?? response.data;
+    // Direct data extraction to avoid nested production issues
+    return response.data?.data ?? response.data;
   });
 }
 
@@ -117,7 +126,7 @@ export const refreshToken = async () => {
     { refreshToken: refresh, deviceId: getDeviceId() },
     {
       headers: refresh ? { "x-refresh-token": refresh } : {},
-    },
+    }
   );
   if (response?.accessToken) setAccessToken(response.accessToken);
   return response.accessToken;

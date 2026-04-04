@@ -43,9 +43,7 @@ const Select = ({
         className={`flex items-center justify-between gap-2 p-3 h-full cursor-pointer transition-colors ${variants[variant]}`}
       >
         <div className="flex items-center gap-2 overflow-hidden">
-          {selected?.icon ? (
-            <selected.icon size={16} className="opacity-60 shrink-0" />
-          ) : null}
+          {selected?.icon ? <selected.icon size={16} className="opacity-60 shrink-0" /> : null}
           <span
             className={`text-sm font-bold tracking-wide truncate ${!selected ? "text-gray-400 dark:text-zinc-500" : "text-gray-900 dark:text-white"}`}
           >

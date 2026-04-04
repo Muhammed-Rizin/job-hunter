@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useLocalStorage from "@/shared/hooks/useLocalStorage";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { fetchActiveGoal } from "@/features/profile/services/goal.service";
@@ -45,16 +53,22 @@ export const ProfileProvider = ({ children }) => {
     }
   }, [setStats]);
 
-  const setProfile = useCallback((updater) => {
-    setProfileState((prev) => {
-      const nextValue = typeof updater === "function" ? updater(prev) : updater;
-      return normalizeProfile(nextValue);
-    });
-  }, [setProfileState]);
+  const setProfile = useCallback(
+    (updater) => {
+      setProfileState((prev) => {
+        const nextValue = typeof updater === "function" ? updater(prev) : updater;
+        return normalizeProfile(nextValue);
+      });
+    },
+    [setProfileState]
+  );
 
-  const setGoal = useCallback((updater) => {
-    setGoalState((prev) => (typeof updater === "function" ? updater(prev) : updater));
-  }, [setGoalState]);
+  const setGoal = useCallback(
+    (updater) => {
+      setGoalState((prev) => (typeof updater === "function" ? updater(prev) : updater));
+    },
+    [setGoalState]
+  );
 
   useEffect(() => {
     setProfileState((prev) => normalizeProfile(prev));
@@ -140,7 +154,7 @@ export const ProfileProvider = ({ children }) => {
       stats,
       fetchStats,
     }),
-    [fetchStats, goal, profile, setGoal, setProfile, stats],
+    [fetchStats, goal, profile, setGoal, setProfile, stats]
   );
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;

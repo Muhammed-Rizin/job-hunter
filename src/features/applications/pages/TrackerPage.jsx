@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, Search, SortDesc, Trash2, X } from "lucide-react";
+import { Globe, MoreHorizontal, Search, SortDesc, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 
@@ -9,6 +9,7 @@ import { APPLICATION_STATUSES, PLATFORMS } from "@/features/applications/constan
 import { containerVariants, itemVariants } from "@/shared/utils/animations";
 import { colors } from "@/shared/utils/theme";
 import { formatDateDisplay } from "@/shared/utils/date";
+import { confirmDelete, themeSwal } from "@/shared/utils/swal";
 import TrackerCard from "@/features/applications/components/TrackerCard";
 import StatusSelect from "@/features/applications/components/StatusSelect";
 import LabeledInput from "@/shared/components/common/LabeledInput";
@@ -50,7 +51,7 @@ const Tracker = () => {
 
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(
-    location.state?.activeTab === "bounced" ? "bounced" : "all",
+    location.state?.activeTab === "bounced" ? "bounced" : "all"
   );
 
   const [filter, setFilter] = useState("");
@@ -236,7 +237,9 @@ const Tracker = () => {
     }
   }, [detailsForm.round, detailsStatus]);
 
-  const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(detailsStatus);
+  const showInterviewFields = ["interview", "technical", "hr_contact", "offer"].includes(
+    detailsStatus
+  );
 
   const handleCreate = async () => {
     if (!createForm.company || !createForm.role) {
@@ -264,7 +267,11 @@ const Tracker = () => {
   };
 
   const handleDelete = async (app) => {
-    if (!confirm("Delete?")) return;
+    const result = await confirmDelete(
+      "Delete Application?",
+      `Are you sure you want to delete your application for ${app.company}?`
+    );
+    if (!result.isConfirmed) return;
 
     if (deleteApplication) {
       await deleteApplication(app.id || app._id);
@@ -275,6 +282,42 @@ const Tracker = () => {
     if (selectedAppId && String(selectedAppId) === String(app.id || app._id)) {
       closeModal();
     }
+    toast.success("Application removed");
+  };
+
+  const handleMoreActions = (app) => {
+    themeSwal.fire({
+      title: app.company,
+      html: `<p class="text-sm opacity-50 mb-6">${app.role}</p>`,
+      showConfirmButton: false,
+      showCloseButton: true,
+      customClass: {
+        ...themeSwal.getParams().customClass,
+        popup: `${themeSwal.getParams().customClass.popup} max-w-sm`,
+      },
+      footer: `
+        <div class="grid grid-cols-2 gap-2 w-full p-4">
+          <button id="swal-edit" class="py-3 rounded-xl bg-gray-100 dark:bg-zinc-800 font-bold text-xs uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-red-600 transition-all">Edit Details</button>
+          <button id="swal-copy" class="py-3 rounded-xl bg-gray-100 dark:bg-zinc-800 font-bold text-xs uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-red-600 transition-all">Copy Info</button>
+          <button id="swal-delete" class="col-span-2 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all mt-2">Delete Forever</button>
+        </div>
+      `,
+      didOpen: () => {
+        document.getElementById("swal-edit")?.addEventListener("click", () => {
+          themeSwal.close();
+          openDetails(app);
+        });
+        document.getElementById("swal-copy")?.addEventListener("click", () => {
+          navigator.clipboard.writeText(`${app.role} at ${app.company}`);
+          toast.success("Copied to clipboard");
+          themeSwal.close();
+        });
+        document.getElementById("swal-delete")?.addEventListener("click", () => {
+          themeSwal.close();
+          handleDelete(app);
+        });
+      },
+    });
   };
 
   const handleSaveDetails = async () => {
@@ -295,9 +338,17 @@ const Tracker = () => {
   const showListSkeleton = activeTab === "all" && (queryPending || applicationsLoading);
 
   return (
-    <motion.div initial="hidden" animate="visible" variants={containerVariants} className="h-full min-h-0 overflow-hidden">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="h-full min-h-0 overflow-hidden"
+    >
       <div className="space-y-4 h-full min-h-0 flex flex-col no-scrollbar">
-        <motion.div variants={itemVariants} className={`p-4 rounded-2xl border mb-4 ${colors.card}`}>
+        <motion.div
+          variants={itemVariants}
+          className={`p-4 rounded-2xl border mb-4 ${colors.card}`}
+        >
           <div className="flex items-center justify-between">
             <div className="flex gap-2 p-1 bg-gray-100 dark:bg-zinc-950 rounded-xl border border-gray-200 dark:border-neutral-800">
               <button
@@ -312,7 +363,9 @@ const Tracker = () => {
               >
                 Bounced{" "}
                 {bouncedApps.length > 0 ? (
-                  <span className="ml-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">{bouncedApps.length}</span>
+                  <span className="ml-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                    {bouncedApps.length}
+                  </span>
                 ) : null}
               </button>
             </div>
@@ -383,17 +436,30 @@ const Tracker = () => {
             </div>
             <div className="flex gap-2 w-full md:w-auto">
               <div className="flex-1 md:w-40">
-                <Select value={statusFilter} onChange={setStatusFilter} options={APPLICATION_STATUSES} placeholder="Status" />
+                <Select
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  options={APPLICATION_STATUSES}
+                  placeholder="Status"
+                />
               </div>
               <div className="flex-1 md:w-40">
-                <Select value={sourceFilter} onChange={setSourceFilter} options={PLATFORMS} placeholder="Source" />
+                <Select
+                  value={sourceFilter}
+                  onChange={setSourceFilter}
+                  options={PLATFORMS}
+                  placeholder="Source"
+                />
               </div>
               <Tooltip content={sortOrder === "newest" ? "Sort Oldest First" : "Sort Newest First"}>
                 <button
                   onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
                   className={`p-2.5 rounded-xl border flex items-center justify-center shrink-0 ${colors.card}`}
                 >
-                  <SortDesc size={18} className={sortOrder === "newest" ? "" : "transform rotate-180"} />
+                  <SortDesc
+                    size={18}
+                    className={sortOrder === "newest" ? "" : "transform rotate-180"}
+                  />
                 </button>
               </Tooltip>
             </div>
@@ -402,13 +468,16 @@ const Tracker = () => {
 
         {showListSkeleton ? <ListSkeleton entries={6} /> : null}
 
-        <div className={`md:hidden space-y-4 pb-4 no-scrollbar ${showListSkeleton ? "hidden" : ""}`}>
+        <div
+          className={`md:hidden space-y-4 pb-4 no-scrollbar ${showListSkeleton ? "hidden" : ""}`}
+        >
           {displayedApps.map((app, index) => (
             <motion.div key={app.id || app._id} {...getTopDownAnimation(index)}>
               <TrackerCard
                 app={app}
                 colors={colors}
                 onDelete={handleDelete}
+                onMore={handleMoreActions}
                 onStatusChange={(item, status) => openStatusModal(item, status)}
                 onDetails={(item) => openDetails(item)}
               />
@@ -416,7 +485,9 @@ const Tracker = () => {
           ))}
         </div>
 
-        <div className={`hidden md:block flex-1 min-h-0 overflow-hidden no-scrollbar ${showListSkeleton ? "md:hidden" : ""}`}>
+        <div
+          className={`hidden md:block flex-1 min-h-0 overflow-hidden no-scrollbar ${showListSkeleton ? "md:hidden" : ""}`}
+        >
           <div className="min-w-200 md:min-w-0 space-y-2">
             <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50">
               <div className="col-span-4">Company</div>
@@ -438,10 +509,15 @@ const Tracker = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">{app.company || "Unknown Company"}</h4>
-                    <p className="text-[10px] uppercase tracking-wider opacity-60">{app.role || "-"}</p>
+                    <p className="text-[10px] uppercase tracking-wider opacity-60">
+                      {app.role || "-"}
+                    </p>
                     {app.statusDetails?.date || app.statusDetails?.round ? (
                       <p className="text-[10px] opacity-60 mt-0.5 text-blue-500">
-                        {app.statusDetails.round} {app.statusDetails.date ? `- ${formatDateDisplay(app.statusDetails.date)}` : ""}
+                        {app.statusDetails.round}{" "}
+                        {app.statusDetails.date
+                          ? `- ${formatDateDisplay(app.statusDetails.date)}`
+                          : ""}
                       </p>
                     ) : null}
                   </div>
@@ -452,19 +528,37 @@ const Tracker = () => {
                     const Icon = match?.icon || Globe;
                     return <Icon size={14} />;
                   })()}
-                  <span className="text-xs font-medium">{PLATFORMS.find((p) => p.id === app.source)?.label}</span>
+                  <span className="text-xs font-medium">
+                    {PLATFORMS.find((p) => p.id === app.source)?.label}
+                  </span>
                 </div>
-                <div className="col-span-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="col-span-3 flex items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <StatusSelect status={app.status} onChange={(v) => openStatusModal(app, v)} />
                 </div>
-                <div className="col-span-2 text-xs font-mono opacity-60">{formatDateDisplay(app.appliedDate)}</div>
-                <div className="col-span-1 flex justify-end" onClick={(e) => e.stopPropagation()}>
+                <div className="col-span-2 text-xs font-mono opacity-60">
+                  {formatDateDisplay(app.appliedDate)}
+                </div>
+                <div
+                  className="col-span-1 flex justify-end items-center gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Tooltip content="More Options">
+                    <button
+                      onClick={() => handleMoreActions(app)}
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors text-gray-400"
+                    >
+                      <MoreHorizontal size={14} />
+                    </button>
+                  </Tooltip>
                   <Tooltip content="Delete Application">
                     <button
                       onClick={() => handleDelete(app)}
-                      className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-gray-400"
+                      className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-gray-400 group"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
                     </button>
                   </Tooltip>
                 </div>
@@ -474,7 +568,9 @@ const Tracker = () => {
         </div>
 
         {!showListSkeleton && displayedApps.length === 0 ? (
-          <div className={`text-sm p-6 rounded-xl border text-center ${colors.card}`}>No applications found.</div>
+          <div className={`text-sm p-6 rounded-xl border text-center ${colors.card}`}>
+            No applications found.
+          </div>
         ) : null}
 
         {!showListSkeleton && totalPages > 1 ? (
@@ -484,13 +580,17 @@ const Tracker = () => {
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  currentPage === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+                  currentPage === 1
+                    ? "opacity-30 cursor-not-allowed"
+                    : "hover:bg-gray-50 dark:hover:bg-zinc-800"
                 } ${colors.secondary}`}
               >
                 Previous
               </button>
             </Tooltip>
-            <span className="text-xs font-mono opacity-50">Page {currentPage} of {totalPages}</span>
+            <span className="text-xs font-mono opacity-50">
+              Page {currentPage} of {totalPages}
+            </span>
             <Tooltip content="Next Page" disabled={currentPage === totalPages}>
               <button
                 disabled={currentPage === totalPages}
@@ -533,13 +633,19 @@ const Tracker = () => {
               </button>
 
               <div className="mb-6">
-                <h2 className="text-2xl md:text-3xl font-black tracking-tight">{selectedApp.company || "Unknown Company"}</h2>
-                <p className="text-[10px] uppercase tracking-widest opacity-50 mt-1">{selectedApp.role || "Role Unspecified"}</p>
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+                  {selectedApp.company || "Unknown Company"}
+                </h2>
+                <p className="text-[10px] uppercase tracking-widest opacity-50 mt-1">
+                  {selectedApp.role || "Role Unspecified"}
+                </p>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-dashed border-gray-500/20">
                 <label className="block">
-                  <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Status</span>
+                  <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                    Status
+                  </span>
                   <Select
                     value={detailsStatus}
                     onChange={setDetailsStatus}
@@ -560,7 +666,9 @@ const Tracker = () => {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Date</label>
+                        <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                          Date
+                        </label>
                         <input
                           type="date"
                           value={detailsForm.date || ""}
@@ -569,7 +677,9 @@ const Tracker = () => {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Time</label>
+                        <label className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                          Time
+                        </label>
                         <input
                           type="time"
                           value={detailsForm.time || ""}
@@ -580,7 +690,9 @@ const Tracker = () => {
                     </div>
 
                     <label className="block">
-                      <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">Mode</span>
+                      <span className="text-[10px] uppercase tracking-widest opacity-50 font-bold mb-1.5 block">
+                        Mode
+                      </span>
                       <Select
                         value={detailsForm.mode || "online"}
                         onChange={(v) => setDetailsForm({ ...detailsForm, mode: v })}
@@ -595,24 +707,35 @@ const Tracker = () => {
               </div>
 
               <div className="mt-6 p-4 rounded-2xl border border-dashed border-gray-500/20">
-                <h4 className="text-[10px] uppercase tracking-widest opacity-60 font-bold mb-3">Status Change Log</h4>
+                <h4 className="text-[10px] uppercase tracking-widest opacity-60 font-bold mb-3">
+                  Status Change Log
+                </h4>
                 {historyEntries.length === 0 ? (
                   <p className="text-xs opacity-50">No status history yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {historyEntries.map((entry, idx) => (
-                      <div key={`${entry.changedAt || idx}-${idx}`} className="p-3 rounded-xl border border-gray-500/10">
+                      <div
+                        key={`${entry.changedAt || idx}-${idx}`}
+                        className="p-3 rounded-xl border border-gray-500/10"
+                      >
                         <p className="text-[10px] uppercase tracking-widest font-bold opacity-60">
                           {entry.fromStatus ? statusLabel(entry.fromStatus) : "Initial"} to{" "}
                           {statusLabel(entry.toStatus)}
                         </p>
                         <p className="text-[10px] font-mono opacity-50 mt-1">
-                          {entry.changedAt ? new Date(entry.changedAt).toLocaleString() : "Unknown time"}
+                          {entry.changedAt
+                            ? new Date(entry.changedAt).toLocaleString()
+                            : "Unknown time"}
                         </p>
-                        {entry.statusDetails?.round || entry.statusDetails?.date || entry.statusDetails?.time ? (
+                        {entry.statusDetails?.round ||
+                        entry.statusDetails?.date ||
+                        entry.statusDetails?.time ? (
                           <p className="text-[10px] opacity-60 mt-1">
                             {entry.statusDetails?.round ? `${entry.statusDetails.round}` : ""}
-                            {entry.statusDetails?.date ? ` | ${formatDateDisplay(entry.statusDetails.date)}` : ""}
+                            {entry.statusDetails?.date
+                              ? ` | ${formatDateDisplay(entry.statusDetails.date)}`
+                              : ""}
                             {entry.statusDetails?.time ? ` ${entry.statusDetails.time}` : ""}
                             {entry.statusDetails?.mode ? ` | ${entry.statusDetails.mode}` : ""}
                           </p>

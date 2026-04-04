@@ -39,7 +39,7 @@ export const PlanningProvider = ({ children }) => {
       await fetchPlans();
       return data;
     },
-    [fetchPlans],
+    [fetchPlans]
   );
 
   const markApplied = useCallback(
@@ -47,7 +47,7 @@ export const PlanningProvider = ({ children }) => {
       await markPlanAsApplied(id);
       await fetchPlans();
     },
-    [fetchPlans],
+    [fetchPlans]
   );
 
   const deletePlan = useCallback(
@@ -55,7 +55,7 @@ export const PlanningProvider = ({ children }) => {
       await deletePlanRecord(id);
       await fetchPlans();
     },
-    [fetchPlans],
+    [fetchPlans]
   );
 
   return (

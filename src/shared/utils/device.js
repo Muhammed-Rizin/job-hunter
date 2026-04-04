@@ -5,8 +5,7 @@ export const getDeviceId = () => {
   let deviceId = window.localStorage.getItem(DEVICE_ID_KEY);
   if (!deviceId) {
     deviceId =
-      window.crypto?.randomUUID?.() ||
-      `dev-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      window.crypto?.randomUUID?.() || `dev-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     window.localStorage.setItem(DEVICE_ID_KEY, deviceId);
   }
   return deviceId;

@@ -70,7 +70,7 @@ const Planning = () => {
       await markApplied(id);
       toast.success("Marked as applied");
       if (selectedPlan && selectedPlan._id === id) {
-          setSelectedPlan(prev => ({...prev, status: 'applied'}));
+        setSelectedPlan((prev) => ({ ...prev, status: "applied" }));
       }
     } catch (error) {
       toast.error("Failed to update status");
@@ -215,7 +215,10 @@ const Planning = () => {
       <motion.div variants={itemVariants} className="flex flex-col gap-3">
         <div className="flex flex-col md:flex-row gap-2">
           <div className="relative flex-1 group">
-            <Search className="absolute left-3 top-3 opacity-30 group-focus-within:opacity-100 transition-opacity" size={16} />
+            <Search
+              className="absolute left-3 top-3 opacity-30 group-focus-within:opacity-100 transition-opacity"
+              size={16}
+            />
             <input
               type="text"
               placeholder="Search leads, stacks or portals..."
@@ -226,11 +229,7 @@ const Planning = () => {
           </div>
           <div className="flex gap-2 w-full md:w-auto">
             <div className="flex-1 md:w-40">
-              <Select
-                value={filterStatus}
-                onChange={setFilterStatus}
-                options={statusOptions}
-              />
+              <Select value={filterStatus} onChange={setFilterStatus} options={statusOptions} />
             </div>
             <div className="flex-1 md:w-40">
               <Select
@@ -414,12 +413,12 @@ const Planning = () => {
       {/* DETAIL MODAL */}
       <AnimatePresence>
         {selectedPlan && (
-          <motion.div 
+          <motion.div
             key="detail-modal"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={() => setSelectedPlan(null)}
           >
             <motion.div
@@ -429,7 +428,7 @@ const Planning = () => {
               onClick={(e) => e.stopPropagation()}
               className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
             >
-              <button 
+              <button
                 onClick={() => setSelectedPlan(null)}
                 className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
@@ -441,82 +440,123 @@ const Planning = () => {
                   <Briefcase size={28} />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{selectedPlan.companyName}</h2>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">{selectedPlan.portalType || 'General'} Lead</p>
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                    {selectedPlan.companyName}
+                  </h2>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">
+                    {selectedPlan.portalType || "General"} Lead
+                  </p>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mb-8">
-                 <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
-                      <MapPin size={18} className="text-slate-400" />
-                      <span className="text-sm font-bold uppercase tracking-wide">{selectedPlan.location || 'Location Not Specified'}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
-                      <DollarSign size={18} className="text-slate-400" />
-                      <span className="text-sm font-bold uppercase tracking-wide">{selectedPlan.package || 'Budget Not Specified'}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
-                      <Zap size={18} className="text-slate-400" />
-                      <span className="text-sm font-bold uppercase tracking-wide">{selectedPlan.techStack || 'Stack Not Specified'}</span>
-                    </div>
-                 </div>
-                 <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
-                      <Mail size={18} className="text-slate-400" />
-                      <span className="text-sm font-mono">{selectedPlan.email || 'No email provided'}</span>
-                    </div>
-                    {selectedPlan.jobLink && (
-                       <a href={selectedPlan.jobLink} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-blue-500 hover:underline">
-                         <Globe size={18} />
-                         <span className="text-sm font-black uppercase tracking-widest">Visit Job Portal <ExternalLink size={12} className="inline ml-1"/></span>
-                       </a>
-                    )}
-                 </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                    <MapPin size={18} className="text-slate-400" />
+                    <span className="text-sm font-bold uppercase tracking-wide">
+                      {selectedPlan.location || "Location Not Specified"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                    <DollarSign size={18} className="text-slate-400" />
+                    <span className="text-sm font-bold uppercase tracking-wide">
+                      {selectedPlan.package || "Budget Not Specified"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                    <Zap size={18} className="text-slate-400" />
+                    <span className="text-sm font-bold uppercase tracking-wide">
+                      {selectedPlan.techStack || "Stack Not Specified"}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                    <Mail size={18} className="text-slate-400" />
+                    <span className="text-sm font-mono">
+                      {selectedPlan.email || "No email provided"}
+                    </span>
+                  </div>
+                  {selectedPlan.jobLink && (
+                    <a
+                      href={selectedPlan.jobLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-3 text-blue-500 hover:underline"
+                    >
+                      <Globe size={18} />
+                      <span className="text-sm font-black uppercase tracking-widest">
+                        Visit Job Portal <ExternalLink size={12} className="inline ml-1" />
+                      </span>
+                    </a>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-6">
                 {selectedPlan.customPitch && (
                   <div className="p-6 bg-red-600/5 rounded-3xl border border-red-500/10">
                     <div className="flex justify-between items-center mb-3">
-                       <h4 className="text-xs font-black uppercase tracking-widest text-red-500">Elevator Pitch</h4>
-                       <button onClick={(e) => copyPitch(selectedPlan.customPitch, e)} className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-800 border border-red-500/20 rounded-full text-[10px] font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm cursor-pointer">
-                          <Copy size={12} /> Copy
-                       </button>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-red-500">
+                        Elevator Pitch
+                      </h4>
+                      <button
+                        onClick={(e) => copyPitch(selectedPlan.customPitch, e)}
+                        className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-zinc-800 border border-red-500/20 rounded-full text-[10px] font-bold text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm cursor-pointer"
+                      >
+                        <Copy size={12} /> Copy
+                      </button>
                     </div>
-                    <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed italic font-medium">"{selectedPlan.customPitch}"</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed italic font-medium">
+                      "{selectedPlan.customPitch}"
+                    </p>
                   </div>
                 )}
 
                 {selectedPlan.theHook && (
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-2 flex items-center gap-2">
-                       <Zap size={14} /> The Hook
+                      <Zap size={14} /> The Hook
                     </h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{selectedPlan.theHook}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                      {selectedPlan.theHook}
+                    </p>
                   </div>
                 )}
 
                 {selectedPlan.winningMove && (
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2 flex items-center gap-2">
-                       <Trophy size={14} /> Winning Move
+                      <Trophy size={14} /> Winning Move
                     </h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{selectedPlan.winningMove}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                      {selectedPlan.winningMove}
+                    </p>
                   </div>
                 )}
               </div>
 
               <div className="mt-10 pt-6 border-t border-slate-100 dark:border-zinc-800 flex justify-between items-center">
-                 <div className="text-slate-400 text-[10px] font-mono uppercase">
-                    Added: {new Date(selectedPlan.createdAt).toLocaleString()}
-                 </div>
-                 <div className="flex gap-3">
-                   <Button variant="secondary" onClick={() => setSelectedPlan(null)} className="w-auto">Close</Button>
-                   {selectedPlan.status === 'pending' && (
-                     <Button onClick={(e) => handleMarkApplied(selectedPlan._id, e)} className="w-auto">Mark as Applied</Button>
-                   )}
-                 </div>
+                <div className="text-slate-400 text-[10px] font-mono uppercase">
+                  Added: {new Date(selectedPlan.createdAt).toLocaleString()}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setSelectedPlan(null)}
+                    className="w-auto"
+                  >
+                    Close
+                  </Button>
+                  {selectedPlan.status === "pending" && (
+                    <Button
+                      onClick={(e) => handleMarkApplied(selectedPlan._id, e)}
+                      className="w-auto"
+                    >
+                      Mark as Applied
+                    </Button>
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -526,12 +566,12 @@ const Planning = () => {
       {/* CREATE MODAL */}
       <AnimatePresence>
         {isCreateModalOpen && (
-          <motion.div 
+          <motion.div
             key="create-modal"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsCreateModalOpen(false)}
           >
             <motion.div
@@ -542,137 +582,166 @@ const Planning = () => {
               className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-[32px] border ${colors.card} p-8 shadow-2xl relative`}
             >
               <h2 className="text-3xl font-black mb-8 tracking-tighter">New Opportunity</h2>
-              
+
               <form onSubmit={handleCreateLead} className="space-y-6 text-left">
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Company Name</label>
-                      <input 
-                        required
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.companyName} 
-                        onChange={(e) => setNewLead({...newLead, companyName: e.target.value})}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Company Name
+                    </label>
+                    <input
+                      required
+                      className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.companyName}
+                      onChange={(e) => setNewLead({ ...newLead, companyName: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Job URL</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.jobLink} 
-                        onChange={(e) => setNewLead({...newLead, jobLink: e.target.value})}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Job URL
+                    </label>
+                    <input
+                      className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.jobLink}
+                      onChange={(e) => setNewLead({ ...newLead, jobLink: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Contact Email</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.email} 
-                        onChange={(e) => setNewLead({...newLead, email: e.target.value})}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Contact Email
+                    </label>
+                    <input
+                      className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.email}
+                      onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Location</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.location} 
-                        onChange={(e) => setNewLead({...newLead, location: e.target.value})}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Location
+                    </label>
+                    <input
+                      className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.location}
+                      onChange={(e) => setNewLead({ ...newLead, location: e.target.value })}
+                    />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Package / Salary</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.package} 
-                        onChange={(e) => setNewLead({...newLead, package: e.target.value})}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Package / Salary
+                    </label>
+                    <input
+                      className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.package}
+                      onChange={(e) => setNewLead({ ...newLead, package: e.target.value })}
+                    />
                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Priority Level</label>
-                      <Select 
-                        value={newLead.priority}
-                        onChange={(val) => setNewLead({...newLead, priority: val})}
-                        options={[
-                          { id: "High", label: "High Priority" },
-                          { id: "Medium", label: "Medium Priority" },
-                          { id: "Low", label: "Low Priority" }
-                        ]}
-                      />
-                   </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Priority Level
+                    </label>
+                    <Select
+                      value={newLead.priority}
+                      onChange={(val) => setNewLead({ ...newLead, priority: val })}
+                      options={[
+                        { id: "High", label: "High Priority" },
+                        { id: "Medium", label: "Medium Priority" },
+                        { id: "Low", label: "Low Priority" },
+                      ]}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Current Status</label>
-                      <Select 
-                        value={createFormStatus}
-                        onChange={setCreateFormStatus}
-                        options={[
-                          { id: "pending", label: "Pending" },
-                          { id: "applied", label: "Applied" }
-                        ]}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Current Status
+                    </label>
+                    <Select
+                      value={createFormStatus}
+                      onChange={setCreateFormStatus}
+                      options={[
+                        { id: "pending", label: "Pending" },
+                        { id: "applied", label: "Applied" },
+                      ]}
+                    />
                   </div>
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Portal Type</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        placeholder="e.g. Workday, Greenhouse"
-                        value={newLead.portalType} 
-                        onChange={(e) => setNewLead({...newLead, portalType: e.target.value})}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Portal Type
+                    </label>
+                    <input
+                      className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      placeholder="e.g. Workday, Greenhouse"
+                      value={newLead.portalType}
+                      onChange={(e) => setNewLead({ ...newLead, portalType: e.target.value })}
+                    />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-1 gap-4">
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Tech Stack</label>
-                      <input 
-                        className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        placeholder="e.g. MERN, Angular"
-                        value={newLead.techStack} 
-                        onChange={(e) => setNewLead({...newLead, techStack: e.target.value})}
-                      />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">
+                      Tech Stack
+                    </label>
+                    <input
+                      className={`w-full p-3 rounded-xl outline-none text-sm font-medium border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      placeholder="e.g. MERN, Angular"
+                      value={newLead.techStack}
+                      onChange={(e) => setNewLead({ ...newLead, techStack: e.target.value })}
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1">
-                        <Zap size={12} /> The Hook
-                      </label>
-                      <textarea 
-                        className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.theHook}
-                        onChange={(e) => setNewLead({...newLead, theHook: e.target.value})}
-                      />
-                   </div>
+                    <label className="text-[10px] font-black uppercase tracking-widest ml-1 flex items-center gap-1">
+                      <Zap size={12} /> The Hook
+                    </label>
+                    <textarea
+                      className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.theHook}
+                      onChange={(e) => setNewLead({ ...newLead, theHook: e.target.value })}
+                    />
+                  </div>
                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest ml-1 opacity-50 flex items-center gap-1">
-                        <Trophy size={12} /> Winning Move
-                      </label>
-                      <textarea 
-                        className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.winningMove}
-                        onChange={(e) => setNewLead({...newLead, winningMove: e.target.value})}
-                      />
-                   </div>
-                   <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest ml-1 opacity-50">Custom Pitch (Cover Letter summary)</label>
-                      <textarea 
-                        className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border-2 border-red-500/10 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
-                        value={newLead.customPitch}
-                        onChange={(e) => setNewLead({...newLead, customPitch: e.target.value})}
-                      />
-                   </div>
+                    <label className="text-[10px] font-black uppercase tracking-widest ml-1 opacity-50 flex items-center gap-1">
+                      <Trophy size={12} /> Winning Move
+                    </label>
+                    <textarea
+                      className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border border-gray-200 dark:border-zinc-800 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.winningMove}
+                      onChange={(e) => setNewLead({ ...newLead, winningMove: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest ml-1 opacity-50">
+                      Custom Pitch (Cover Letter summary)
+                    </label>
+                    <textarea
+                      className={`w-full p-4 rounded-2xl outline-none text-sm font-medium min-h-24 border-2 border-red-500/10 bg-white dark:bg-black text-gray-900 dark:text-white ${colors.input}`}
+                      value={newLead.customPitch}
+                      onChange={(e) => setNewLead({ ...newLead, customPitch: e.target.value })}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-6">
-                  <Button variant="secondary" type="button" onClick={() => setIsCreateModalOpen(false)} className="w-auto">Cancel</Button>
-                  <Button type="submit" className="w-auto">Ingest Lead</Button>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" className="w-auto">
+                    Ingest Lead
+                  </Button>
                 </div>
               </form>
             </motion.div>

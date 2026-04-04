@@ -25,7 +25,15 @@ const StatusSelect = ({ status, onChange }) => {
         type="button"
       >
         {active.label}
-        <svg fill="currentColor" width="12" height="12" viewBox="0 0 24 24" className={`transition-transform opacity-60 ${isOpen ? 'rotate-180' : ''}`}><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" /></svg>
+        <svg
+          fill="currentColor"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          className={`transition-transform opacity-60 ${isOpen ? "rotate-180" : ""}`}
+        >
+          <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+        </svg>
       </button>
 
       {isOpen && (
@@ -39,7 +47,9 @@ const StatusSelect = ({ status, onChange }) => {
               }}
               className={`px-3 py-2 text-[10px] font-bold uppercase tracking-wider cursor-pointer border-b border-gray-100 dark:border-zinc-800/50 last:border-none inline-flex items-center gap-2 w-full text-left transition-colors ${s.id === status ? s.color : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-900"}`}
             >
-              <div className={`w-2 h-2 rounded-full ${s.id === status ? "bg-current opacity-50" : "bg-gray-300 dark:bg-zinc-800"}`}></div>
+              <div
+                className={`w-2 h-2 rounded-full ${s.id === status ? "bg-current opacity-50" : "bg-gray-300 dark:bg-zinc-800"}`}
+              ></div>
               {s.label}
             </div>
           ))}

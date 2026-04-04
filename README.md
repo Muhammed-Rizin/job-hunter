@@ -33,32 +33,40 @@ The project follows a high-fidelity feature-based structure for maximum scalabil
 ## 🚀 Getting Started
 
 ### 1. Environment Configuration
+
 Create a `.env` file in the root directory:
+
 ```env
 VITE_API_URL=http://localhost:4000
 VITE_APP_NAME="Job Hunter"
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Launch Development Server
+
 ```bash
 npm run dev
 ```
 
 ### 4. Build for Production
+
 ```bash
 npm run build
 ```
 
 ## 📱 Mobile-First Design
+
 This application is designed with a "Mobile-First" philosophy. It includes:
+
 - A responsive floating `NavBar` for mobile touch targets.
 - Touch-optimized data grids and cards.
 - Full offline support and standalone display via PWA.
 
 ---
-*Developed with precision for Muhammed Rizin* 🛸
+
+_Developed with precision for Muhammed Rizin_ 🛸
