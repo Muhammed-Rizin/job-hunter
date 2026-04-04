@@ -34,6 +34,7 @@ const schema = new Schema(
       subject: String,
       body: String,
       to: String,
+      letterFile: String,
       sent: { type: Boolean, default: false },
       messageId: String,
     },

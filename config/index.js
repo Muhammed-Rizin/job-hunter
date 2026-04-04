@@ -1,3 +1,14 @@
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+// Use import.meta.url to get the current file's directory robustly in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Initialize environment variables first, looking one directory up from config/
+dotenv.config({ path: resolve(__dirname, "../.env") });
+
 export const NODE_ENV = process.env.NODE_ENV || "development";
 export const IS_PRODUCTION = NODE_ENV === "production";
 export const IS_DEVELOPMENT = NODE_ENV === "development";
@@ -5,7 +16,6 @@ export const IS_DEVELOPMENT = NODE_ENV === "development";
 export const PORT = process.env.PORT || 4000;
 export const DATABASE_URL = process.env.DATABASE_URL;
 export const DEFAULT_USER_EMAIL = process.env.DEFAULT_USER_EMAIL;
-
 
 export const MAIL_USER = process.env.MAIL_USER;
 export const MAIL_PASS = process.env.MAIL_PASS;

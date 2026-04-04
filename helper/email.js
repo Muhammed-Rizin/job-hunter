@@ -1,27 +1,61 @@
+import dns from "node:dns/promises";
+
+/**
+ * @desc    Verify if an email domain has valid MX records
+ */
+export const verifyDomain = async (email) => {
+  const domain = email.split("@")[1];
+  if (!domain) return false;
+
+  try {
+    const mxRecords = await dns.resolveMx(domain);
+    return mxRecords && mxRecords.length > 0;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * @desc    Check for blacklisted or high-risk email prefixes
+ */
+export const isHighRiskEmail = (email) => {
+  const riskyPrefixes = ["noreply", "no-reply", "webmaster", "support", "sales", "admin"];
+  const prefix = email.split("@")[0].toLowerCase();
+  return riskyPrefixes.some((p) => prefix.includes(p));
+};
+
+/**
+ * @desc    Generate a randomized subject line for emails
+ */
+export const getRandomSubject = (company, role) => {
+  const templates = [
+    `Application for ${role} role - Muhammed Rizin`,
+    `Interested in the ${role} position at ${company}`,
+    `${role} Application: Muhammed Rizin`,
+    `Muhammed Rizin - ${role} at ${company}`,
+    `Inquiry regarding ${role} vacancy at ${company}`,
+  ];
+  return templates[Math.floor(Math.random() * templates.length)];
+};
+
 const escapeHtml = (value = "") =>
-  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
  * Enhanced Markdown to HTML converter for professional emails.
- * Supports: Bold (**), Bullet Points (-, *, •), and Line Breaks.
  */
 export const markdownToHtml = (value = "") => {
   if (!value) return "";
 
-  const safe = escapeHtml(String(value));
-
-  // 1. Convert Bold (**text**)
+  const safe = escapeHtml(value);
   let html = safe.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 
-  // 2. Process line by line for Lists and Paragraphs
   const lines = html.split("\n");
   const processedLines = [];
   let inList = false;
 
   for (let line of lines) {
     const trimmed = line.trim();
-
-    // Check for list starters: "- ", "* ", or "• "
     const isListItem =
       trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("• ");
 
@@ -32,7 +66,6 @@ export const markdownToHtml = (value = "") => {
         );
         inList = true;
       }
-      // Remove the prefix and wrap in <li>
       const content = trimmed.replace(/^[-*•]\s+/, "");
       processedLines.push(`<li style="margin-bottom: 4px;">${content}</li>`);
     } else {
@@ -40,8 +73,6 @@ export const markdownToHtml = (value = "") => {
         processedLines.push("</ul>");
         inList = false;
       }
-
-      // Handle empty lines as paragraph breaks, others as line breaks
       if (trimmed === "") {
         processedLines.push('<div style="height: 12px;"></div>');
       } else {
@@ -50,7 +81,6 @@ export const markdownToHtml = (value = "") => {
     }
   }
 
-  // Close list if still open
   if (inList) processedLines.push("</ul>");
 
   return `

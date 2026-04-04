@@ -12,7 +12,9 @@ Backend server for the Job Hunter application, designed to manage job applicatio
 ## 🚀 Getting Started
 
 ### 1. Environment Setup
+
 Create a `.env` file in the root directory:
+
 ```env
 PORT=4000
 DATABASE_URL=your_mongodb_url
@@ -21,11 +23,13 @@ MAIL_PASS=your_app_password
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Run the Server
+
 ```bash
 # Development mode
 npm run dev
@@ -39,9 +43,11 @@ npm start
 The server includes specialized logic for AI Agent integration.
 
 ### Manual Application Script
+
 A standalone script is provided for agents to send applications with custom content and automatic resume attachment.
 
 **Command:**
+
 ```bash
 node scripts/agent-apply.js --json '{"to": "hr@company.com", "company": "Company", "role": "Role", "subject": "Subject", "body": "Body text"}'
 ```
@@ -56,4 +62,5 @@ node scripts/agent-apply.js --json '{"to": "hr@company.com", "company": "Company
 - `utils/`: Common helpers and converters (e.g., Markdown-to-HTML).
 
 ## 🔒 Security
+
 - All sensitive files and agent-generated JSON payloads in `scripts/` are excluded from version control via `.gitignore`.

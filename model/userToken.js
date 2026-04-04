@@ -14,7 +14,7 @@ const schema = new Schema(
       expires: 0,
     },
   },
-  { timestamps: true, collection: COLLECTIONS.USER_TOKEN }
+  { timestamps: true, collection: COLLECTIONS.USER_TOKEN },
 );
 
 export default model(COLLECTIONS.USER_TOKEN, schema);

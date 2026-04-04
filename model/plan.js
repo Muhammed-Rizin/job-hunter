@@ -20,10 +20,10 @@ const schema = new Schema(
 
     // New strategy fields for agent-guided applications
     winningMove: String, // Specific action to win the role
-    theHook: String,     // The unique selling point for this company
-    
+    theHook: String, // The unique selling point for this company
+
     // New fields for Manual Workflow optimization
-    portalType: String,  // e.g. "Workday", "Lever", "Greenhouse", "LinkedIn"
+    portalType: String, // e.g. "Workday", "Lever", "Greenhouse", "LinkedIn"
     customPitch: String, // Pre-generated 3-sentence elevator pitch
 
     // Role Details (Enhanced Tracking)

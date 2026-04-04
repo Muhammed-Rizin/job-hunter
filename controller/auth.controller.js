@@ -38,7 +38,12 @@ const resolveTokens = (tokens) => {
   const accessToken = tokens?.accessToken;
   const refreshToken = tokens?.refreshToken;
 
-  if (!accessToken || !refreshToken || accessToken === "undefined" || refreshToken === "undefined") {
+  if (
+    !accessToken ||
+    !refreshToken ||
+    accessToken === "undefined" ||
+    refreshToken === "undefined"
+  ) {
     throw new Error("Token generation failed", 500);
   }
 
@@ -237,7 +242,7 @@ export const googleCallback = asyncErrorHandler(async (req, res) => {
         redirect_uri: GOOGLE_OAUTH.REDIRECT_URI,
         grant_type: "authorization_code",
       }),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } },
     );
 
     const providerAccessToken = tokenResponse.data?.access_token;
@@ -313,7 +318,7 @@ export const githubCallback = asyncErrorHandler(async (req, res) => {
         code,
         redirect_uri: GITHUB_OAUTH.REDIRECT_URI,
       },
-      { headers: { Accept: "application/json" } }
+      { headers: { Accept: "application/json" } },
     );
 
     const providerAccessToken = tokenResponse.data?.access_token;

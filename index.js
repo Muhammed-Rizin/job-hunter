@@ -1,11 +1,15 @@
+import "./helper/dns.js";
+import { setupErrorHandlers } from "./helper/error.js";
+
+setupErrorHandlers("API", false);
+
 import express from "express";
+
 import logger from "morgan";
 import chalk from "chalk";
 import cors from "cors";
-
 import cookieParser from "cookie-parser";
 
-import "dotenv/config";
 import "./helper/global.js";
 
 import { PORT, ALLOWED_ORIGINS } from "./config/index.js";
@@ -39,5 +43,7 @@ app.use(notFound);
     app.listen(PORT, () => {
       console.log(chalk.blueBright(`Server listening on http://localhost:${PORT}`));
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(chalk.red("Initialization failed:"), error.message);
+  }
 })();

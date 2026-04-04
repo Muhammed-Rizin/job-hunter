@@ -70,9 +70,7 @@ export const updateStatus = asyncErrorHandler(async (req, res) => {
   if (isNull(id)) throw new Error("ID required", 400);
   if (isNull(status)) throw new Error("Status required", 400);
 
-  const application = await models.Application.findOne(
-    { _id: id, user: req.user._id },
-  );
+  const application = await models.Application.findOne({ _id: id, user: req.user._id });
 
   if (!application) throw new Error("Application not found", 404);
 
@@ -129,35 +127,24 @@ export const listBounced = asyncErrorHandler(async (req, res) => {
   return new Response("Bounced applications fetched", { data }, 200);
 });
 
+import { submitApplication } from "../services/application.service.js";
+
+/** ... other methods ... **/
+
 export const manual = asyncErrorHandler(async (req, res) => {
   const { to, subject, body, company, role, source, notes, appliedDate, planId } = req.body;
 
-  if (isNull(to)) throw new Error("Recipient email required", 400);
-  if (isNull(subject)) throw new Error("Mail subject required", 400);
-  if (isNull(body)) throw new Error("Mail body required", 400);
-
-  const userProfile = await models.User.findById(req.user._id, {
-    resumeLink: 1,
-    resumeName: 1,
-  });
-
-  const result = await sendMailService({
+  const result = await submitApplication(req.user, {
     to,
     subject,
-    html: markdownToHtml(body),
-    user: req.user._id,
+    body,
     company,
     role,
     source,
     notes,
     appliedDate,
-    resumeLink: userProfile?.resumeLink,
-    resumeName: userProfile?.resumeName,
+    planId,
   });
 
-  if (planId) {
-    await markPlanAsApplied(planId, result.messageId);
-  }
-
-  return new Response("Application manually entered & mail sent", null, 200);
+  return new Response("Application manually entered & mail sent", { result }, 200);
 });

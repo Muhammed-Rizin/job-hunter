@@ -22,6 +22,7 @@ export const sendMailService = async ({
   source = "mail",
   notes = "",
   appliedDate = null,
+  letterFile = null,
   logApplication = true,
 }) => {
   const normalizedTo = normalizeRecipientEmail(to);
@@ -81,6 +82,7 @@ export const sendMailService = async ({
         to: normalizedTo,
         subject,
         body: html || text,
+        letterFile: letterFile || null,
         hasAttachment: attachments.length > 0,
         sent: true,
         messageId: info.messageId,

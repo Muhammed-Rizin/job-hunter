@@ -29,7 +29,7 @@ export default class Counter {
     const result = await models.Counter.findOneAndUpdate(
       { _id: this.id },
       { $inc: { value: 1 } },
-      { new: true, upsert: true }
+      { new: true, upsert: true },
     );
     return result;
   }

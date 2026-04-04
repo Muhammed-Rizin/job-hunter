@@ -73,11 +73,9 @@ export const upsertActive = asyncErrorHandler(async (req, res) => {
 
   let data;
   if (!isNull(id)) {
-    data = await models.Goal.findOneAndUpdate(
-      { _id: id, user: req.user._id, status: 0 },
-      payload,
-      { new: true },
-    );
+    data = await models.Goal.findOneAndUpdate({ _id: id, user: req.user._id, status: 0 }, payload, {
+      new: true,
+    });
   }
 
   if (!data) {

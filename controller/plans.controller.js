@@ -1,19 +1,15 @@
-import models from "../model/index.js";
+import { createLead, getPendingLeads, updateLeadStatus } from "../services/lead.service.js";
 
 /**
  * @desc    List all active plans for a user
  * @route   GET /plans
  */
 export const list = asyncErrorHandler(async (req, res) => {
-  const { status } = req.query;
-  const filter = {
-    user: req.user._id,
-    statusFlag: 0,
-  };
-
-  if (!isNull(status) && status !== "all") filter.status = status;
-
-  const data = await models.Plan.find(filter).sort({ createdAt: -1 });
+  const { status, limit = 20 } = req.query;
+  const data = await getPendingLeads(req.user._id, {
+    limit: Number(limit),
+    hasEmail: status !== "all",
+  });
 
   return new Response("Plans fetched successfully", { data }, 200);
 });
@@ -23,42 +19,11 @@ export const list = asyncErrorHandler(async (req, res) => {
  * @route   POST /plans
  */
 export const create = asyncErrorHandler(async (req, res) => {
-  const {
-    companyName,
-    jobLink,
-    email,
-    details,
-    package: pkg,
-    location,
-    visaSupport,
-    priority,
-    techStack,
-    winningMove,
-    theHook,
-    portalType,
-    customPitch,
-  } = req.body;
+  const { skipped, plan, reason } = await createLead(req.user._id, req.body);
 
-  if (isNull(companyName)) throw new Error("Company name is required", 400);
+  if (skipped) throw new Error(reason, 409);
 
-  const data = await models.Plan.create({
-    companyName,
-    jobLink,
-    email,
-    package: pkg,
-    location,
-    visaSupport,
-    priority,
-    techStack,
-    winningMove,
-    theHook,
-    portalType,
-    customPitch,
-    details,
-    user: req.user._id,
-  });
-
-  return new Response("Plan created successfully", null, 201);
+  return new Response("Plan created successfully", { plan }, 201);
 });
 
 /**
