@@ -67,13 +67,15 @@ const run = async () => {
         if (res.leads) {
           log.info(res.message);
           res.leads.forEach((p) => console.log(`  - ${p.company} (${p.email})`));
-        } else {
+        } else if (res.reports) {
           log.success(`Batch complete. Sent: ${res.sent}, Skipped: ${res.skipped}`);
           res.reports.forEach((r) =>
             log[r.status === "sent" ? "success" : "warn"](
               `${r.company}: ${r.status} ${r.messageId || r.error || ""}`,
             ),
           );
+        } else {
+          log.info(res.message || "No pending leads found.");
         }
       } else {
         const planId = getArgValue("--plan");

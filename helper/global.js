@@ -17,7 +17,6 @@ global.isNull = (field) => {
 };
 
 global.asyncErrorHandler = asyncErrorHandler;
-global.Error = ErrorHandler;
 global.ErrorHandler = ErrorHandler;
 global.Response = Response;
 

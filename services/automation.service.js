@@ -1,4 +1,4 @@
-import { getPendingLeads, updateLeadStatus } from "./lead.service.js";
+import { getLeads, updateLeadStatus } from "./lead.service.js";
 import { generateLetter, submitApplication } from "./application.service.js";
 import { verifyDomain, isHighRiskEmail, getRandomSubject } from "../helper/email-safety.js";
 
@@ -6,7 +6,7 @@ import { verifyDomain, isHighRiskEmail, getRandomSubject } from "../helper/email
  * @desc    Batch process pending leads with randomized throttle and safety checks
  */
 export const orchestrateBatch = async (user, { limit = 10, target = 5, proceed = false }) => {
-  const pending = await getPendingLeads(user._id, { limit, hasEmail: true });
+  const pending = await getLeads(user._id, { limit, hasEmail: true, status: "pending" });
   if (pending.length === 0) return { message: "No pending leads with emails found." };
 
   if (!proceed) {

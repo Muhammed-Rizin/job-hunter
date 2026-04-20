@@ -66,6 +66,8 @@ export const generateLetter = async (plan, { customBody, customHook, customPitch
   return { body: customBody || body, filename, path: fullPath };
 };
 
+const isNull = (val) => val === undefined || val === null || val === "";
+
 /**
  * @desc    Check for duplicate applications by email
  */
